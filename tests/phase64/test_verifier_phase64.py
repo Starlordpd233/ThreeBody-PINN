@@ -2058,7 +2058,7 @@ VERDICT_EVIDENCE_RELS = (
     f"{EVIDENCE}/figure-1632.svg",
     f"{EVIDENCE}/figure-1632.provenance.json",
 )
-VERDICT_FIXTURE_RELS = (VERDICT_REL,) + VERDICT_EVIDENCE_RELS
+VERDICT_FIXTURE_RELS = (VERDICT_REL, f"{PHASE}/64-CHARTER.md") + VERDICT_EVIDENCE_RELS
 
 
 class VerdictCase(unittest.TestCase):
@@ -2376,9 +2376,17 @@ class VerdictContentTests(VerdictCase):
 
 CHARTER_REL = f"{PHASE}/64-CHARTER.md"
 RULING_REL = f"{PHASE}/64-CHECKPOINT-1-RULING.md"
-# `charter` reads numbers.json's digest and the ruling's existence through
-# REPO_ROOT; the temporary repository holds byte copies of both.
-CHARTER_FIXTURE_RELS = (CHARTER_REL, f"{EVIDENCE}/numbers.json")
+# `charter` reads numbers.json's digest, the ruling's existence, the three
+# CONTEXT quotes, the amendments document's lean and the frozen ctl anchors
+# through REPO_ROOT; the temporary repository holds byte copies of all of them.
+CHARTER_FIXTURE_RELS = (
+    CHARTER_REL,
+    f"{EVIDENCE}/numbers.json",
+    f"{PHASE}/64-CONTEXT.md",
+    "docs/work/designs/cross_cutting/v2.4-milestone-proposal/"
+    "2026-10-11-v2.4-feasibility-amendments.md",
+    "pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md",
+)
 
 
 class CharterRealTests(unittest.TestCase):
@@ -2635,10 +2643,9 @@ class CharterPageTests(CharterCase):
         self.assert_rejected(self.rebuild_row("C-2", cells), "does not offer option C")
 
     def test_c5_recommendation_must_be_conditional_on_c7(self):
-        mutated = replace_once(
-            self.charter, "conditional on C-7 being A", "after C-7"
-        )
-        self.assert_rejected(mutated, "not conditional on C-7")
+        cells = self.cells("C-5")
+        cells[2] = cells[2].replace("conditional on C-7 being A", "after C-7")
+        self.assert_rejected(self.rebuild_row("C-5", cells), "not conditional on C-7")
 
     def test_c5_options_must_put_b_before_c(self):
         cells = self.cells("C-5")
@@ -2814,6 +2821,292 @@ class CharterPreambleTests(CharterCase):
             code, _out, stderr = run_main(self.module, ["charter"])
         self.assertEqual(code, 1)
         self.assertIn("the charter is missing", stderr)
+
+
+class CharterContentCase(CharterCase):
+    """Charter plus the verdict fixture: ``rules`` scans both documents.
+
+    ``numbers`` is exercised with ``charter_text`` patched, because its manifest
+    check re-reads the committed citations through git.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.verdict = (ROOT / VERDICT_REL).read_text(encoding="utf-8")
+
+    def setUp(self):
+        super().setUp()
+        for relative in VERDICT_FIXTURE_RELS:
+            if not (self.root / relative).exists():
+                copy_bytes(self.root, relative)
+
+    def run_rules(self, text: str) -> tuple[int, str, str]:
+        (self.root / CHARTER_REL).write_text(text, encoding="utf-8")
+        with mock.patch.object(self.module, "REPO_ROOT", self.root):
+            return run_main(self.module, ["rules"])
+
+    def assert_rules_rejected(self, text: str, needle: str) -> str:
+        code, _stdout, stderr = self.run_rules(text)
+        self.assertEqual(code, 1, f"the mutated charter passed rules: {stderr}")
+        self.assertIn("FAIL-CLOSED", stderr)
+        self.assertIn(needle, stderr)
+        return stderr
+
+    def run_numbers(self, text: str) -> tuple[int, str, str]:
+        with mock.patch.object(self.module, "charter_text", lambda: text):
+            return run_main(self.module, ["numbers"])
+
+    def assert_numbers_rejected(self, text: str, needle: str) -> str:
+        code, _stdout, stderr = self.run_numbers(text)
+        self.assertEqual(code, 1, f"the mutated charter passed numbers: {stderr}")
+        self.assertIn("FAIL-CLOSED", stderr)
+        self.assertIn(needle, stderr)
+        return stderr
+
+    def move_block(self, text: str, *, heading: str) -> str:
+        start = text.index("```owner-quote\n")
+        end = text.index("```\n", start + 4) + 4
+        block = text[start:end]
+        mutated = text[:start] + text[end:]
+        return mutated.replace(
+            heading + "\n", heading + "\n\n" + block + "\n", 1
+        )
+
+
+class CharterContentRealTests(unittest.TestCase):
+    """The real charter, verdict and manifest pass all three modes together."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_verifier()
+
+    def test_real_charter_rules_and_numbers_pass(self):
+        for mode, token in (
+            ("charter", "CHARTER-OK"),
+            ("rules", "RULES-OK"),
+            ("numbers", "NUMBERS-OK"),
+        ):
+            code, out, err = run_main(self.module, [mode])
+            self.assertEqual(code, 0, f"{mode}: {err}")
+            self.assertIn(token, out.splitlines(), f"{mode}: {out!r}")
+
+
+class CharterContentTests(CharterContentCase):
+    """The appendices: quotes, drafts, bars, budget, stop rule and routing."""
+
+    def test_a_dropped_character_in_the_c1_quote_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "we're not aiming for a perfect research result",
+            "we're not aiming for a perfect research results",
+        )
+        self.assert_rejected(mutated, "C-1 owner quote is not byte-equal")
+
+    def test_a_dropped_character_in_the_c9_latest_quote_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "For now, the only device on which",
+            "For now, the only devices on which",
+        )
+        self.assert_rejected(mutated, "first C-9 owner quote is not byte-equal")
+
+    def test_a_dropped_character_in_the_c9_earlier_quote_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "We will not have access to a rented GPU",
+            "We will not have access to a rent GPU",
+        )
+        self.assert_rejected(mutated, "second C-9 owner quote is not byte-equal")
+
+    def test_the_two_c9_quotes_merged_into_one_block_fail(self):
+        mutated = replace_once(
+            self.charter,
+            "```\n\nEarlier statement, verbatim:\n\n```owner-quote\n",
+            "\n",
+        )
+        self.assert_rejected(mutated, "owner-quote blocks, not 3")
+
+    def test_the_c1_quote_moved_out_of_c1_fails(self):
+        mutated = self.move_block(self.charter, heading="## C-2: Definition of done")
+        self.assert_rejected(mutated, "owner-quote blocks sit under")
+
+    def test_a_fourth_owner_quote_block_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "## C-3: Current level\n",
+            "## C-3: Current level\n\n```owner-quote\nanother owner sentence\n```\n",
+        )
+        self.assert_rejected(mutated, "owner-quote blocks, not 3")
+
+    def test_the_stop_rule_altered_by_one_word_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "with no third attempt at the same idea",
+            "with no second attempt at the same idea",
+        )
+        self.assert_rejected(mutated, "does not hold the D-12 stop-rule text")
+
+    def test_c8_without_stages_1_to_6_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "Stages 1–6 are listed and left open",
+            "The later stages are listed and left open",
+        )
+        self.assert_rejected(mutated, "lacks 'Stages 1–6'")
+
+    def test_c8_without_open_fails(self):
+        mutated = replace_once(
+            self.charter, "are listed and left open until", "are listed and left until"
+        )
+        self.assert_rejected(mutated, "lacks 'open'")
+
+    def test_c5_appendix_option_a_without_conditional_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "- **A:** ε_H ≤ 10⁻² from autograd velocities, conditional on C-7 being A",
+            "- **A:** ε_H ≤ 10⁻² from autograd velocities, after C-7 is settled",
+        )
+        self.assert_rejected(mutated, "C-5 appendix option A is not conditional")
+
+    def test_c5_appendix_option_b_without_conditional_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "- **B:** ε_H ≤ 10⁻³, conditional on the C-7 answer.",
+            "- **B:** ε_H ≤ 10⁻³, whatever C-7 says.",
+        )
+        self.assert_rejected(mutated, "C-5 appendix option B is not conditional")
+
+    def test_c5_appendix_option_c_without_conditional_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "- **C:** ε_H ≤ 10⁻⁵, conditional on the C-7 answer.",
+            "- **C:** ε_H ≤ 10⁻⁵, whatever C-7 says.",
+        )
+        self.assert_rejected(mutated, "C-5 appendix option C is not conditional")
+
+    def test_c5_page_row_option_b_without_conditional_fails(self):
+        cells = self.cells("C-5")
+        cells[3] = cells[3].replace(
+            "B: ε_H ≤ 10⁻³, conditional on the C-7 answer", "B: ε_H ≤ 10⁻³"
+        )
+        self.assert_rejected(self.rebuild_row("C-5", cells), "C-5 option is not conditional")
+
+    def test_c5_page_row_option_c_without_conditional_fails(self):
+        cells = self.cells("C-5")
+        cells[3] = cells[3].replace(
+            "C: ε_H ≤ 10⁻⁵, conditional on the C-7 answer", "C: ε_H ≤ 10⁻⁵"
+        )
+        self.assert_rejected(self.rebuild_row("C-5", cells), "C-5 option is not conditional")
+
+    def test_the_c6_c7_reply_sentence_altered_by_one_word_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "so each stays open until you answer it.",
+            "so each stays open until you answer them.",
+        )
+        self.assert_rejected(mutated, "reply sentence exactly once")
+
+    def test_the_c6_c7_reply_sentence_moved_outside_the_page_fails(self):
+        mutated = replace_once(
+            self.charter, self.module.REPLY_RULE_C6_C7, ""
+        )
+        mutated = replace_once(
+            mutated,
+            self.module.PAGE_END,
+            self.module.PAGE_END + "\n\n" + self.module.REPLY_RULE_C6_C7,
+        )
+        self.assert_rejected(mutated, "reply sentence exactly once")
+
+    def test_c7_without_option_c_fails(self):
+        cells = self.cells("C-7")
+        cells[3] = "B: finite differences on a dense grid"
+        self.assert_rejected(self.rebuild_row("C-7", cells), "does not offer option C")
+
+    def test_a_changed_ctl_instruction_anchor_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "In our results, the final model shows minimal energy drift (e.g.,",
+            "In our results, the final model shows minimal energy drift (for example,",
+        )
+        self.assert_rejected(mutated, "does not quote ctl_instruction.md:2057")
+
+    def test_an_empty_core_value_draft_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "An evidence-backed, pre-registered answer at each milestone to whether "
+            "the approach learns three-body motion, in physical units, against this "
+            "charter's bars.",
+            "",
+        )
+        self.assert_rejected(mutated, "project-draft-core-value draft block is empty")
+
+    def test_a_changed_gap_64_01_label_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "carried forward to v2.5 as candidates.",
+            "carried forward to v2.5.",
+        )
+        self.assert_rejected(mutated, "does not hold the GAP-64-01 label A")
+
+    def test_the_c6_lean_altered_by_one_word_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "Relax the `10⁻⁵` bar, decided later, with evidence.",
+            "Relax the `10⁻⁵` bar, decided now, with evidence.",
+        )
+        self.assert_rejected(mutated, "does not hold the owner's recorded lean")
+
+    def test_the_c6_lean_moved_out_of_c6_fails(self):
+        lean = '"Relax the `10⁻⁵` bar, decided later, with evidence."'
+        mutated = replace_once(self.charter, lean, "")
+        mutated = replace_once(
+            mutated, "## C-7: GAP-59-08, how ε_H is measured\n",
+            "## C-7: GAP-59-08, how ε_H is measured\n\n" + lean + "\n",
+        )
+        self.assert_rejected(mutated, "does not hold the owner's recorded lean")
+
+    def test_a_guard_word_outside_a_fence_fails_rules(self):
+        mutated = replace_once(
+            self.charter,
+            "The budget is months of computing on this Mac.",
+            "The budget is months of computing on this Mac, not a cloud service.",
+        )
+        self.assert_rules_rejected(mutated, "guarded wording")
+
+    def test_a_guard_word_inside_an_owner_quote_fence_passes_rules(self):
+        mutated = replace_once(
+            self.charter,
+            "## C-9: Budget\n",
+            "## C-9: Budget\n\n```owner-quote\ncloud\n```\n",
+        )
+        code, out, err = self.run_rules(mutated)
+        self.assertEqual(code, 0, err)
+        self.assertIn("RULES-OK", out.splitlines())
+
+    def test_a_charter_required_token_removed_fails_numbers(self):
+        mutated = replace_once(self.charter, "22.378", "the total")
+        self.assert_numbers_rejected(
+            mutated, "does not render the entry hours.total ('22.378')"
+        )
+
+    def test_a_manifest_with_fewer_than_32_charter_entries_fails(self):
+        payload = json.loads((ROOT / EVIDENCE / "numbers.json").read_text())
+        for entry in payload["entries"]:
+            if "charter" in entry["required_in"]:
+                entry["required_in"].remove("charter")
+                break
+        original = self.module.load_json
+
+        def patched(path, *, what):
+            if Path(path).name == "numbers.json":
+                return payload
+            return original(path, what=what)
+
+        with mock.patch.object(self.module, "load_json", patched):
+            code, _out, stderr = run_main(self.module, ["numbers"])
+        self.assertEqual(code, 1)
+        self.assertIn("fewer than the 32", stderr)
 
 
 if __name__ == "__main__":

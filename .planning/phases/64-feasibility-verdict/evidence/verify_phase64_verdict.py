@@ -2344,8 +2344,10 @@ def check_numbers(
         _check_entry(entry, facts, digest_cache)
 
 
-def check_verdict_renders(payload: Any, text: str) -> None:
-    """Every entry the manifest marks verdict-required must render in the verdict.
+def _check_required_renders(
+    payload: Any, text: str, *, document: str, floor: int
+) -> None:
+    """Every entry the manifest marks ``document``-required must render in it.
 
     The plan's render map decides *where* each number goes; this check only
     requires the token to appear somewhere in the document. Text tokens
@@ -2362,19 +2364,19 @@ def check_verdict_renders(payload: Any, text: str) -> None:
     for entry in entries:
         if not isinstance(entry, Mapping):
             fail("a numbers.json entry is not an object")
-        if "verdict" in entry.get("required_in", ()):
+        if document in entry.get("required_in", ()):
             required.append(entry)
-    if len(required) < VERDICT_REQUIRED_COUNT:
+    if len(required) < floor:
         fail(
-            f"numbers.json marks {len(required)} entries verdict-required, fewer "
-            f"than the {VERDICT_REQUIRED_COUNT} the manifest held"
+            f"numbers.json marks {len(required)} entries {document}-required, "
+            f"fewer than the {floor} the manifest held"
         )
     for entry in required:
         entry_id = entry.get("id")
         render = entry.get("render")
         rule = entry.get("render_rule")
         if not isinstance(entry_id, str) or not entry_id:
-            fail(f"a verdict-required entry has no id: {entry!r}")
+            fail(f"a {document}-required entry has no id: {entry!r}")
         if not isinstance(render, str) or not render:
             fail(f"entry {entry_id} has no render token")
         if rule in VERDICT_TEXT_RULES:
@@ -2384,7 +2386,21 @@ def check_verdict_renders(payload: Any, text: str) -> None:
                 re.search(rf"(?<!\d){re.escape(render)}(?!\d)", text) is not None
             )
         if not present:
-            fail(f"the verdict does not render the entry {entry_id} ({render!r})")
+            fail(f"the {document} does not render the entry {entry_id} ({render!r})")
+
+
+def check_verdict_renders(payload: Any, text: str) -> None:
+    """Every entry the manifest marks verdict-required must render in the verdict."""
+    _check_required_renders(
+        payload, text, document="verdict", floor=VERDICT_REQUIRED_COUNT
+    )
+
+
+def check_charter_renders(payload: Any, text: str) -> None:
+    """Every entry the manifest marks charter-required must render in the charter."""
+    _check_required_renders(
+        payload, text, document="charter", floor=CHARTER_REQUIRED_COUNT
+    )
 
 
 def cmd_numbers(_args: argparse.Namespace) -> None:
@@ -2392,6 +2408,7 @@ def cmd_numbers(_args: argparse.Namespace) -> None:
     payload = load_json(repo_path(NUMBERS_REL, what="numbers.json"), what="numbers.json")
     check_numbers(payload)
     check_verdict_renders(payload, verdict_text())
+    check_charter_renders(payload, charter_text())
     print(f"entries {len(payload['entries'])}")
     print("NUMBERS-OK")
 
@@ -3078,7 +3095,7 @@ def _without_fences(text: str) -> tuple[str, list[tuple[str, list[str]]]]:
     return "\n".join(kept), [(info, content) for info, _s, _e, content in spans]
 
 
-def strip_owner_quotes(text: str) -> str:
+def strip_owner_quotes(text: str, *, what: str = "the verdict") -> str:
     """Blank every fenced block whose info string is ``owner-quote``.
 
     The owner's words are allowed to name things the project itself may not
@@ -3099,7 +3116,7 @@ def strip_owner_quotes(text: str) -> str:
         index += 1
         while True:
             if index >= len(lines):
-                fail("a fenced block in the verdict is never closed")
+                fail(f"a fenced block in {what} is never closed")
             block.append(lines[index])
             closing = _FENCE_CLOSE.match(lines[index])
             if (
@@ -3418,6 +3435,314 @@ REPLY_RULE_C6_C7 = (
     'example "C-6: A"; "approve all" and "approve the rest" do not cover '
     "them, so each stays open until you answer it."
 )
+CONTEXT_REL = PHASE_REL / "64-CONTEXT.md"
+CTL_REL = Path(
+    "pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md"
+)
+CHARTER_OWNER_QUOTE = "owner-quote"
+CHARTER_DRAFT_INFOS = (
+    "project-draft-what-this-is",
+    "project-draft-core-value",
+    "project-draft-title",
+    "project-draft-model",
+)
+CHARTER_DRAFT_SECTIONS = {
+    "## C-12: Rewriting What This Is and Core Value in PROJECT.md": (
+        "project-draft-what-this-is",
+        "project-draft-core-value",
+    ),
+    "## C-13: The title line and the Model constraint in PROJECT.md": (
+        "project-draft-title",
+        "project-draft-model",
+    ),
+}
+# 64-02's manifest marks 32 entries charter-required; a literal floor means a
+# manifest edit that drops required_in values fails instead of shrinking.
+CHARTER_REQUIRED_COUNT = 32
+SKIPPED_PHASE_REQUIREMENTS = (
+    "CONF-10",
+    "CONF-11",
+    "INST-06",
+    "INST-07",
+    "SPEC-07",
+    "SPEC-08",
+    "SPEC-09",
+    "SPEC-10",
+    "GATE-05",
+    "FEAS-05",
+    "RUN-06",
+    "DIAG-08",
+)
+GAP_6401_LABELS = {
+    "A": "Skipped at G2 (no rescue), not failed; carried forward to v2.5 as candidates.",
+    "B": "Skipped at G2 (no rescue), not failed; not carried forward.",
+    "C": "Pending",
+}
+# Tokens whose placement in the appendices the charter mode checks. The numbers
+# mode separately requires every charter-required manifest entry to appear
+# somewhere; this table decides where the bars, the budget and the baseline
+# numbers must sit, so a value moved into the wrong item fails.
+CHARTER_SECTION_TOKENS = {
+    "## C-2: Definition of done": ("2 of 3", "Level 6", "Level 3", "Level 9"),
+    "## C-4: Stage-0 pass bar, position criterion": (
+        "0.989",
+        "0.940",
+        "2.135",
+        "1.1396",
+        "1.2337",
+        "1.14",
+        "1.24",
+        "Tier 1: E ≤ 0.1",
+        "Tier 2: E ≤ 0.01",
+        "10⁻³",
+        "Tier 3: E ≤ 0.01",
+        "10⁻⁵",
+        "2 of 3",
+        "12 of 16",
+        "75%",
+        "18.61",
+        "1,169",
+        "position criterion",
+        "fixed before any held-out exam",
+    ),
+    "## C-5: Stage-0 pass bar, energy criterion": (
+        "energy criterion",
+        "never used alone",
+        "10⁻²",
+        "0.02–3%",
+        "10⁻³",
+        "10⁻⁵",
+        "0.01",
+    ),
+    "## C-6: The 10⁻⁵ held-out bar": (
+        "replace it by formal amendment",
+        "pinn_architecture.md",
+        "passes at equality",
+        "outside the agent's delegation",
+    ),
+    "## C-7: GAP-59-08, how ε_H is measured": (
+        "4.7e-2",
+        "2.1e-1",
+        "3.8e-1",
+        "5–38%",
+        "autograd",
+        "finite differences",
+        "keep the gate as it is",
+        "blocks any held-out spend",
+    ),
+    "## C-8: Pass bars for Stages 1–6": (
+        "Stages 1–6",
+        "open",
+        "Stage 3 is empty",
+        "owner-pending",
+    ),
+    "## C-9: Budget": (
+        "2.573",
+        "3.046",
+        "5.693",
+        "22.378",
+        "12.3",
+        "200,000",
+        "300,000",
+        "28.5",
+        "42.8",
+        "100,000",
+        "0.3",
+        "for scale only",
+        "not yet measured",
+        "months",
+    ),
+    "## C-10: Stop rule": (
+        "123.62",
+        "g2s-1632-w240",
+        "1.1396",
+        "1.2337",
+        "1.14",
+        "1.24",
+        "Level 1",
+        "Tier 0",
+        "Tier 1 (E ≤ 0.1)",
+    ),
+}
+
+
+def _context_quote(text: str, anchor: str) -> str:
+    """The text between ``anchor`` and the line's closing double quote."""
+    matches = [line for line in _LINE_BREAK.split(text) if anchor in line]
+    if len(matches) != 1:
+        fail(f"the source holds {len(matches)} lines with {anchor!r}, not 1")
+    tail = matches[0].split(anchor, 1)[1].strip()
+    if len(tail) < 2 or not tail.startswith('"') or not tail.endswith('"'):
+        fail(f"the text after {anchor!r} is not between straight double quotes")
+    return tail[1:-1]
+
+
+def _section_text(text: str, heading: str, *, visible: bool) -> str:
+    """One appendix's body, with its fenced blocks blanked when ``visible``."""
+    lines = _LINE_BREAK.split(text)
+    body = "\n".join(_section_body(lines, heading, what="the charter"))
+    if not visible:
+        return body
+    stripped, _blocks = _without_fences(body)
+    return stripped
+
+
+def _enclosing_heading(lines: Sequence[str], index: int) -> Optional[str]:
+    for line in reversed(lines[:index]):
+        if line.startswith("## "):
+            return line.rstrip()
+    return None
+
+
+def _check_charter_quotes(text: str) -> None:
+    """Exactly three owner-quote blocks, byte-equal and in their sections."""
+    context = _read_text(
+        repo_path(CONTEXT_REL, what="64-CONTEXT.md"), what="64-CONTEXT.md"
+    )
+    latest = _context_quote(context, "Latest statement, verbatim: ")
+    earlier = _context_quote(context, "Earlier statement, verbatim: ")
+    purpose = _context_quote(
+        context, "The owner's answer, verbatim (2026-10-25): "
+    )
+    stop = _context_quote(
+        context, "FEAS-10's draft text is the recommended default: "
+    )
+
+    lines = _LINE_BREAK.split(text)
+    quotes = [
+        (start, "\n".join(content))
+        for info, start, _end, content in _fenced_spans(text)
+        if info.strip() == CHARTER_OWNER_QUOTE
+    ]
+    if len(quotes) != 3:
+        fail(f"the charter holds {len(quotes)} owner-quote blocks, not 3")
+    sections = [_enclosing_heading(lines, start) for start, _body in quotes]
+    if sections != ["## C-1: Purpose", "## C-9: Budget", "## C-9: Budget"]:
+        fail(
+            "the owner-quote blocks sit under "
+            f"{sections!r}, not C-1 once and C-9 twice"
+        )
+    if quotes[0][1] != purpose:
+        fail("the C-1 owner quote is not byte-equal to 64-CONTEXT D-07")
+    if quotes[1][1] != latest:
+        fail(
+            "the first C-9 owner quote is not byte-equal to 64-CONTEXT D-06's "
+            "latest statement"
+        )
+    if quotes[2][1] != earlier:
+        fail(
+            "the second C-9 owner quote is not byte-equal to 64-CONTEXT D-06's "
+            "earlier statement"
+        )
+    c10 = _section_text(text, "## C-10: Stop rule", visible=True)
+    if f'"{stop}"' not in c10:
+        fail(
+            "the C-10 section does not hold the D-12 stop-rule text between "
+            "straight double quotes"
+        )
+
+
+def _check_charter_drafts(text: str) -> None:
+    """The four PROJECT.md draft blocks: one each, non-empty, in C-12 or C-13."""
+    lines = _LINE_BREAK.split(text)
+    seen: dict[str, str] = {}
+    for info, start, _end, content in _fenced_spans(text):
+        name = info.strip()
+        if name not in CHARTER_DRAFT_INFOS:
+            continue
+        if name in seen:
+            fail(f"the charter holds two {name} draft blocks")
+        section = _enclosing_heading(lines, start)
+        allowed = CHARTER_DRAFT_SECTIONS.get(section or "", ())
+        if name not in allowed:
+            fail(f"the {name} draft block sits under {section!r}")
+        body = "\n".join(content).strip()
+        if not body:
+            fail(f"the {name} draft block is empty")
+        for number, line in guard_violations(body):
+            fail(f"the {name} draft block line {number} carries guarded wording: {line}")
+        for pattern, description in BANNED_WORDING:
+            match = pattern.search(body)
+            if match is not None:
+                fail(
+                    f"the {name} draft block carries {description}: "
+                    f"{match.group(0)!r}"
+                )
+        seen[name] = body
+    missing = [name for name in CHARTER_DRAFT_INFOS if name not in seen]
+    if missing:
+        fail(f"the charter lacks the draft blocks {missing!r}")
+
+
+def _check_charter_content(text: str) -> None:
+    """The appendices: quotes, drafts, per-section tokens and fixed sources."""
+    _check_charter_quotes(text)
+    _check_charter_drafts(text)
+    for heading, tokens in CHARTER_SECTION_TOKENS.items():
+        body = _section_text(text, heading, visible=True)
+        for token in tokens:
+            if token not in body:
+                fail(f"the charter section {heading!r} lacks {token!r}")
+    c5 = _section_text(
+        text, "## C-5: Stage-0 pass bar, energy criterion", visible=True
+    )
+    for letter in ("A", "B", "C"):
+        marker = f"- **{letter}:**"
+        matching = [line for line in _LINE_BREAK.split(c5) if line.startswith(marker)]
+        if len(matching) != 1:
+            fail(f"the C-5 appendix holds {len(matching)} {letter} options, not 1")
+        if "conditional on" not in matching[0]:
+            fail(
+                f"the C-5 appendix option {letter} is not conditional on the "
+                "C-7 answer"
+            )
+    amendments = _read_text(
+        repo_path(AMENDMENTS_REL, what="the amendments document"),
+        what="the amendments document",
+    )
+    lean_lines = [
+        line
+        for line in _LINE_BREAK.split(amendments)
+        if "- **The owner's lean.** " in line
+    ]
+    if len(lean_lines) != 1:
+        fail(
+            "the amendments document holds "
+            f"{len(lean_lines)} owner's-lean lines, not 1"
+        )
+    lean = lean_lines[0].split("- **The owner's lean.** ", 1)[1].strip()
+    if not lean:
+        fail("the amendments document's owner's lean is empty")
+    c6 = _section_text(text, "## C-6: The 10⁻⁵ held-out bar", visible=True)
+    if f'"{lean}"' not in c6:
+        fail(
+            "the C-6 section does not hold the owner's recorded lean between "
+            "straight double quotes"
+        )
+    spec = _read_text(
+        repo_path(CTL_REL, what="ctl_instruction.md"), what="ctl_instruction.md"
+    )
+    spec_lines = _LINE_BREAK.split(spec)
+    c11 = _section_text(
+        text, "## C-11: The evaluation section of ctl_instruction.md", visible=True
+    )
+    for number in (2057, 2081, 2111):
+        anchor = spec_lines[number - 1].strip()
+        if anchor not in c11:
+            fail(f"the C-11 section does not quote ctl_instruction.md:{number}")
+    c14 = _section_text(
+        text,
+        "## C-14: The requirements of the skipped phases (GAP-64-01)",
+        visible=True,
+    )
+    for requirement in SKIPPED_PHASE_REQUIREMENTS:
+        if requirement not in c14:
+            fail(f"the C-14 section does not name {requirement}")
+    for letter, label in GAP_6401_LABELS.items():
+        if label not in c14:
+            fail(f"the C-14 section does not hold the GAP-64-01 label {letter}")
+    if "- [ ]" not in c14:
+        fail("the C-14 section does not show the checkboxes unticked")
 
 
 def _table_cells(line: str, *, what: str) -> list[str]:
@@ -3618,7 +3943,22 @@ def cmd_charter(_args: argparse.Namespace) -> None:
             f"exactly once in order: found {found!r}"
         )
     _check_charter_page(text)
+    _check_charter_content(text)
     print("CHARTER-OK")
+
+
+def _scan_owner_fenced_document(text: str, *, what: str) -> None:
+    """The Mac-only guard, the banned wording and the home path, quotes stripped."""
+    stripped = strip_owner_quotes(text, what=what)
+    for number, line in guard_violations(stripped):
+        fail(f"{what} line {number} carries guarded wording: {line}")
+    for pattern, description in BANNED_WORDING:
+        match = pattern.search(stripped)
+        if match is not None:
+            fail(f"{what} carries {description}: {match.group(0)!r}")
+    home = str(Path.home())
+    if home and home in stripped:
+        fail(f"{what} contains the host home prefix")
 
 
 def cmd_rules(_args: argparse.Namespace) -> None:
@@ -3714,6 +4054,14 @@ def cmd_rules(_args: argparse.Namespace) -> None:
         match = pattern.search(stripped)
         if match is not None:
             fail(f"the verdict carries {description}: {match.group(0)!r}")
+
+    charter = charter_text()
+    _scan_owner_fenced_document(charter, what="the charter")
+    ruling_path = repo_path(RULING_REL, what="the ruling")
+    if ruling_path.is_file():
+        _scan_owner_fenced_document(
+            _read_text(ruling_path, what="the ruling"), what="the ruling"
+        )
 
     home = str(Path.home())
     if home:
