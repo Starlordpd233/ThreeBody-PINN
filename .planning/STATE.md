@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 64
 current_phase_name: Feasibility Verdict
 status: planning
-stopped_at: "Phase 64 context gathered 2026-10-25 (64-CONTEXT.md, d3fb9816); not yet planned. Phase 60 closed 2026-10-23 at Gate G2 with no rescue; Phases 61-63 skipped at G2, not failed"
-last_updated: "2026-10-25T16:40:00Z"
+stopped_at: Phase 64 planned 2026-10-25 (7 plans in 7 waves; owner checkpoint one is plan 64-06); next is /gsd-execute-phase 64. Phase 60 closed 2026-10-23 at Gate G2 with no rescue; Phases 61-63 skipped at G2, not failed
+last_updated: "2026-10-26T02:57:07.897Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 64 discussed (all four areas) and its context captured. The verdict states the frozen RETHINK-REPRESENTATION output exactly, with the time-constant-predictor evidence beside it; costs are measured hours on this Mac plus a labelled for-scale figure; the charter is pre-filled for checkpoint one with the owner's purpose recorded verbatim (learning plus a proof of concept). The rented-GPU wording in ROADMAP criterion 3, FEAS-06 and FEAS-10 contradicted the owner's standing Mac-only rule and was removed (bb323a52).
-state_head: d3fb9816
+state_head: e08ddfa031d904e5e162ebf462cdc034c343cfc2
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 33
+  total_plans: 40
   completed_plans: 33
-  percent: 100
+  percent: 82
 ---
 
 # Project State
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 64 — Feasibility Verdict, context gathered 2026-10-25 (`64-CONTEXT.md`), ready to plan. Phase 60 is closed (verified; the ladder stopped at Gate G2 with no rescue) and Phases 61-63 are skipped at G2. Phase 64 reads `evidence/g2/stop-handoff.json`; all computation is on this Mac.
+**Current focus:** Phase 64 — Feasibility Verdict, planned 2026-10-25 (7 plans in 7 waves, `64-01-PLAN.md` to `64-07-PLAN.md`), ready to execute. Plan 64-06 holds owner checkpoint ①. Phase 60 is closed (verified; the ladder stopped at Gate G2 with no rescue) and Phases 61-63 are skipped at G2. Phase 64 reads `evidence/g2/stop-handoff.json`; all computation is on this Mac.
 
 ## Current Position
 
-Phase: 64 (Feasibility Verdict) — context gathered 2026-10-25; not yet planned. Phase 60 closed and verified 2026-10-23 (Gate G2 fired and the sweep found no rescue); Phases 61-63 skipped at G2, not failed
-Plan: not yet planned (Phase 60 ran 23 of 23 plans in 22 waves)
-Status: Phase 64 context gathered (`64-CONTEXT.md`, `d3fb9816`); next is /gsd-plan-phase 64. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`).
-Last activity: 2026-10-25 — Phase 64 discussed and its context captured
+Phase: 64 (Feasibility Verdict) — planned, ready to execute
+Plan: 7 plans in 7 waves, none started (64-06 holds owner checkpoint ①; 64-07 applies only what the owner approves)
+Status: Phase 64 planned and checked. The owner confirmed GAP-64-02 (ruling record format, option A), GAP-64-03 (roadmap wording kept) and that "approve all" does not cover C-6 or C-7. GAP-64-01 and GAP-59-08 stay open for checkpoint ①. Next is /gsd-execute-phase 64. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`).
+Last activity: 2026-10-25 — Phase 64 planned
 
 ### Decisions from the Phase 64 discussion (2026-10-25)
 

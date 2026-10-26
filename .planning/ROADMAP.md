@@ -393,7 +393,37 @@ Plans:
 
      The owner's decision and choices are recorded verbatim, including whether the `10⁻⁵` bar stays. Items left open are recorded as open.
   6. Every v2.4 requirement maps to exactly one phase. This is re-verified against the final requirement count.
-**Plans**: TBD
+**Plans**: 7 plans in 7 waves, one at a time, because every plan extends the same verifier and test file. Only 64-06 is non-autonomous: it holds owner checkpoint ①, the phase's single owner question, after every automated check is green. 64-07 applies only what the owner approved there.
+
+Plans:
+
+**Wave 1**
+
+- [ ] 64-01-PLAN.md — Wave 1: tracer, the verifier's inputs check (the sealed handoff and the label re-derived by the frozen rule), the frozen-path check, and the traceability check for VER-22 (FEAS-06, VER-22)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 64-02-PLAN.md — Wave 2: the number manifest, re-derived from the committed records and, on the CPU in float64, from the committed weights, including the time-constant evidence (FEAS-06, FEAS-10)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 64-03-PLAN.md — Wave 3: the one figure, system 1632's real orbit beside the network's prediction, with its provenance (FEAS-06)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 64-04-PLAN.md — Wave 4: the feasibility verdict, plain language first, with its rules check (FEAS-06)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 64-05-PLAN.md — Wave 5: the pre-filled one-page charter with appendices, and the ruling check (FEAS-10, FEAS-06)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 64-06-PLAN.md — Wave 6: owner checkpoint ①, the decision and the charter in one reply, recorded verbatim (FEAS-06, FEAS-10)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 64-07-PLAN.md — Wave 7: apply what the owner approved, tick the requirements, VER-22's binding check and the final check (FEAS-06, FEAS-10, VER-22)
 
 ## Progress
 
@@ -404,7 +434,7 @@ Plans:
 | 61. Conformance & Instrumentation | 0/TBD | Skipped at G2 (no rescue), not failed | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Skipped at G2 (no rescue), not failed | - |
 | 63. Corrected Control | 0/TBD | Skipped at G2 (no rescue), not failed | - |
-| 64. Feasibility Verdict | 0/TBD | Not started | - |
+| 64. Feasibility Verdict | 0/7 | Not started | - |
 
 ---
 *v2.4 created 2026-10-09 (`/gsd-new-milestone`). The roadmap was generated inline from the v2.4 proposal, ratified under owner delegation at `0b400dfa`.*

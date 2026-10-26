@@ -685,17 +685,23 @@ Tested: 0 hits on `60-FINDINGS.md` (its "this Mac's GPU (MPS ...)" passes); it f
 | A8 | File names, the `tests/phase64` package and the six-plan decomposition | Structure, Open Questions | Discretionary; any equivalent works |
 | A9 | The owner answers checkpoint ① in free text in chat | Pattern 3 | If the answer arrives by another route, record it the same way |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How should the 12 requirements of the skipped phases be labelled at close?** (Source-silent; a candidate STOP item for the orchestrator to judge.)
    - What we know: CONF-10, CONF-11, INST-06, INST-07, SPEC-07 to SPEC-10, GATE-05, FEAS-05, RUN-06 and DIAG-08 read "Pending"; their phases read "Skipped at G2 (no rescue), not failed". VER-22 only tests the mapping. The v2.3 close recorded owner-decided dispositions beside VER-21.
    - What's unclear: whether "Pending" stands, or each gets a disposition, and whether it is carried forward to v2.5.
    - Recommendation: do not decide in the plan; fold one pre-filled line into checkpoint ① (proposed label "Skipped at G2 (no rescue), not failed; carried forward"), and apply it only if the owner approves.
+   - → **Routed, not resolved by a plan:** GAP-64-01 in `64-GAPS.md` (OPEN, owner-routed). Checkpoint ① shows it as one pre-filled line (charter row C-14, option A as the default, `64-05-PLAN.md`), and `64-07-PLAN.md` applies only the label the owner chooses.
 2. **What does "beats the best fixed-scorecard result" mean in the stop rule?** The baseline is a constant predictor, so a margin is needed. Offer options with a recommended default and leave the margin to the owner.
+   - → **Resolved by D-12:** charter row C-10 (`64-05-PLAN.md`) proposes a default margin (A: at least one panel system reaches Tier 1, `E` at most 0.1), beside B (`E` below the constant predictor's by a margin the owner names) and C (any lower `E`); the owner decides at checkpoint ①.
 3. **Should the rewrite go beyond "What This Is" and Core Value?** The title line and the Model constraint stay LLM-flavoured. One extra pre-filled line at the checkpoint.
+   - → **Resolved by D-13:** one pre-filled charter line, C-13 (`64-05-PLAN.md`), offers rewriting the title line and the Model constraint too (A, with a draft) or leaving them (B); `64-07-PLAN.md` applies it only on the owner's approval.
 4. **Mention the 2025 PINN paper?** It supports the "no novelty claim" sentence. Optional; read the full text before characterizing its data.
+   - → **Decided:** optional, and only by what its abstract states, with no characterization of its data (`64-04-PLAN.md` `<interfaces>`, sources per section), so the full text need not be read; its data scope stays [ASSUMED] (A2), and it is not one of FEAS-06's comparison points.
 5. **Numeric Stage-0 bar and budget.** These are proposals. If the owner would rather name the numbers, the page needs only an empty "Owner" cell.
+   - → **Resolved by D-08 and D-09 (the bar) and D-11 (the budget):** C-4, C-5 and C-9 are pre-filled proposals on the charter page (`64-05-PLAN.md`), each with other options and an empty Owner cell; the owner approves them or names other numbers at checkpoint ①.
 6. **The Key Decisions row in `PROJECT.md`.** v2.3 and earlier closes added one. `/gsd-complete-milestone` (out of scope) handles Evolution; add the row only if the plan takes it on explicitly.
+   - → **Not taken on:** no Phase 64 plan adds the row (`64-07-PLAN.md` changes only the `PROJECT.md` parts the owner approves); it is left to `/gsd-complete-milestone`, which `64-CONTEXT.md` lists under "After Phase 64", out of scope here.
 
 ## Environment Availability
 
