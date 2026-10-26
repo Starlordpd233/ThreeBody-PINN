@@ -958,11 +958,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/64-feasibility-verdict/64-CONTEXT.md (the Phase 64 decisions; its canonical references include the v2.4 roadmap proposal `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md` and its 2026-10-11 amendments)
+**Resume file:** .planning/reports/MILESTONE_SUMMARY-v2.4.md (the v2.4 onboarding summary; its section 7 says where the next work starts)
 
-Last session: 2026-10-25
-Stopped at: Phase 64 context gathered 2026-10-25 (`64-CONTEXT.md`, `d3fb9816`). Not yet planned.
-Next action: plan Phase 64 (/gsd-plan-phase 64 from .worktrees/trainex), then show the owner the plan outline before executing. Checkpoint ① (the pre-filled charter, with GAP-59-08 beside the pass bars) comes near the end of execution and blocks the milestone close. All computation is on this Mac.
+Last session: 2026-10-26
+Stopped at: Milestone v2.4 summary generated 2026-10-26 (`7b83e8a0`), after the audit (`5c1a05f6`), the learnings (`38a3ed5e`) and the close (`8bce08f2`, `dcf86c0b`, `5c38a76f`; local tag `v2.4`).
+Next action: initialize v2.5 (`/gsd-new-milestone` from .worktrees/trainex), whose first phase is the `trainex-r5` research round. Charter rows C-1..C-14 are open for the owner. Any merge to master and any tag push are the owner's. All computation is on this Mac.
 
 ## Operator Next Steps
 
