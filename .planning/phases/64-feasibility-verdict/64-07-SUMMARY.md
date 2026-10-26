@@ -196,7 +196,6 @@ The twelve skipped-phase rows still read `Pending` with unticked boxes: `CONF-10
 - `actuals.tokens` is chars/4 over the realized diff of this plan's seven files (47,494 bytes), not a harness token count, so it is comparable with the plan's 60,000 estimate.
 
 ## For the orchestrator
-
 - **C-7 is `open`.** `.planning/phases/59-read-only-baseline-scorecard/59-GAPS.md` GAP-59-08 therefore **stays OPEN**: no amendment was written, no evaluator or gate was changed, and the sign-off makes no claim that the `10⁻⁵` bar was retained or replaced. There is no resolution to record in the gap register.
 - **C-14 is `open`.** `.planning/phases/64-feasibility-verdict/64-GAPS.md` GAP-64-01 therefore **stays OPEN**: the twelve skipped-phase requirements keep `Pending` and unticked checkboxes, and **no label was applied** to the traceability table. There is no resolution to record in the gap register.
 - This plan wrote no gap register, no spec, no amendment and no PROJECT.md edit. `git diff 1ebb1d9b -- .planning/PROJECT.md pinn_instruction` is empty.
@@ -208,3 +207,11 @@ The twelve skipped-phase rows still read `Pending` with unticked boxes: `CONF-10
 - Commits `707a608e` (`docs(64-07): apply the owner answers from checkpoint 1`), `5a447624` (`docs(planning): close phase 64`) and `fee0223d` (`feat(64-07): add the final phase 64 check`) are in `git log 36dfc2c0..HEAD`.
 - `RULING-OK`, `CHARTER-OK`, `RULES-OK`, `NUMBERS-OK`, `TRACEABILITY-OK` and `PHASE64-VERDICT-OK` were run and seen on the committed tree; the unit suite is 285 tests, `OK`.
 - PROJECT.md, `pinn_instruction/` and the twelve skipped-phase status cells are unchanged: `git diff --quiet 1ebb1d9b -- .planning/PROJECT.md pinn_instruction` exits 0 and all twelve rows still read `Pending`.
+
+## Orchestrator follow-up after the plan run
+
+The plan flagged one observation and left it, correctly, because Task 1 said to change nothing else: the verdict's opening still read "**Status.** `awaiting-owner` … is still pending" while its front matter, sign-off, ROADMAP and STATE recorded the owner as having signed `change-course`.
+
+`7ee7de2c fix(64-07): align the verdict status line with the signed state` corrects that line and adds the guard that would have caught it: when the front matter says `owner-signed`, the preamble may not say the decision is still pending, and `owner_decision`, `owner_decision_date`, `ruling_citation` and `ruling_sha256` may none of them remain `pending`. Two negative controls cover both branches.
+
+After the correction: 287 tests `OK` (285 plus the two controls), `RULES-OK`, and `final` printing `PHASE64-VERDICT-OK` last. `PHASE60-EVIDENCE-OK`, `SCORECARD-FROZEN-OK`, `GUARDRAILS-OK` and `tests.phase60.test_amendment` (21 tests) also pass.
