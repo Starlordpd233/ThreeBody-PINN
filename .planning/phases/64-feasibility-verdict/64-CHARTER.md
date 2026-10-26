@@ -1,10 +1,10 @@
 ---
 schema_version: phase64-charter/v1
-status: awaiting-owner
+status: owner-decided
 created: 2026-10-26
 verdict_citation: .planning/phases/64-feasibility-verdict/64-VERDICT.md
 numbers_sha256: 632e02b21d1ee132f844e5c9592578d5ce32bb31b9673ccb76dc84556511cafa
-ruling_citation: pending
+ruling_citation: .planning/phases/64-feasibility-verdict/64-CHECKPOINT-1-RULING.md
 ---
 
 **Audience:** the project owner; reading about five minutes; replying takes one message.
@@ -22,21 +22,21 @@ Approve the page as it stands, or change single lines; C-6 and C-7 need their ow
 
 | ID | Item | Recommended answer | Other options | Owner |
 |---|---|---|---|---|
-| V-1 | Your decision on the verdict | Change course: v2.5 opens with the trainex-r5 research round (open-book, diagnosis first) and runs no new long training until it explains the time-constant output | Continue on this path (the same design and recipe); Stop here (the held-out evaluation stays unspent) | |
-| C-1 | Purpose | Recorded: learning, with a proof of concept as the research output (2026-10-25, your words in C-1) | none | |
-| C-2 | Definition of done | A: Level 6 at Stage 0, one network passes the one-shot Stage-0 held-out exam at the C-4 and C-5 bar | B: Level 3: learns one system (Rung 2b counts on at least 2 of 3); C: Level 9, every stage at its bar | |
-| C-3 | Current level | Recorded: Level 1, the training code runs but not yet to spec | none | |
-| C-4 | Stage-0 bar, position | A: Tier 1 (E ≤ 0.1) and E strictly below both the formula's and the copy's on at least 75% of the Stage-0 validation panel (the frozen 12 of 16 proportion) | B: valid-horizon h at 10% of at least 0.5 on the same share; C: a position criterion you name | |
-| C-5 | Stage-0 bar, energy | A: ε_H ≤ 10⁻² from autograd velocities, conditional on C-7 being A (Tier 2, 10⁻³, as the stretch) | B: ε_H ≤ 10⁻³, conditional on the C-7 answer; C: ε_H ≤ 10⁻⁵, conditional on the C-7 answer | |
-| C-6 | The 10⁻⁵ held-out bar | A: replace it by formal amendment with the evidence-based bar of C-4 and C-5, in the milestone that sets the bars | B: keep 10⁻⁵ as the success criterion | |
-| C-7 | GAP-59-08 | A: autograd velocities in the evaluator and validation gate, by a formal clarifying amendment to pinn_architecture.md §10.6 | B: finite differences on a dense grid; C: keep the gate as is, knowing it cannot pass | |
-| C-8 | Stages 1–6 bars | A: listed and left open until Stage 0 passes | B: you name some now | |
-| C-9 | Budget (months of computing on this Mac) | A: about 1 month for the next milestone, re-set by you at each verdict | B: 3 months; C: 6 months | |
-| C-10 | Stop rule | A: the FEAS-10 rule, with "beats" meaning at least one panel system reaches Tier 1 (E ≤ 0.1) | B: E below the constant predictor's by a margin you name; C: any lower E counts | |
-| C-11 | ctl_instruction.md evaluation section | Recorded: it describes results that do not exist; its rewrite goes to the milestone that sets the bars; no edit now | none | |
-| C-12 | PROJECT.md What This Is and Core Value | A: apply the draft in C-12 | B: do not rewrite now | |
-| C-13 | PROJECT.md title line and Model constraint | A: rewrite them too (draft in C-13) | B: leave them | |
-| C-14 | Requirements of Phases 61–63 (GAP-64-01) | A: "Skipped at G2 (no rescue), not failed; carried forward to v2.5 as candidates" | B: "Skipped at G2 (no rescue), not failed; not carried forward"; C: leave them Pending | |
+| V-1 | Your decision on the verdict | Change course: v2.5 opens with the trainex-r5 research round (open-book, diagnosis first) and runs no new long training until it explains the time-constant output | Continue on this path (the same design and recipe); Stop here (the held-out evaluation stays unspent) | change-course |
+| C-1 | Purpose | Recorded: learning, with a proof of concept as the research output (2026-10-25, your words in C-1) | none | open |
+| C-2 | Definition of done | A: Level 6 at Stage 0, one network passes the one-shot Stage-0 held-out exam at the C-4 and C-5 bar | B: Level 3: learns one system (Rung 2b counts on at least 2 of 3); C: Level 9, every stage at its bar | open |
+| C-3 | Current level | Recorded: Level 1, the training code runs but not yet to spec | none | open |
+| C-4 | Stage-0 bar, position | A: Tier 1 (E ≤ 0.1) and E strictly below both the formula's and the copy's on at least 75% of the Stage-0 validation panel (the frozen 12 of 16 proportion) | B: valid-horizon h at 10% of at least 0.5 on the same share; C: a position criterion you name | open |
+| C-5 | Stage-0 bar, energy | A: ε_H ≤ 10⁻² from autograd velocities, conditional on C-7 being A (Tier 2, 10⁻³, as the stretch) | B: ε_H ≤ 10⁻³, conditional on the C-7 answer; C: ε_H ≤ 10⁻⁵, conditional on the C-7 answer | open |
+| C-6 | The 10⁻⁵ held-out bar | A: replace it by formal amendment with the evidence-based bar of C-4 and C-5, in the milestone that sets the bars | B: keep 10⁻⁵ as the success criterion | open |
+| C-7 | GAP-59-08 | A: autograd velocities in the evaluator and validation gate, by a formal clarifying amendment to pinn_architecture.md §10.6 | B: finite differences on a dense grid; C: keep the gate as is, knowing it cannot pass | open |
+| C-8 | Stages 1–6 bars | A: listed and left open until Stage 0 passes | B: you name some now | open |
+| C-9 | Budget (months of computing on this Mac) | A: about 1 month for the next milestone, re-set by you at each verdict | B: 3 months; C: 6 months | open |
+| C-10 | Stop rule | A: the FEAS-10 rule, with "beats" meaning at least one panel system reaches Tier 1 (E ≤ 0.1) | B: E below the constant predictor's by a margin you name; C: any lower E counts | open |
+| C-11 | ctl_instruction.md evaluation section | Recorded: it describes results that do not exist; its rewrite goes to the milestone that sets the bars; no edit now | none | open |
+| C-12 | PROJECT.md What This Is and Core Value | A: apply the draft in C-12 | B: do not rewrite now | open |
+| C-13 | PROJECT.md title line and Model constraint | A: rewrite them too (draft in C-13) | B: leave them | open |
+| C-14 | Requirements of Phases 61–63 (GAP-64-01) | A: "Skipped at G2 (no rescue), not failed; carried forward to v2.5 as candidates" | B: "Skipped at G2 (no rescue), not failed; not carried forward"; C: leave them Pending | open |
 
 **How to reply.** Start with V-1, then say "approve the rest" or write changes as "C-4: B" or "C-9: two months". "Approve all" accepts every recommended answer, including change course for V-1, except C-6 and C-7. C-6 and C-7 each need their own answer, written with the row's ID, for example "C-6: A"; "approve all" and "approve the rest" do not cover them, so each stays open until you answer it. An item you do not mention is recorded as open, unless you said "approve all" or "approve the rest".
 <!-- page:end -->

@@ -1,20 +1,20 @@
 ---
 schema_version: phase64-verdict/v1
-status: awaiting-owner
+status: owner-signed
 gate: not-run
 evaluation: preserved-unspent
 verdict: RETHINK-REPRESENTATION
 representation_limit_qualifier: false
-owner_decision: pending
-owner_decision_date: pending
+owner_decision: change-course
+owner_decision_date: 2026-10-26
 agent_recommendation: change-course
 handoff_citation: .planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json
 handoff_sha256: 7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5
 numbers_sha256: 632e02b21d1ee132f844e5c9592578d5ce32bb31b9673ccb76dc84556511cafa
 figure_sha256: d9754afaf0aefdf2c4b3f27dfc97b6cac06e4bac4adb63b5b5447efdd69a7695
 charter_citation: .planning/phases/64-feasibility-verdict/64-CHARTER.md
-ruling_citation: pending
-ruling_sha256: pending
+ruling_citation: .planning/phases/64-feasibility-verdict/64-CHECKPOINT-1-RULING.md
+ruling_sha256: b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82
 ---
 
 **Audience:** the project owner, a first-year student; no specialist background assumed.
@@ -226,7 +226,26 @@ The recommendation is `change-course`, recorded in the front matter and pointing
 
 ## Owner sign-off
 
-Pending: owner checkpoint ①.
+- **Decision:** `change-course`
+- **Date:** 2026-10-26
+- **Meaning:** v2.5 opens with the trainex-r5 research round (open-book, diagnosis first) and runs no new long training until it explains the time-constant output.
+- **Items left open:** all fourteen charter rows are recorded `open`, and no approved edit follows from any of them:
+  - C-1, purpose (recorded, not asked again);
+  - C-2, definition of done;
+  - C-3, current level (recorded, not asked again);
+  - C-4, the Stage-0 position criterion;
+  - C-5, the Stage-0 energy criterion;
+  - C-6, the `10⁻⁵` held-out bar;
+  - C-7, GAP-59-08, how ε_H is measured;
+  - C-8, the pass bars for Stages 1–6;
+  - C-9, the budget;
+  - C-10, the stop rule;
+  - C-11, the evaluation section of `ctl_instruction.md` (recorded, not asked again);
+  - C-12, PROJECT.md's What This Is and Core Value;
+  - C-13, PROJECT.md's title line and Model constraint;
+  - C-14, the requirements of the skipped phases (GAP-64-01).
+- **Open rows carried as open:** because C-6 is `open`, this sign-off neither retains nor replaces the `10⁻⁵` held-out bar. Because C-7 is `open`, it does not settle GAP-59-08: how ε_H is measured stays undecided and GAP-59-08 stays open. Because C-12, C-13 and C-14 are `open`, PROJECT.md and the twelve skipped-phase requirement statuses are unchanged by this decision.
+- **Record:** `.planning/phases/64-feasibility-verdict/64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`.
 
 ## Evidence index
 

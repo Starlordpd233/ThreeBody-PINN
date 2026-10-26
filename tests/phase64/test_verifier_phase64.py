@@ -2061,6 +2061,43 @@ VERDICT_EVIDENCE_RELS = (
 VERDICT_FIXTURE_RELS = (VERDICT_REL, f"{PHASE}/64-CHARTER.md") + VERDICT_EVIDENCE_RELS
 
 
+def front_matter_reset(text: str, values: dict[str, str]) -> str:
+    """Rewrite named front-matter fields, leaving the body byte-identical.
+
+    The synthetic fixtures are the real documents with the ruling-dependent
+    fields set back to their pre-checkpoint values, so each negative control
+    still differs from the committed document by exactly its one mutation.
+    """
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        raise AssertionError("the fixture does not open with front matter")
+    end = next(
+        (index for index in range(1, len(lines)) if lines[index].strip() == "---"),
+        None,
+    )
+    if end is None:
+        raise AssertionError("the fixture front matter is never closed")
+    for index in range(1, end):
+        key, separator, _value = lines[index].partition(": ")
+        if separator and key in values:
+            lines[index] = f"{key}: {values[key]}"
+    return "\n".join(lines) + "\n"
+
+
+def pre_ruling_verdict(text: str) -> str:
+    """The verdict as it stood before checkpoint ①: awaiting-owner, ruling pending."""
+    return front_matter_reset(
+        text,
+        {
+            "status": "awaiting-owner",
+            "owner_decision": "pending",
+            "owner_decision_date": "pending",
+            "ruling_citation": "pending",
+            "ruling_sha256": "pending",
+        },
+    )
+
+
 class VerdictCase(unittest.TestCase):
     """Shared fixture: byte copies of the verdict and the files ``rules`` reads.
 
@@ -2074,7 +2111,9 @@ class VerdictCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.module = load_verifier()
-        cls.verdict = (ROOT / VERDICT_REL).read_text(encoding="utf-8")
+        cls.verdict = pre_ruling_verdict(
+            (ROOT / VERDICT_REL).read_text(encoding="utf-8")
+        )
 
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -2389,6 +2428,35 @@ CHARTER_FIXTURE_RELS = (
 )
 
 
+def pre_ruling_charter(text: str) -> str:
+    """The charter as it stood before checkpoint ①: awaiting-owner, Owner cells empty.
+
+    The page's Owner column and the two ruling front-matter fields are rebuilt
+    from the committed charter, so every synthetic control still differs from
+    the real document by exactly its one mutation.
+    """
+    text = front_matter_reset(
+        text, {"status": "awaiting-owner", "ruling_citation": "pending"}
+    )
+    lines = text.splitlines()
+    begin = lines.index("<!-- page:begin -->")
+    end = lines.index("<!-- page:end -->")
+    for index in range(begin, end + 1):
+        stripped = lines[index].strip()
+        if not (stripped.startswith("|") and stripped.endswith("|")):
+            continue
+        cells = [cell.strip() for cell in stripped[1:-1].split("|")]
+        if len(cells) != 5:
+            continue
+        if cells[0] != "V-1" and not (
+            cells[0].startswith("C-") and cells[0][2:].isdigit()
+        ):
+            continue
+        cells[4] = ""
+        lines[index] = "| " + " | ".join(cells) + " |"
+    return "\n".join(lines) + "\n"
+
+
 class CharterRealTests(unittest.TestCase):
     """The tracer gate: the real page passes before any synthetic copy."""
 
@@ -2420,9 +2488,14 @@ class CharterRealTests(unittest.TestCase):
         end = lines.index(self.module.PAGE_END)
         self.assertLessEqual(end - begin + 1, self.module.PAGE_MAX_LINES)
 
-    def test_real_page_has_empty_owner_cells(self):
+    def test_real_page_owner_cells_match_the_ruling(self):
+        # Before checkpoint ① the Owner column is empty; after it, every cell
+        # holds the answer the committed ruling records for that row.
         rows = self.module.parse_charter_page(self.charter)
-        self.assertEqual([row[4] for row in rows if row[4]], [])
+        ruling = (ROOT / RULING_REL).read_text(encoding="utf-8")
+        answers = self.module.parse_ruling(ruling)["answers"]
+        self.assertEqual([row[4] for row in rows], [answers[row[0]] for row in rows])
+        self.assertTrue(all(row[4] for row in rows), "an Owner cell is empty")
 
     def test_real_page_states_the_c6_c7_reply_rule_once(self):
         lines = self.charter.splitlines()
@@ -2451,7 +2524,9 @@ class CharterCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.module = load_verifier()
-        cls.charter = (ROOT / CHARTER_REL).read_text(encoding="utf-8")
+        cls.charter = pre_ruling_charter(
+            (ROOT / CHARTER_REL).read_text(encoding="utf-8")
+        )
 
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -3182,7 +3257,9 @@ class RulingCase(CharterCase):
 
     The base commit is patched as ``PHASE_BASE``; the synthetic ruling is
     committed after it, and any applied edit after that. Every case is a byte
-    copy of the real files plus the mutation under test.
+    copy of the real files plus the mutation under test, with the charter's
+    Owner column and the verdict's ruling fields set back to their pre-ruling
+    values so the ruling's only-if checks start from nothing applied.
     """
 
     def setUp(self):
@@ -3190,6 +3267,11 @@ class RulingCase(CharterCase):
         for relative in RULING_FIXTURE_RELS:
             if not (self.root / relative).exists():
                 copy_bytes(self.root, relative)
+        (self.root / CHARTER_REL).write_text(self.charter, encoding="utf-8")
+        (self.root / VERDICT_REL).write_text(
+            pre_ruling_verdict((ROOT / VERDICT_REL).read_text(encoding="utf-8")),
+            encoding="utf-8",
+        )
         init_repo(self.root)
         self.base = commit_all(self.root, "fixture base")
 
