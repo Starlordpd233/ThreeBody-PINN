@@ -92,7 +92,7 @@ The simplest predictor that learns nothing is each body's average position over 
 | 851 | 1.2337 | 1.2375 | r1-851 |
 | 4658 | 1.1396 | 1.1432 | r1-4658 |
 
-Across the seven arms the official E exceeds the constant predictor's by 0.0035 to 0.0038. Two ratios make the same point over the 14 arm states. The *time-variation ratio* is the output's movement about its own mean divided by the real orbit's movement about its own mean: it is 0.0030 to 0.0034, so the network moves by only about three parts in a thousand of the orbit's own variation. The *rms ratio* is the output's RMS error divided by the orbit's RMS deviation about its own mean: it is 0.9999 to 1.0001, so the error is as large as the orbit's own variation. A predictor that returned the average position would land in the same place.
+Across the three Rung-1 systems the official E exceeds the constant predictor's by 0.0035 to 0.0038. Two ratios make the same point over the 14 arm states. The *time-variation ratio* is the output's movement about its own mean divided by the real orbit's movement about its own mean: it is 0.0030 to 0.0034, so the network moves by only about three parts in a thousand of the orbit's own variation. The *rms ratio* is the output's RMS error divided by the orbit's RMS deviation about its own mean: it is 0.9999 to 1.0001, so the error is as large as the orbit's own variation. A predictor that returned the average position would land in the same place.
 
 ![System 1632: the real orbit and the network's near-stationary prediction, with the error against time](evidence/figure-1632.svg)
 
