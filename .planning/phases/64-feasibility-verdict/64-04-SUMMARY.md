@@ -202,3 +202,9 @@ None. The plan's mitigations are in place: T-64-11 (home-directory scan over the
 - `bd768374` and `e2a8c407` exist in the log; the two task commits name only the three plan files (this SUMMARY commit adds the fourth).
 - The verifier and the test module are committed clean; all six mode outputs above are the committed files' outputs.
 - `.planning/STATE.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `pinn/`, the framework specs and the Phase 59/60 evidence are untouched by this plan's commits.
+
+## Orchestrator correction after the plan run
+
+`4b2bae05 fix(64-04): correct the 4658 below-formula cell` changed one table cell. The per-arm table read `no (Tier 0; numerically below)` for r1-4658, contradicting the manifest entry `rung1.below_formula_systems` = `4658` and the verdict's own sentence at `## The result under the pre-registered rule` that Rung 1's E is below the formula's only on 4658, 1 of 3. E 1.1432 is strictly below the formula's 1.9697, so the cell now reads `yes (Tier 0)`; the arm still ends at Tier 0.
+
+The verdict's SHA-256 is therefore `dd1a078d820eaf08c56ecb55e6a285fbfeb3a4f4120faff1675a1e72918a372a`, not the `b0507c03…` recorded above. Re-verified after the correction: `RULES-OK`, `NUMBERS-OK`, `FIGURE-OK`, `INPUTS-OK`, `DERIVE-OK`, `FROZEN-OK`, and 168 tests `OK`.
