@@ -347,13 +347,19 @@ def _entry(
     }
 
 
-def derive_state(ctx: Any, card: Any, arm_id: str, state: str) -> dict[str, Any]:
+def derive_state(
+    ctx: Any, card: Any, arm_id: str, state: str, *, arm_data: Any = None
+) -> dict[str, Any]:
     """Re-score one committed weights file on the CPU in float64.
 
     The record, the arm catalog and the frozen loaders supply the reference; the
     weights file's SHA-256 is checked against the record before ``torch.load``
     with ``weights_only=True``. Returns ``pos``, ``ref``, ``times``,
     ``inner_pair``, ``e_sys`` and ``e_in``, one value per scored time.
+
+    ``arm_data`` lets a caller that re-scores several states of one arm load the
+    frozen data once; the five 1632 arms share one reference, so the caller can
+    also share it across arms of the same system.
     """
     from collections import OrderedDict
 
@@ -400,9 +406,10 @@ def derive_state(ctx: Any, card: Any, arm_id: str, state: str) -> dict[str, Any]
         )
     model.load_state_dict(widened)
 
-    arm_data = load_arm_data(
-        arm_spec(arm_id), ctx, scorecard=card, dtype=torch.float32, device="cpu"
-    )
+    if arm_data is None:
+        arm_data = load_arm_data(
+            arm_spec(arm_id), ctx, scorecard=card, dtype=torch.float32, device="cpu"
+        )
     pos, _velocities = network_trajectory(
         model,
         _float32_rounded(arm_data.ic13),
@@ -421,6 +428,46 @@ def derive_state(ctx: Any, card: Any, arm_id: str, state: str) -> dict[str, Any]
         "e_sys": np.asarray(e_sys, dtype=np.float64),
         "e_in": np.asarray(e_in, dtype=np.float64),
     }
+
+
+def constant_predictor_error(ref: Any, inner_pair: Any) -> tuple[Any, Any]:
+    """Each body held at its time-mean position, scored with the frozen scorer.
+
+    The predictor learns nothing: every body sits at its average position over
+    the window. Returns ``(e_sys, e_in)``, one value per scored time.
+    """
+    import numpy as np
+
+    from pinn.verification.feasibility_scorer import position_errors
+
+    reference = np.asarray(ref, dtype=np.float64)
+    constant = np.broadcast_to(reference.mean(axis=0, keepdims=True), reference.shape)
+    e_sys, e_in, _r_sys = position_errors(constant, reference, inner_pair)
+    return np.asarray(e_sys, dtype=np.float64), np.asarray(e_in, dtype=np.float64)
+
+
+def _deviation(positions: Any) -> float:
+    """RMS deviation about the series' own time mean, all bodies and coordinates."""
+    import numpy as np
+
+    array = np.asarray(positions, dtype=np.float64)
+    centered = array - array.mean(axis=0, keepdims=True)
+    return float(np.sqrt((centered ** 2).sum(axis=(1, 2)).mean()))
+
+
+def timevar_ratio(pos: Any, ref: Any) -> float:
+    """The output's time variation over the real orbit's own time variation."""
+    return _deviation(pos) / _deviation(ref)
+
+
+def rms_ratio(pos: Any, ref: Any) -> float:
+    """The output's RMS error over the orbit's RMS deviation about its own mean."""
+    import numpy as np
+
+    predicted = np.asarray(pos, dtype=np.float64)
+    reference = np.asarray(ref, dtype=np.float64)
+    error = float(np.sqrt(((predicted - reference) ** 2).sum(axis=(1, 2)).mean()))
+    return error / _deviation(reference)
 
 
 def _facts(root: Path) -> dict[str, Any]:
@@ -600,12 +647,44 @@ FORSCALE_STEPS_LOW = 200000
 FORSCALE_STEPS_HIGH = 300000
 EXAMPLE_STEPS = 100000
 
+# The three panel systems and the two committed states every arm recorded. Each
+# system's constant predictor is scored against that system's own gold reference.
+CPU_SYSTEMS = ("1632", "851", "4658")
+CPU_STATES = ("adam", "polish")
+
 
 def _arm_id_of(entry_id: str) -> str:
     parts = entry_id.split(".")
     if len(parts) < 3 or parts[0] != "arm":
         fail(f"{entry_id} is not an arm.<arm>.<field> id")
     return parts[1]
+
+
+def _cpu_values(facts: Mapping[str, Any], field: str) -> list[Any]:
+    """One field of every one of the 14 CPU states, in handoff arm order."""
+    return [
+        facts["cpu"][f"cpu.{arm_id}.{state}.{field}"]
+        for arm_id in ARMS
+        for state in CPU_STATES
+    ]
+
+
+def _one_cpu_value(facts: Mapping[str, Any], field: str) -> Any:
+    values = _cpu_values(facts, field)
+    if len(set(values)) != 1:
+        fail(f"the 14 CPU states disagree on {field}: {sorted(set(values))!r}")
+    return values[0]
+
+
+def _const_gaps(facts: Mapping[str, Any]) -> list[float]:
+    """Each Rung-1 system's official E minus its constant-predictor E."""
+    return [
+        (
+            facts["records"][f"r1-{system}"]["result"]["E"]
+            - facts["cpu"][f"cpu.const.{system}.E"]
+        )
+        for system in CPU_SYSTEMS
+    ]
 
 
 # Every arithmetic entry's formula, by name. Both programs carry their own copy
@@ -756,6 +835,59 @@ ARITHMETIC: dict[str, Any] = {
     ),
     "arm_range_after_first": lambda facts, entry_id: _f_range_after_first(
         facts, _arm_id_of(entry_id)
+    ),
+    "cpu_const_range_min": lambda facts, _id: min(
+        facts["cpu"][f"cpu.const.{system}.E"] for system in CPU_SYSTEMS
+    ),
+    "cpu_const_range_max": lambda facts, _id: max(
+        facts["cpu"][f"cpu.const.{system}.E"] for system in CPU_SYSTEMS
+    ),
+    "cpu_range_e_sys_t0_min": lambda facts, _id: min(
+        _cpu_values(facts, "e_sys_t0")
+    ),
+    "cpu_range_e_sys_t0_max": lambda facts, _id: max(
+        _cpu_values(facts, "e_sys_t0")
+    ),
+    "cpu_range_e_in_t0_min": lambda facts, _id: min(_cpu_values(facts, "e_in_t0")),
+    "cpu_range_e_in_t0_max": lambda facts, _id: max(_cpu_values(facts, "e_in_t0")),
+    "cpu_range_best_moment_min": lambda facts, _id: min(
+        _cpu_values(facts, "best_moment")
+    ),
+    "cpu_range_best_moment_max": lambda facts, _id: max(
+        _cpu_values(facts, "best_moment")
+    ),
+    "cpu_range_timevar_min": lambda facts, _id: min(
+        _cpu_values(facts, "timevar_ratio")
+    ),
+    "cpu_range_timevar_max": lambda facts, _id: max(
+        _cpu_values(facts, "timevar_ratio")
+    ),
+    "cpu_range_rms_ratio_min": lambda facts, _id: min(
+        _cpu_values(facts, "rms_ratio")
+    ),
+    "cpu_range_rms_ratio_max": lambda facts, _id: max(
+        _cpu_values(facts, "rms_ratio")
+    ),
+    "cpu_total_n_within_tier1": lambda facts, _id: sum(
+        _cpu_values(facts, "n_within_tier1")
+    ),
+    "cpu_n_times": lambda facts, _id: _one_cpu_value(facts, "n_times"),
+    "const_gap_min": lambda facts, _id: min(_const_gaps(facts)),
+    "const_gap_max": lambda facts, _id: max(_const_gaps(facts)),
+    "cpu_attestation_test_split_opened": lambda facts, _id: int(
+        facts["attestation"]["test_split_opened"]
+    ),
+    "cpu_attestation_validation": lambda facts, _id: int(
+        facts["attestation"]["opened"]["validation"]
+    ),
+    "cpu_attestation_other_under_root": lambda facts, _id: int(
+        facts["attestation"]["opened"]["other_under_root"]
+    ),
+    "cpu_attestation_blocked_attempts": lambda facts, _id: int(
+        facts["attestation"]["blocked_attempts"]
+    ),
+    "cpu_attestation_refused_before_open": lambda facts, _id: int(
+        facts["attestation"]["refused_before_open"]
     ),
 }
 
@@ -1462,6 +1594,292 @@ def _cost_entries(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
     return entries
 
 
+def _cpu_entries(
+    facts: Mapping[str, Any], ctx: Any, card: Any
+) -> list[dict[str, Any]]:
+    """Group 9: the CPU float64 re-derivation of the 14 states and the constant predictor.
+
+    The Tier-1 limit is read from the scorecard's own tiers section, never a
+    literal. The five 1632 arms share one reference, so the frozen arm data is
+    loaded once per system and re-used for both states of every arm in it.
+    """
+    import numpy as np
+    import torch
+
+    from pinn.verification.feasibility_scorer import tier_defining_error
+    from pinn.verification.learnability_arms import arm_spec
+    from pinn.verification.learnability_data import load_arm_data
+
+    tier1_max = float(_tier_level(card, 1)["E_max"])
+    cache: dict[Any, Any] = {}
+
+    def arm_data_for(arm_id: str) -> Any:
+        system = arm_spec(arm_id).score_key.id
+        if system not in cache:
+            cache[system] = load_arm_data(
+                arm_spec(arm_id),
+                ctx,
+                scorecard=card,
+                dtype=torch.float32,
+                device="cpu",
+            )
+        return cache[system]
+
+    values: dict[str, Any] = {}
+    derived_by: dict[tuple[str, str], dict[str, Any]] = {}
+    entries: list[dict[str, Any]] = []
+    for arm_id in ARMS:
+        for state in CPU_STATES:
+            derived = derive_state(
+                ctx, card, arm_id, state, arm_data=arm_data_for(arm_id)
+            )
+            derived_by[(arm_id, state)] = derived
+            e_sys = np.asarray(derived["e_sys"], dtype=np.float64)
+            e_in = np.asarray(derived["e_in"], dtype=np.float64)
+            error = np.maximum(e_sys, e_in)
+            source = {
+                "record": _record_rel(arm_id),
+                "weights": _weights_rel(arm_id, state),
+                "state": state,
+            }
+            rederived = f"Re-derived from the committed {arm_id} {state} weights on the CPU in float64"
+            fields = (
+                (
+                    "E",
+                    float(tier_defining_error(e_sys, e_in)),
+                    "E4",
+                    f"{rederived}; equals states.{state}.cross_check.E within 1e-12 and is never compared with the official E.",
+                ),
+                (
+                    "e_sys_t0",
+                    float(e_sys[0]),
+                    "F3",
+                    f"{rederived}: e_sys at the first scored time.",
+                ),
+                (
+                    "e_in_t0",
+                    float(e_in[0]),
+                    "F3",
+                    f"{rederived}: e_in at the first scored time.",
+                ),
+                (
+                    "best_moment",
+                    float(error.min()),
+                    "F3",
+                    f"{rederived}: the minimum over the scored times of max(e_sys, e_in).",
+                ),
+                (
+                    "n_within_tier1",
+                    int(np.count_nonzero(error <= tier1_max)),
+                    "INT",
+                    f"{rederived}: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+                ),
+                (
+                    "n_times",
+                    int(len(derived["times"])),
+                    "INT",
+                    f"{rederived}: the number of scored times on the gold grid.",
+                ),
+                (
+                    "timevar_ratio",
+                    timevar_ratio(derived["pos"], derived["ref"]),
+                    "E4",
+                    f"{rederived}: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+                ),
+                (
+                    "rms_ratio",
+                    rms_ratio(derived["pos"], derived["ref"]),
+                    "E4",
+                    f"{rederived}: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+                ),
+            )
+            for field, value, rule, derivation in fields:
+                entry_id = f"cpu.{arm_id}.{state}.{field}"
+                values[entry_id] = value
+                entries.append(
+                    _entry(
+                        entry_id,
+                        value,
+                        rule,
+                        "rederived-cpu-float64",
+                        source,
+                        derivation,
+                        [],
+                    )
+                )
+
+    constants: dict[str, float] = {}
+    for system in CPU_SYSTEMS:
+        arm_id = f"r1-{system}"
+        reference = derived_by[(arm_id, "adam")]
+        e_sys, e_in = constant_predictor_error(
+            reference["ref"], reference["inner_pair"]
+        )
+        value = float(tier_defining_error(e_sys, e_in))
+        constants[system] = value
+        entry_id = f"cpu.const.{system}.E"
+        values[entry_id] = value
+        entries.append(
+            _entry(
+                entry_id,
+                value,
+                "E4",
+                "rederived-cpu-float64",
+                {
+                    "record": _record_rel(arm_id),
+                    "weights": _weights_rel(arm_id, "adam"),
+                    "state": "adam",
+                },
+                "Each body held at its time-mean position and scored with the frozen position_errors on the CPU in float64 against the "
+                f"{system} gold reference; the r1-{system} adam weights are named for provenance and are not read by the constant predictor.",
+                ["verdict"],
+            )
+        )
+
+    summary = ctx.attestation.summary()
+    _FACTS["attestation"] = summary
+    opened = summary["opened"]
+    counters = (
+        ("test_split_opened", summary["test_split_opened"]),
+        ("validation", opened["validation"]),
+        ("other_under_root", opened["other_under_root"]),
+        ("blocked_attempts", summary["blocked_attempts"]),
+        ("refused_before_open", summary["refused_before_open"]),
+    )
+    for name, value in counters:
+        entry_id = f"cpu.attestation.{name}"
+        values[entry_id] = int(value)
+        entries.append(
+            _entry(
+                entry_id,
+                int(value),
+                "INT",
+                "arithmetic",
+                {"formula": f"cpu_attestation_{name}"},
+                f"The open attestation's {name} counter: every read in this run went through the Phase 59 allowlist.",
+                [],
+            )
+        )
+
+    _FACTS["cpu"] = values
+    both = ["verdict", "charter"]
+    entries += [
+        _arithmetic(
+            "cpu.const.range.min",
+            "E4",
+            "cpu_const_range_min",
+            "The least constant-predictor E across the three systems.",
+            both,
+        ),
+        _arithmetic(
+            "cpu.const.range.max",
+            "E4",
+            "cpu_const_range_max",
+            "The greatest constant-predictor E across the three systems.",
+            both,
+        ),
+        _arithmetic(
+            "cpu.range.e_sys_t0.min",
+            "F3",
+            "cpu_range_e_sys_t0_min",
+            "The least e_sys at the first scored time across the 14 states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.range.e_sys_t0.max",
+            "F3",
+            "cpu_range_e_sys_t0_max",
+            "The greatest e_sys at the first scored time across the 14 states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.range.e_in_t0.min",
+            "F3",
+            "cpu_range_e_in_t0_min",
+            "The least e_in at the first scored time across the 14 states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.range.e_in_t0.max",
+            "F3",
+            "cpu_range_e_in_t0_max",
+            "The greatest e_in at the first scored time across the 14 states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.range.best_moment.min",
+            "F3",
+            "cpu_range_best_moment_min",
+            "The least best moment across the 14 states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.range.best_moment.max",
+            "F3",
+            "cpu_range_best_moment_max",
+            "The greatest best moment across the 14 states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.range.timevar.min",
+            "E4",
+            "cpu_range_timevar_min",
+            "The least time-variation ratio across the 14 states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.range.timevar.max",
+            "E4",
+            "cpu_range_timevar_max",
+            "The greatest time-variation ratio across the 14 states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.range.rms_ratio.min",
+            "E4",
+            "cpu_range_rms_ratio_min",
+            "The least RMS ratio across the 14 states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.range.rms_ratio.max",
+            "E4",
+            "cpu_range_rms_ratio_max",
+            "The greatest RMS ratio across the 14 states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.total.n_within_tier1",
+            "INT",
+            "cpu_total_n_within_tier1",
+            "The sum over the 14 states of the scored times within the Tier-1 limit.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "cpu.n_times",
+            "INT",
+            "cpu_n_times",
+            "The number of scored times, the same on every state.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "const_gap.min",
+            "E4",
+            "const_gap_min",
+            "The least gap between a system's official Rung-1 E and its constant-predictor E.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "const_gap.max",
+            "E4",
+            "const_gap_max",
+            "The greatest gap between a system's official Rung-1 E and its constant-predictor E.",
+            ["verdict"],
+        ),
+    ]
+    return entries
+
+
 def _cited_entries() -> list[dict[str, Any]]:
     """Group 8: the published and gap figures, each pinned to a commit."""
     research = RESEARCH_REL.as_posix()
@@ -1502,7 +1920,6 @@ def build_manifest(repo_root: Path) -> dict[str, Any]:
     """The whole manifest. One real context per process; nothing is written here."""
     import torch
 
-    from pinn.verification.feasibility_scorer import tier_defining_error
     from pinn.verification.learnability_data import open_real_context
 
     root = Path(repo_root)
@@ -1529,25 +1946,10 @@ def build_manifest(repo_root: Path) -> dict[str, Any]:
         + _baseline_entries(facts)
         + _survey_entries(facts)
         + _cost_entries(facts)
+        + _cpu_entries(facts, ctx, card)
         + _cited_entries()
     )
 
-    derived = derive_state(ctx, card, "r1-1632", "polish")
-    entries.append(
-        _entry(
-            "cpu.r1-1632.polish.E",
-            tier_defining_error(derived["e_sys"], derived["e_in"]),
-            "E4",
-            "rederived-cpu-float64",
-            {
-                "record": _record_rel("r1-1632"),
-                "weights": _weights_rel("r1-1632", "polish"),
-                "state": "polish",
-            },
-            "Re-scored from the committed polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
-            ["verdict"],
-        )
-    )
     entries.sort(key=lambda entry: entry["id"])
     ids = [entry["id"] for entry in entries]
     if len(set(ids)) != len(ids):

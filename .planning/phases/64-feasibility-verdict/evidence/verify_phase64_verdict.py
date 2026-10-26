@@ -91,6 +91,21 @@ ENTRY_KEYS = frozenset(
 CPU_ENTRY = re.compile(
     r"^cpu\.(?P<arm>[a-z0-9-]+)\.(?P<state>adam|polish)\.(?P<field>[A-Za-z0-9_]+)$"
 )
+CPU_CONST = re.compile(r"^cpu\.const\.(?P<system>\d+)\.E$")
+CPU_SYSTEMS = ("1632", "851", "4658")
+CPU_STATES = ("adam", "polish")
+CPU_FIELDS = frozenset(
+    {
+        "E",
+        "e_sys_t0",
+        "e_in_t0",
+        "best_moment",
+        "n_within_tier1",
+        "n_times",
+        "timevar_ratio",
+        "rms_ratio",
+    }
+)
 
 
 # The frozen check: the phase base every frozen byte must predate, the eight
@@ -978,6 +993,14 @@ def _tier_position(facts: Mapping[str, Any], tier: int) -> int:
     fail(f"the scorecard names no level whose tier is {tier}")
 
 
+def _tier1_max(card: Any) -> float:
+    """The scorecard's Tier-1 E_max, read from its own tiers section."""
+    for level in card.section("tiers")["levels"]:
+        if int(level["tier"]) == 1:
+            return float(level["E_max"])
+    fail("the scorecard names no level whose tier is 1")
+
+
 def committed_table(
     facts: Mapping[str, Any],
 ) -> dict[str, tuple[str, str, Any]]:
@@ -1453,6 +1476,117 @@ def _f_example_hours(facts: Mapping[str, Any]) -> float:
     return EXAMPLE_STEPS * _f_example_sps(facts) / 3600.0
 
 
+def _cpu_values(facts: Mapping[str, Any], field: str) -> list[Any]:
+    """One field of every one of the 14 CPU states, in handoff arm order."""
+    return [
+        facts["manifest"][f"cpu.{arm_id}.{state}.{field}"]
+        for arm_id in EXPECTED_ARMS
+        for state in CPU_STATES
+    ]
+
+
+def _one_cpu_value(facts: Mapping[str, Any], field: str) -> Any:
+    values = _cpu_values(facts, field)
+    if len(set(values)) != 1:
+        fail(f"the 14 CPU states disagree on {field}: {sorted(set(values))!r}")
+    return values[0]
+
+
+def _const_gaps(facts: Mapping[str, Any]) -> list[float]:
+    """Each Rung-1 system's official E minus its constant-predictor E."""
+    return [
+        (
+            facts["records"][f"r1-{system}"]["result"]["E"]
+            - facts["manifest"][f"cpu.const.{system}.E"]
+        )
+        for system in CPU_SYSTEMS
+    ]
+
+
+def _f_cpu_const_range_min(facts: Mapping[str, Any]) -> float:
+    return min(facts["manifest"][f"cpu.const.{system}.E"] for system in CPU_SYSTEMS)
+
+
+def _f_cpu_const_range_max(facts: Mapping[str, Any]) -> float:
+    return max(facts["manifest"][f"cpu.const.{system}.E"] for system in CPU_SYSTEMS)
+
+
+def _f_cpu_range_e_sys_t0_min(facts: Mapping[str, Any]) -> float:
+    return min(_cpu_values(facts, "e_sys_t0"))
+
+
+def _f_cpu_range_e_sys_t0_max(facts: Mapping[str, Any]) -> float:
+    return max(_cpu_values(facts, "e_sys_t0"))
+
+
+def _f_cpu_range_e_in_t0_min(facts: Mapping[str, Any]) -> float:
+    return min(_cpu_values(facts, "e_in_t0"))
+
+
+def _f_cpu_range_e_in_t0_max(facts: Mapping[str, Any]) -> float:
+    return max(_cpu_values(facts, "e_in_t0"))
+
+
+def _f_cpu_range_best_moment_min(facts: Mapping[str, Any]) -> float:
+    return min(_cpu_values(facts, "best_moment"))
+
+
+def _f_cpu_range_best_moment_max(facts: Mapping[str, Any]) -> float:
+    return max(_cpu_values(facts, "best_moment"))
+
+
+def _f_cpu_range_timevar_min(facts: Mapping[str, Any]) -> float:
+    return min(_cpu_values(facts, "timevar_ratio"))
+
+
+def _f_cpu_range_timevar_max(facts: Mapping[str, Any]) -> float:
+    return max(_cpu_values(facts, "timevar_ratio"))
+
+
+def _f_cpu_range_rms_ratio_min(facts: Mapping[str, Any]) -> float:
+    return min(_cpu_values(facts, "rms_ratio"))
+
+
+def _f_cpu_range_rms_ratio_max(facts: Mapping[str, Any]) -> float:
+    return max(_cpu_values(facts, "rms_ratio"))
+
+
+def _f_cpu_total_n_within_tier1(facts: Mapping[str, Any]) -> int:
+    return sum(_cpu_values(facts, "n_within_tier1"))
+
+
+def _f_cpu_n_times(facts: Mapping[str, Any]) -> int:
+    return _one_cpu_value(facts, "n_times")
+
+
+def _f_const_gap_min(facts: Mapping[str, Any]) -> float:
+    return min(_const_gaps(facts))
+
+
+def _f_const_gap_max(facts: Mapping[str, Any]) -> float:
+    return max(_const_gaps(facts))
+
+
+def _f_cpu_attestation_test_split_opened(facts: Mapping[str, Any]) -> int:
+    return int(facts["attestation"]["test_split_opened"])
+
+
+def _f_cpu_attestation_validation(facts: Mapping[str, Any]) -> int:
+    return int(facts["attestation"]["opened"]["validation"])
+
+
+def _f_cpu_attestation_other_under_root(facts: Mapping[str, Any]) -> int:
+    return int(facts["attestation"]["opened"]["other_under_root"])
+
+
+def _f_cpu_attestation_blocked_attempts(facts: Mapping[str, Any]) -> int:
+    return int(facts["attestation"]["blocked_attempts"])
+
+
+def _f_cpu_attestation_refused_before_open(facts: Mapping[str, Any]) -> int:
+    return int(facts["attestation"]["refused_before_open"])
+
+
 ARITHMETIC_NAMES: dict[str, Any] = {
     "hours_total": _f_hours_total,
     "hours_rung1": _f_hours_rung1,
@@ -1509,6 +1643,27 @@ ARITHMETIC_NAMES: dict[str, Any] = {
     "forscale_hours_low": _f_forscale_hours_low,
     "example_sps": _f_example_sps,
     "example_hours": _f_example_hours,
+    "cpu_const_range_min": _f_cpu_const_range_min,
+    "cpu_const_range_max": _f_cpu_const_range_max,
+    "cpu_range_e_sys_t0_min": _f_cpu_range_e_sys_t0_min,
+    "cpu_range_e_sys_t0_max": _f_cpu_range_e_sys_t0_max,
+    "cpu_range_e_in_t0_min": _f_cpu_range_e_in_t0_min,
+    "cpu_range_e_in_t0_max": _f_cpu_range_e_in_t0_max,
+    "cpu_range_best_moment_min": _f_cpu_range_best_moment_min,
+    "cpu_range_best_moment_max": _f_cpu_range_best_moment_max,
+    "cpu_range_timevar_min": _f_cpu_range_timevar_min,
+    "cpu_range_timevar_max": _f_cpu_range_timevar_max,
+    "cpu_range_rms_ratio_min": _f_cpu_range_rms_ratio_min,
+    "cpu_range_rms_ratio_max": _f_cpu_range_rms_ratio_max,
+    "cpu_total_n_within_tier1": _f_cpu_total_n_within_tier1,
+    "cpu_n_times": _f_cpu_n_times,
+    "const_gap_min": _f_const_gap_min,
+    "const_gap_max": _f_const_gap_max,
+    "cpu_attestation_test_split_opened": _f_cpu_attestation_test_split_opened,
+    "cpu_attestation_validation": _f_cpu_attestation_validation,
+    "cpu_attestation_other_under_root": _f_cpu_attestation_other_under_root,
+    "cpu_attestation_blocked_attempts": _f_cpu_attestation_blocked_attempts,
+    "cpu_attestation_refused_before_open": _f_cpu_attestation_refused_before_open,
 }
 
 ARM_FORMULAS = {
@@ -1586,6 +1741,27 @@ def arithmetic_table(
         "forscale_hours_low": "cost.forscale.hours_low",
         "example_sps": "cost.example.seconds_per_step",
         "example_hours": "cost.example.hours",
+        "cpu_const_range_min": "cpu.const.range.min",
+        "cpu_const_range_max": "cpu.const.range.max",
+        "cpu_range_e_sys_t0_min": "cpu.range.e_sys_t0.min",
+        "cpu_range_e_sys_t0_max": "cpu.range.e_sys_t0.max",
+        "cpu_range_e_in_t0_min": "cpu.range.e_in_t0.min",
+        "cpu_range_e_in_t0_max": "cpu.range.e_in_t0.max",
+        "cpu_range_best_moment_min": "cpu.range.best_moment.min",
+        "cpu_range_best_moment_max": "cpu.range.best_moment.max",
+        "cpu_range_timevar_min": "cpu.range.timevar.min",
+        "cpu_range_timevar_max": "cpu.range.timevar.max",
+        "cpu_range_rms_ratio_min": "cpu.range.rms_ratio.min",
+        "cpu_range_rms_ratio_max": "cpu.range.rms_ratio.max",
+        "cpu_total_n_within_tier1": "cpu.total.n_within_tier1",
+        "cpu_n_times": "cpu.n_times",
+        "const_gap_min": "const_gap.min",
+        "const_gap_max": "const_gap.max",
+        "cpu_attestation_test_split_opened": "cpu.attestation.test_split_opened",
+        "cpu_attestation_validation": "cpu.attestation.validation",
+        "cpu_attestation_other_under_root": "cpu.attestation.other_under_root",
+        "cpu_attestation_blocked_attempts": "cpu.attestation.blocked_attempts",
+        "cpu_attestation_refused_before_open": "cpu.attestation.refused_before_open",
     }
     for name, formula in ARITHMETIC_NAMES.items():
         table[ids[name]] = (name, lambda f=formula: f(facts))
@@ -1785,24 +1961,13 @@ def _check_cited_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) -> N
         )
 
 
-def _check_rederived_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) -> None:
-    entry_id = entry["id"]
-    if set(source) != {"record", "weights", "state"}:
-        fail(
-            f"entry {entry_id} rederived source must hold exactly record, weights and state"
-        )
-    match = CPU_ENTRY.fullmatch(entry_id)
-    if match is None:
-        fail(f"entry {entry_id} is not a cpu.<arm>.<state>.<field> id")
-    arm_id, state = match.group("arm"), match.group("state")
-    if arm_id not in EXPECTED_ARMS:
-        fail(f"entry {entry_id} names an arm that did not run: {arm_id}")
-    if source["state"] != state:
-        fail(f"entry {entry_id} source state {source['state']!r} != {state!r}")
-    if source["record"] != _record_rel(arm_id):
-        fail(f"entry {entry_id} source record {source['record']!r} is not the arm's record")
-    if source["weights"] != _weights_rel(arm_id, state):
-        fail(f"entry {entry_id} source weights {source['weights']!r} is not the arm's weights")
+def _check_weights_digest(
+    arm_id: str, state: str, cache: Optional[dict[tuple[str, str], bool]] = None
+) -> None:
+    """The weights file is tracked, clean and matches the record's SHA-256."""
+    key = (arm_id, state)
+    if cache is not None and key in cache:
+        return
     record = _load_record(arm_id)
     recorded = _field(record, f"states.{state}.weights")
     weights_rel = _weights_rel(arm_id, state)
@@ -1816,9 +1981,62 @@ def _check_rederived_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) 
             f"weights SHA-256 {disk} != recorded {recorded.get('sha256')} "
             f"for {arm_id} {state}"
         )
+    if cache is not None:
+        cache[key] = True
 
 
-def _check_entry(entry: Mapping[str, Any], facts: Mapping[str, Any]) -> None:
+def _check_rederived_entry(
+    entry: Mapping[str, Any],
+    source: Mapping[str, Any],
+    cache: Optional[dict[tuple[str, str], bool]] = None,
+) -> None:
+    entry_id = entry["id"]
+    if set(source) != {"record", "weights", "state"}:
+        fail(
+            f"entry {entry_id} rederived source must hold exactly record, weights and state"
+        )
+    const = CPU_CONST.fullmatch(entry_id)
+    if const is not None:
+        system = const.group("system")
+        if system not in CPU_SYSTEMS:
+            fail(f"entry {entry_id} names a system outside the panel: {system}")
+        arm_id = f"r1-{system}"
+        if source["state"] != "adam":
+            fail(f"entry {entry_id} source state {source['state']!r} != 'adam'")
+        if source["record"] != _record_rel(arm_id):
+            fail(
+                f"entry {entry_id} source record {source['record']!r} "
+                "is not the system's Rung-1 record"
+            )
+        if source["weights"] != _weights_rel(arm_id, "adam"):
+            fail(
+                f"entry {entry_id} source weights {source['weights']!r} "
+                "is not the system's adam weights"
+            )
+        _check_weights_digest(arm_id, "adam", cache)
+        return
+    match = CPU_ENTRY.fullmatch(entry_id)
+    if match is None:
+        fail(f"entry {entry_id} is not a cpu.<arm>.<state>.<field> id")
+    arm_id, state = match.group("arm"), match.group("state")
+    if arm_id not in EXPECTED_ARMS:
+        fail(f"entry {entry_id} names an arm that did not run: {arm_id}")
+    if match.group("field") not in CPU_FIELDS:
+        fail(f"entry {entry_id} names an unknown cpu field {match.group('field')!r}")
+    if source["state"] != state:
+        fail(f"entry {entry_id} source state {source['state']!r} != {state!r}")
+    if source["record"] != _record_rel(arm_id):
+        fail(f"entry {entry_id} source record {source['record']!r} is not the arm's record")
+    if source["weights"] != _weights_rel(arm_id, state):
+        fail(f"entry {entry_id} source weights {source['weights']!r} is not the arm's weights")
+    _check_weights_digest(arm_id, state, cache)
+
+
+def _check_entry(
+    entry: Mapping[str, Any],
+    facts: Mapping[str, Any],
+    digest_cache: Optional[dict[tuple[str, str], bool]] = None,
+) -> None:
     entry_id = entry["id"]
     missing = ENTRY_KEYS - set(entry)
     extra = set(entry) - ENTRY_KEYS
@@ -1856,7 +2074,7 @@ def _check_entry(entry: Mapping[str, Any], facts: Mapping[str, Any]) -> None:
     elif label == "cited":
         _check_cited_entry(entry, source)
     else:
-        _check_rederived_entry(entry, source)
+        _check_rederived_entry(entry, source, digest_cache)
 
 
 def check_numbers(
@@ -1934,8 +2152,12 @@ def check_numbers(
         fail(f"numbers.json entries are not sorted by id: {ids!r}")
     if len(set(ids)) != len(ids):
         fail("numbers.json holds a duplicate entry id")
+    facts = dict(loaded)
+    facts["manifest"] = {entry["id"]: entry["value"] for entry in entries}
+    facts["attestation"] = attestation
+    digest_cache: dict[tuple[str, str], bool] = {}
     for entry in entries:
-        _check_entry(entry, loaded)
+        _check_entry(entry, facts, digest_cache)
 
 
 def cmd_numbers(_args: argparse.Namespace) -> None:
@@ -1970,13 +2192,58 @@ def _check_open_attestation(ctx: Any) -> None:
             fail(f"the open attestation shows {name} {value!r}, not 0")
 
 
-def rederive_state(ctx: Any, card: Any, arm_id: str, state: str) -> dict[str, Any]:
+def rederive_constant_error(ref: Any, inner_pair: Any) -> tuple[Any, Any]:
+    """Each body held at its time-mean position, scored with the frozen scorer.
+
+    The verifier's own copy of the constant predictor: it learns nothing and
+    returns ``(e_sys, e_in)``, one value per scored time.
+    """
+    import numpy as np
+
+    from pinn.verification.feasibility_scorer import position_errors
+
+    reference = np.asarray(ref, dtype=np.float64)
+    constant = np.broadcast_to(reference.mean(axis=0, keepdims=True), reference.shape)
+    e_sys, e_in, _r_sys = position_errors(constant, reference, inner_pair)
+    return np.asarray(e_sys, dtype=np.float64), np.asarray(e_in, dtype=np.float64)
+
+
+def _deviation(positions: Any) -> float:
+    """RMS deviation about the series' own time mean, all bodies and coordinates."""
+    import numpy as np
+
+    array = np.asarray(positions, dtype=np.float64)
+    centered = array - array.mean(axis=0, keepdims=True)
+    return float(np.sqrt((centered ** 2).sum(axis=(1, 2)).mean()))
+
+
+def timevar_ratio(pos: Any, ref: Any) -> float:
+    """The output's time variation over the real orbit's own time variation."""
+    return _deviation(pos) / _deviation(ref)
+
+
+def rms_ratio(pos: Any, ref: Any) -> float:
+    """The output's RMS error over the orbit's RMS deviation about its own mean."""
+    import numpy as np
+
+    predicted = np.asarray(pos, dtype=np.float64)
+    reference = np.asarray(ref, dtype=np.float64)
+    error = float(np.sqrt(((predicted - reference) ** 2).sum(axis=(1, 2)).mean()))
+    return error / _deviation(reference)
+
+
+def rederive_state(
+    ctx: Any, card: Any, arm_id: str, state: str, *, arm_data: Any = None
+) -> dict[str, Any]:
     """The verifier's own CPU float64 re-score of one committed weights file.
 
     Independent of the producer's ``derive_state``: it reads the record, checks
     the weights SHA-256 against it before ``torch.load`` with
     ``weights_only=True``, builds the CPU float64 network at the record's
     ``first_omega_0``, and scores the gold reference through the frozen scorer.
+
+    ``arm_data`` lets a caller share one frozen data load across the states of
+    an arm, and across arms of one system (they share a reference).
     """
     from collections import OrderedDict
 
@@ -2028,9 +2295,10 @@ def rederive_state(ctx: Any, card: Any, arm_id: str, state: str) -> dict[str, An
             first_omega_0, seed=SEED, dtype=torch.float64, device="cpu"
         )
     model.load_state_dict(widened)
-    arm_data = load_arm_data(
-        arm_spec(arm_id), ctx, scorecard=card, dtype=torch.float32, device="cpu"
-    )
+    if arm_data is None:
+        arm_data = load_arm_data(
+            arm_spec(arm_id), ctx, scorecard=card, dtype=torch.float32, device="cpu"
+        )
     pos, _velocities = network_trajectory(
         model,
         _float32_rounded(arm_data.ic13),
@@ -2051,17 +2319,51 @@ def rederive_state(ctx: Any, card: Any, arm_id: str, state: str) -> dict[str, An
     }
 
 
-def cpu_value(entry_id: str, derived: Mapping[str, Any]) -> Any:
+def cpu_value(entry_id: str, derived: Mapping[str, Any], tier1_max: float) -> Any:
     """One re-derived field of a ``cpu.<arm>.<state>.<field>`` entry."""
+    import numpy as np
+
     from pinn.verification.feasibility_scorer import tier_defining_error
 
     match = CPU_ENTRY.fullmatch(entry_id)
     if match is None:
         fail(f"{entry_id} is not a cpu.<arm>.<state>.<field> id")
     field = match.group("field")
+    if field not in CPU_FIELDS:
+        fail(f"{entry_id} names an unknown cpu field {field!r}")
+    e_sys = np.asarray(derived["e_sys"], dtype=np.float64)
+    e_in = np.asarray(derived["e_in"], dtype=np.float64)
+    error = np.maximum(e_sys, e_in)
     if field == "E":
-        return tier_defining_error(derived["e_sys"], derived["e_in"])
-    fail(f"{entry_id} names an unknown cpu field {field!r}")
+        return float(tier_defining_error(e_sys, e_in))
+    if field == "e_sys_t0":
+        return float(e_sys[0])
+    if field == "e_in_t0":
+        return float(e_in[0])
+    if field == "best_moment":
+        return float(error.min())
+    if field == "n_within_tier1":
+        return int(np.count_nonzero(error <= tier1_max))
+    if field == "n_times":
+        return int(len(derived["times"]))
+    if field == "timevar_ratio":
+        return timevar_ratio(derived["pos"], derived["ref"])
+    return rms_ratio(derived["pos"], derived["ref"])
+
+
+def _compare_rederived(entry_id: str, recorded: Any, value: Any) -> None:
+    """Exact for integers, within 1e-12 for floats (the plan's tolerance)."""
+    if isinstance(value, int) and not isinstance(value, bool):
+        if recorded != value:
+            fail(f"entry {entry_id} value {recorded!r} != re-derived {value!r}")
+        return
+    if isinstance(recorded, bool) or not isinstance(recorded, (int, float)):
+        fail(f"entry {entry_id} value {recorded!r} is not a number")
+    if abs(float(recorded) - float(value)) > 1e-12:
+        fail(
+            f"entry {entry_id} value {recorded!r} != re-derived {value!r} "
+            "beyond 1e-12"
+        )
 
 
 def cmd_derive(_args: argparse.Namespace) -> None:
@@ -2072,7 +2374,9 @@ def cmd_derive(_args: argparse.Namespace) -> None:
         import torch
 
         from pinn.verification.feasibility_scorecard import load_scorecard
-        from pinn.verification.learnability_data import open_real_context
+        from pinn.verification.feasibility_scorer import tier_defining_error
+        from pinn.verification.learnability_arms import arm_spec
+        from pinn.verification.learnability_data import load_arm_data, open_real_context
     except Exception as exc:  # noqa: BLE001 - fail-closed CLI
         fail(f"cannot import the CPU re-derivation: {exc}")
 
@@ -2086,10 +2390,47 @@ def cmd_derive(_args: argparse.Namespace) -> None:
 
     torch.set_num_threads(1)
     card = load_scorecard()
+    tier1_max = _tier1_max(card)
     ctx = open_real_context(repo_root=REPO_ROOT)
     _check_open_attestation(ctx)
 
-    cache: dict[tuple[str, str], Mapping[str, Any]] = {}
+    data: dict[Any, Any] = {}
+
+    def arm_data_for(arm_id: str) -> Any:
+        system = arm_spec(arm_id).score_key.id
+        if system not in data:
+            data[system] = load_arm_data(
+                arm_spec(arm_id),
+                ctx,
+                scorecard=card,
+                dtype=torch.float32,
+                device="cpu",
+            )
+        return data[system]
+
+    states: dict[tuple[str, str], Mapping[str, Any]] = {}
+    for arm_id in EXPECTED_ARMS:
+        for state in CPU_STATES:
+            states[(arm_id, state)] = rederive_state(
+                ctx, card, arm_id, state, arm_data=arm_data_for(arm_id)
+            )
+
+    constants: dict[str, float] = {}
+    for system in CPU_SYSTEMS:
+        reference = states[(f"r1-{system}", "adam")]
+        e_sys, e_in = rederive_constant_error(
+            reference["ref"], reference["inner_pair"]
+        )
+        constants[system] = float(tier_defining_error(e_sys, e_in))
+
+    fresh: dict[str, Any] = {}
+    for (arm_id, state), derived in states.items():
+        for field in CPU_FIELDS:
+            entry_id = f"cpu.{arm_id}.{state}.{field}"
+            fresh[entry_id] = cpu_value(entry_id, derived, tier1_max)
+    for system, value in constants.items():
+        fresh[f"cpu.const.{system}.E"] = value
+
     checked = 0
     for entry in entries:
         if not isinstance(entry, Mapping):
@@ -2097,25 +2438,32 @@ def cmd_derive(_args: argparse.Namespace) -> None:
         if entry.get("label") != "rederived-cpu-float64":
             continue
         entry_id = entry.get("id")
-        match = CPU_ENTRY.fullmatch(entry_id) if isinstance(entry_id, str) else None
-        if match is None:
-            fail(f"entry {entry_id!r} is not a cpu.<arm>.<state>.<field> id")
-        key = (match.group("arm"), match.group("state"))
-        if key not in cache:
-            cache[key] = rederive_state(ctx, card, key[0], key[1])
-        value = cpu_value(entry_id, cache[key])
-        recorded = entry.get("value")
-        if isinstance(value, int) and not isinstance(value, bool):
-            if recorded != value:
-                fail(f"entry {entry_id} value {recorded!r} != re-derived {value!r}")
-        else:
-            if isinstance(recorded, bool) or not isinstance(recorded, (int, float)):
-                fail(f"entry {entry_id} value {recorded!r} is not a number")
-            if abs(float(recorded) - float(value)) > 1e-12:
-                fail(
-                    f"entry {entry_id} value {recorded!r} != re-derived {value!r} "
-                    "beyond 1e-12"
-                )
+        if not isinstance(entry_id, str) or entry_id not in fresh:
+            fail(f"entry {entry_id!r} is not a cpu entry the verifier can re-derive")
+        _compare_rederived(entry_id, entry.get("value"), fresh[entry_id])
+        checked += 1
+
+    facts = dict(_facts())
+    facts["manifest"] = fresh
+    facts["attestation"] = ctx.attestation.summary()
+    table = arithmetic_table(facts)
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            fail("a numbers.json entry is not an object")
+        if entry.get("label") != "arithmetic":
+            continue
+        entry_id = entry.get("id")
+        if not isinstance(entry_id, str) or not (
+            entry_id.startswith("cpu.") or entry_id.startswith("const_gap.")
+        ):
+            continue
+        if entry_id not in table:
+            fail(f"entry {entry_id} is not in the verifier's arithmetic table")
+        name, formula = table[entry_id]
+        source = entry.get("source")
+        if not isinstance(source, Mapping) or source.get("formula") != name:
+            fail(f"entry {entry_id} does not name the verifier's formula {name!r}")
+        _compare_rederived(entry_id, entry.get("value"), formula())
         checked += 1
 
     if checked == 0:

@@ -21,7 +21,10 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
+
+import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -1203,6 +1206,284 @@ class ManifestContentTests(ManifestCase):
         payload = self.mutated()
         with mock.patch.object(feasibility_scorecard, "steps_budget", one_more):
             self.assert_rejected(payload, "recorded budget")
+
+
+def _external_data_root_present() -> bool:
+    """True when the main repo's ``simulation_data/Data`` directory exists."""
+    from pinn.data.adapter import default_data_root
+
+    return Path(default_data_root()).is_dir()
+
+
+class DeriveHelperTests(unittest.TestCase):
+    """The CPU re-derivation helpers on small arrays with a known answer.
+
+    The same frozen scorer serves both programs; these tests pin the definitions
+    the manifest records (time variation, RMS ratio, the inclusive Tier-1 limit,
+    the best moment, the constant predictor) before the real weights are scored.
+    """
+
+    def setUp(self):
+        self.verifier = load_verifier()
+        self.producer = load_producer()
+
+    def test_time_variation_of_a_constant_output_is_zero(self):
+        reference = np.array(
+            [
+                [[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 2.0, 0.0]],
+                [[1.0, 1.0, 0.0], [-1.0, 0.0, 1.0], [0.0, 2.0, -1.0]],
+                [[1.0, 2.0, 0.0], [-1.0, 0.0, 2.0], [0.0, 2.0, -2.0]],
+            ],
+            dtype=np.float64,
+        )
+        still = np.broadcast_to(reference[0], reference.shape)
+        for module in (self.producer, self.verifier):
+            self.assertEqual(module.timevar_ratio(still, reference), 0.0)
+
+    def test_rms_ratio_of_the_time_mean_predictor_is_exactly_one(self):
+        reference = np.array(
+            [
+                [[1.0, 0.5, -0.25], [-1.5, 0.0, 0.75], [0.0, 2.0, 0.125]],
+                [[1.25, 0.25, 0.5], [-0.75, -0.5, 1.5], [0.5, 1.0, -1.25]],
+                [[0.5, 1.5, 0.0], [-2.0, 0.25, 0.25], [1.0, 0.5, 0.5]],
+                [[2.0, 0.0, -0.5], [-0.5, 1.0, -1.0], [0.25, 2.0, 0.0]],
+            ],
+            dtype=np.float64,
+        )
+        predicted = np.broadcast_to(
+            reference.mean(axis=0, keepdims=True), reference.shape
+        )
+        # (mean - x) is the exact negation of (x - mean), so the two RMS sums are
+        # bit-identical and the ratio is exactly 1.0, not merely close.
+        for module in (self.producer, self.verifier):
+            self.assertEqual(module.rms_ratio(predicted, reference), 1.0)
+
+    def test_the_tier1_limit_is_the_scorecards_inclusive_0_1(self):
+        from pinn.verification.feasibility_scorecard import load_scorecard
+
+        card = load_scorecard()
+        self.assertEqual(self.verifier._tier1_max(card), 0.1)
+        self.assertEqual(card.section("tiers")["comparison"], "inclusive_le")
+
+    def test_within_tier1_counts_an_error_of_exactly_the_limit(self):
+        derived = {
+            "e_sys": np.array([0.1, 0.1000001, 0.05, 0.0], dtype=np.float64),
+            "e_in": np.array([0.0, 0.0, 0.0999999, 0.1], dtype=np.float64),
+            "times": np.zeros(4, dtype=np.float64),
+        }
+        count = self.verifier.cpu_value(
+            "cpu.r1-1632.adam.n_within_tier1", derived, 0.1
+        )
+        self.assertIsInstance(count, int)
+        # 0.1 is inside the tier; 0.1000001 is the one moment excluded.
+        self.assertEqual(count, 3)
+        self.assertEqual(
+            self.verifier.cpu_value("cpu.r1-1632.adam.n_times", derived, 0.1), 4
+        )
+
+    def test_best_moment_is_the_minimum_of_the_timewise_maximum(self):
+        derived = {
+            "e_sys": np.array([0.2, 0.05, 0.3], dtype=np.float64),
+            "e_in": np.array([0.1, 0.4, 0.2], dtype=np.float64),
+            "times": np.zeros(3, dtype=np.float64),
+        }
+        self.assertEqual(
+            self.verifier.cpu_value("cpu.r1-1632.adam.best_moment", derived, 0.1),
+            0.2,
+        )
+        self.assertEqual(
+            self.verifier.cpu_value("cpu.r1-1632.adam.e_sys_t0", derived, 0.1), 0.2
+        )
+        self.assertEqual(
+            self.verifier.cpu_value("cpu.r1-1632.adam.e_in_t0", derived, 0.1), 0.1
+        )
+
+    def test_constant_error_is_zero_for_bodies_that_do_not_move(self):
+        still = np.array(
+            [
+                [[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 2.0, 0.0]],
+                [[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 2.0, 0.0]],
+            ],
+            dtype=np.float64,
+        )
+        e_sys, e_in = self.verifier.rederive_constant_error(still, (0, 1))
+        np.testing.assert_array_equal(e_sys, np.zeros(2))
+        np.testing.assert_array_equal(e_in, np.zeros(2))
+        self.assertEqual(float(np.max(np.maximum(e_sys, e_in))), 0.0)
+
+    def test_the_two_constant_predictors_agree_on_a_moving_reference(self):
+        reference = np.array(
+            [
+                [[1.0, 0.0, 0.0], [-1.0, 0.5, 0.0], [0.0, 2.0, 0.25]],
+                [[1.5, 0.25, 0.5], [-0.5, -0.25, 1.0], [0.25, 1.5, -1.0]],
+                [[0.75, 1.0, 0.0], [-1.5, 0.0, 0.5], [1.0, 2.5, 0.0]],
+            ],
+            dtype=np.float64,
+        )
+        produced = self.producer.constant_predictor_error(reference, (0, 1))
+        rederived = self.verifier.rederive_constant_error(reference, (0, 1))
+        np.testing.assert_array_equal(produced[0], rederived[0])
+        np.testing.assert_array_equal(produced[1], rederived[1])
+        self.assertGreater(float(rederived[0].max()), 0.0)
+        self.assertGreater(float(rederived[1].max()), 0.0)
+
+
+class DeriveContextTests(unittest.TestCase):
+    """The fail-closed gates of ``derive``, on a fake context: no data root needed.
+
+    ``cmd_derive`` imports ``open_real_context`` and ``load_arm_data`` at call
+    time, so patching them on ``pinn.verification.learnability_data`` exercises
+    the real gate order without reading the corpus.
+    """
+
+    def setUp(self):
+        self.verifier = load_verifier()
+        cwd = Path.cwd()
+        self.addCleanup(os.chdir, cwd)
+
+    @staticmethod
+    def _summary(**overrides):
+        summary = {
+            "schema": "phase59-files-opened/v1",
+            "data_root_source": "fixture",
+            "opened": {"train": 3, "validation": 0, "other_under_root": 0},
+            "test_split_opened": 0,
+            "blocked_attempts": 0,
+            "refused_before_open": 0,
+        }
+        for dotted, value in overrides.items():
+            target = summary
+            parts = dotted.split(".")
+            for part in parts[:-1]:
+                target = target[part]
+            target[parts[-1]] = value
+        return summary
+
+    @staticmethod
+    def _context(summary):
+        from pinn.verification.learnability_data import DataContext
+
+        return DataContext(
+            allowlist=None,
+            reader=None,
+            attestation=SimpleNamespace(summary=lambda: summary),
+            stats=None,
+            stats_sha256="0" * 64,
+            normalizer_source="fixture",
+            run_kind="fixture",
+            data_root_source="fixture",
+        )
+
+    def assert_derive_rejected(self, summary: dict, needle: str) -> None:
+        context = self._context(summary)
+        loader = mock.Mock(side_effect=AssertionError("load_arm_data was called"))
+        with mock.patch(
+            "pinn.verification.learnability_data.open_real_context",
+            return_value=context,
+        ), mock.patch("pinn.verification.learnability_data.load_arm_data", loader):
+            code, _stdout, stderr = run_main(self.verifier, ["derive"])
+        self.assertEqual(code, 1, f"derive passed with {summary}")
+        self.assertIn("FAIL-CLOSED", stderr)
+        self.assertIn(needle, stderr)
+        loader.assert_not_called()
+
+    def test_a_test_split_open_fails_closed(self):
+        self.assert_derive_rejected(
+            self._summary(test_split_opened=1),
+            "the open attestation shows test_split_opened 1",
+        )
+
+    def test_a_validation_open_fails_closed(self):
+        self.assert_derive_rejected(
+            self._summary(**{"opened.validation": 1}),
+            "the open attestation shows opened.validation 1",
+        )
+
+    def test_a_weights_digest_mismatch_fails_before_torch_load(self):
+        original = self.verifier.load_json
+
+        def patched(path, *, what):
+            payload = original(path, what=what)
+            if Path(path).name == "record.json" and "r1-1632" in str(path):
+                payload = copy.deepcopy(payload)
+                payload["states"]["polish"]["weights"]["sha256"] = "0" * 64
+            return payload
+
+        with mock.patch.object(self.verifier, "load_json", patched), mock.patch(
+            "torch.load"
+        ) as loader:
+            with self.assertRaises(self.verifier.VerifyError) as caught:
+                self.verifier.rederive_state(None, None, "r1-1632", "polish")
+        self.assertIn("weights SHA-256", str(caught.exception))
+        self.assertIn("for r1-1632 polish", str(caught.exception))
+        loader.assert_not_called()
+
+
+@unittest.skipUnless(_external_data_root_present(), "external data root absent")
+class DeriveRealTests(unittest.TestCase):
+    """The CPU re-derivation on the real committed weights files."""
+
+    def setUp(self):
+        self.verifier = load_verifier()
+        self.producer = load_producer()
+        cwd = Path.cwd()
+        self.addCleanup(os.chdir, cwd)
+
+    def test_real_derive_re_derives_136_entries(self):
+        code, stdout, stderr = run_main(self.verifier, ["derive"])
+        self.assertEqual(code, 0, stderr)
+        self.assertEqual(stdout.splitlines(), ["cpu entries 136", "DERIVE-OK"])
+
+    def test_every_cpu_e_equals_its_records_cross_check(self):
+        payload = json.loads(
+            (ROOT / EVIDENCE / "numbers.json").read_text(encoding="utf-8")
+        )
+        entries = {entry["id"]: entry for entry in payload["entries"]}
+        checked = 0
+        for arm_id in self.verifier.EXPECTED_ARMS:
+            record = json.loads(
+                (ROOT / f"{P60}/arms/{arm_id}/record.json").read_text(encoding="utf-8")
+            )
+            for state in self.verifier.CPU_STATES:
+                entry = entries[f"cpu.{arm_id}.{state}.E"]
+                self.assertEqual(entry["label"], "rederived-cpu-float64")
+                self.assertAlmostEqual(
+                    entry["value"],
+                    record["states"][state]["cross_check"]["E"],
+                    delta=1e-12,
+                )
+                checked += 1
+        self.assertEqual(checked, 14)
+
+    def test_the_two_rederivations_agree_on_r1_1632_polish(self):
+        import torch
+
+        from pinn.verification.feasibility_scorecard import load_scorecard
+        from pinn.verification.learnability_arms import arm_spec
+        from pinn.verification.learnability_data import load_arm_data, open_real_context
+
+        os.chdir(ROOT)
+        torch.set_num_threads(1)
+        card = load_scorecard()
+        ctx = open_real_context(repo_root=ROOT)
+        arm_data = load_arm_data(
+            arm_spec("r1-1632"), ctx, scorecard=card, dtype=torch.float32, device="cpu"
+        )
+        produced = self.producer.derive_state(
+            ctx, card, "r1-1632", "polish", arm_data=arm_data
+        )
+        rederived = self.verifier.rederive_state(
+            ctx, card, "r1-1632", "polish", arm_data=arm_data
+        )
+        for field in ("pos", "ref", "times", "e_sys", "e_in"):
+            np.testing.assert_allclose(
+                rederived[field],
+                produced[field],
+                rtol=0.0,
+                atol=1e-12,
+                err_msg=f"{field} differs between the two re-derivations",
+            )
+        self.assertEqual(rederived["inner_pair"], produced["inner_pair"])
 
 
 class OrderedSumTests(unittest.TestCase):

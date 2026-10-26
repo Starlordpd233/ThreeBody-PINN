@@ -4,7 +4,7 @@
     "data_root_source": "git_common_dir_default",
     "opened": {
       "other_under_root": 0,
-      "train": 258,
+      "train": 262,
       "validation": 0
     },
     "refused_before_open": 0,
@@ -2122,6 +2122,34 @@
       "value": 18.6086833244856
     },
     {
+      "derivation": "The greatest gap between a system's official Rung-1 E and its constant-predictor E.",
+      "id": "const_gap.max",
+      "label": "arithmetic",
+      "render": "0.0038",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "const_gap_max"
+      },
+      "value": 0.0038326894849018966
+    },
+    {
+      "derivation": "The least gap between a system's official Rung-1 E and its constant-predictor E.",
+      "id": "const_gap.min",
+      "label": "arithmetic",
+      "render": "0.0035",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "const_gap_min"
+      },
+      "value": 0.003546558893760654
+    },
+    {
       "derivation": "The wall hours of the one arm whose budget was doubled, r1-4658.",
       "id": "cost.arm_hours.extended",
       "label": "arithmetic",
@@ -2318,20 +2346,1878 @@
       "value": 951
     },
     {
-      "derivation": "Re-scored from the committed polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
-      "id": "cpu.r1-1632.polish.E",
+      "derivation": "The open attestation's blocked_attempts counter: every read in this run went through the Phase 59 allowlist.",
+      "id": "cpu.attestation.blocked_attempts",
+      "label": "arithmetic",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "cpu_attestation_blocked_attempts"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The open attestation's other_under_root counter: every read in this run went through the Phase 59 allowlist.",
+      "id": "cpu.attestation.other_under_root",
+      "label": "arithmetic",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "cpu_attestation_other_under_root"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The open attestation's refused_before_open counter: every read in this run went through the Phase 59 allowlist.",
+      "id": "cpu.attestation.refused_before_open",
+      "label": "arithmetic",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "cpu_attestation_refused_before_open"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The open attestation's test_split_opened counter: every read in this run went through the Phase 59 allowlist.",
+      "id": "cpu.attestation.test_split_opened",
+      "label": "arithmetic",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "cpu_attestation_test_split_opened"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The open attestation's validation counter: every read in this run went through the Phase 59 allowlist.",
+      "id": "cpu.attestation.validation",
+      "label": "arithmetic",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "cpu_attestation_validation"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Each body held at its time-mean position and scored with the frozen position_errors on the CPU in float64 against the 1632 gold reference; the r1-1632 adam weights are named for provenance and are not read by the constant predictor.",
+      "id": "cpu.const.1632.E",
       "label": "rederived-cpu-float64",
-      "render": "1.1600",
+      "render": "1.1538",
       "render_rule": "E4",
       "required_in": [
         "verdict"
       ],
       "source": {
         "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/adam.weights"
+      },
+      "value": 1.1538408194255343
+    },
+    {
+      "derivation": "Each body held at its time-mean position and scored with the frozen position_errors on the CPU in float64 against the 4658 gold reference; the r1-4658 adam weights are named for provenance and are not read by the constant predictor.",
+      "id": "cpu.const.4658.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1396",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/adam.weights"
+      },
+      "value": 1.1395956985717504
+    },
+    {
+      "derivation": "Each body held at its time-mean position and scored with the frozen position_errors on the CPU in float64 against the 851 gold reference; the r1-851 adam weights are named for provenance and are not read by the constant predictor.",
+      "id": "cpu.const.851.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.2337",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/adam.weights"
+      },
+      "value": 1.233696866477104
+    },
+    {
+      "derivation": "The greatest constant-predictor E across the three systems.",
+      "id": "cpu.const.range.max",
+      "label": "arithmetic",
+      "render": "1.2337",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "cpu_const_range_max"
+      },
+      "value": 1.233696866477104
+    },
+    {
+      "derivation": "The least constant-predictor E across the three systems.",
+      "id": "cpu.const.range.min",
+      "label": "arithmetic",
+      "render": "1.1396",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "cpu_const_range_min"
+      },
+      "value": 1.1395956985717504
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 adam weights on the CPU in float64; equals states.adam.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.g2s-1632-w060.adam.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1574",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/adam.weights"
+      },
+      "value": 1.157435079133467
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 adam weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.g2s-1632-w060.adam.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.867",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/adam.weights"
+      },
+      "value": 0.866576365514396
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 adam weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.g2s-1632-w060.adam.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.998",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/adam.weights"
+      },
+      "value": 0.9983103672335574
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 adam weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.g2s-1632-w060.adam.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.809",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/adam.weights"
+      },
+      "value": 0.808571723556389
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 adam weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.g2s-1632-w060.adam.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/adam.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 adam weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.g2s-1632-w060.adam.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/adam.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 adam weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w060.adam.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0000",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/adam.weights"
+      },
+      "value": 1.000038044234646
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 adam weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w060.adam.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0033",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/adam.weights"
+      },
+      "value": 0.0032618234408789363
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.g2s-1632-w060.polish.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1578",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/polish.weights"
+      },
+      "value": 1.157774162354692
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 polish weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.g2s-1632-w060.polish.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.866",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/polish.weights"
+      },
+      "value": 0.8655972433983653
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 polish weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.g2s-1632-w060.polish.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.995",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/polish.weights"
+      },
+      "value": 0.9949461182828419
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 polish weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.g2s-1632-w060.polish.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.807",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/polish.weights"
+      },
+      "value": 0.8071489647188688
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 polish weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.g2s-1632-w060.polish.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/polish.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 polish weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.g2s-1632-w060.polish.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/polish.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 polish weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w060.polish.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.9999",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/polish.weights"
+      },
+      "value": 0.9998705189061837
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w060 polish weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w060.polish.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0032",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/polish.weights"
+      },
+      "value": 0.003222974758325508
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 adam weights on the CPU in float64; equals states.adam.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.g2s-1632-w120.adam.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1571",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/adam.weights"
+      },
+      "value": 1.1571469931109966
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 adam weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.g2s-1632-w120.adam.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.867",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/adam.weights"
+      },
+      "value": 0.867465738498848
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 adam weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.g2s-1632-w120.adam.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.992",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/adam.weights"
+      },
+      "value": 0.9917675520805334
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 adam weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.g2s-1632-w120.adam.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.805",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/adam.weights"
+      },
+      "value": 0.80478092809378
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 adam weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.g2s-1632-w120.adam.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/adam.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 adam weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.g2s-1632-w120.adam.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/adam.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 adam weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w120.adam.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0000",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/adam.weights"
+      },
+      "value": 1.0000137982992054
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 adam weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w120.adam.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0032",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/adam.weights"
+      },
+      "value": 0.0032022843381599828
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.g2s-1632-w120.polish.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1579",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/polish.weights"
+      },
+      "value": 1.1578582889778253
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 polish weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.g2s-1632-w120.polish.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.867",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/polish.weights"
+      },
+      "value": 0.8665159205990871
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 polish weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.g2s-1632-w120.polish.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.993",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/polish.weights"
+      },
+      "value": 0.9933949013171084
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 polish weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.g2s-1632-w120.polish.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.806",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/polish.weights"
+      },
+      "value": 0.8058726484734847
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 polish weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.g2s-1632-w120.polish.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/polish.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 polish weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.g2s-1632-w120.polish.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/polish.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 polish weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w120.polish.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0001",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/polish.weights"
+      },
+      "value": 1.0001335466126609
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w120 polish weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w120.polish.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0032",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/polish.weights"
+      },
+      "value": 0.003190335556952391
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 adam weights on the CPU in float64; equals states.adam.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.g2s-1632-w240.adam.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1549",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/adam.weights"
+      },
+      "value": 1.1548676185932523
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 adam weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.g2s-1632-w240.adam.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.866",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/adam.weights"
+      },
+      "value": 0.8658785608803037
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 adam weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.g2s-1632-w240.adam.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.994",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/adam.weights"
+      },
+      "value": 0.9942916780314438
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 adam weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.g2s-1632-w240.adam.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.805",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/adam.weights"
+      },
+      "value": 0.8049879665018153
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 adam weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.g2s-1632-w240.adam.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/adam.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 adam weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.g2s-1632-w240.adam.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/adam.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 adam weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w240.adam.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0000",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/adam.weights"
+      },
+      "value": 1.000034183543581
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 adam weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w240.adam.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0030",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/adam.weights"
+      },
+      "value": 0.0030247483557840115
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.g2s-1632-w240.polish.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1580",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/polish.weights"
+      },
+      "value": 1.1579683218102534
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 polish weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.g2s-1632-w240.polish.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.866",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/polish.weights"
+      },
+      "value": 0.8658980471823597
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 polish weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.g2s-1632-w240.polish.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.996",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/polish.weights"
+      },
+      "value": 0.9960542096170482
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 polish weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.g2s-1632-w240.polish.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.807",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/polish.weights"
+      },
+      "value": 0.8070744447768745
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 polish weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.g2s-1632-w240.polish.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/polish.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 polish weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.g2s-1632-w240.polish.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/polish.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 polish weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w240.polish.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0001",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/polish.weights"
+      },
+      "value": 1.0001357325116416
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w240 polish weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w240.polish.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0031",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/polish.weights"
+      },
+      "value": 0.0030742790819106693
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 adam weights on the CPU in float64; equals states.adam.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.g2s-1632-w480.adam.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1577",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/adam.weights"
+      },
+      "value": 1.1577479169954874
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 adam weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.g2s-1632-w480.adam.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.867",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/adam.weights"
+      },
+      "value": 0.8665997138514826
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 adam weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.g2s-1632-w480.adam.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.994",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/adam.weights"
+      },
+      "value": 0.9936682601459784
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 adam weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.g2s-1632-w480.adam.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.810",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/adam.weights"
+      },
+      "value": 0.8097585193510345
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 adam weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.g2s-1632-w480.adam.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/adam.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 adam weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.g2s-1632-w480.adam.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/adam.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 adam weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w480.adam.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0000",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/adam.weights"
+      },
+      "value": 0.9999512774183265
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 adam weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w480.adam.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0030",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/adam.weights"
+      },
+      "value": 0.0029521706856745354
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.g2s-1632-w480.polish.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1573",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/polish.weights"
+      },
+      "value": 1.157275587188363
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 polish weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.g2s-1632-w480.polish.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.865",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/polish.weights"
+      },
+      "value": 0.8654649776580403
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 polish weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.g2s-1632-w480.polish.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.998",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/polish.weights"
+      },
+      "value": 0.9978587621019953
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 polish weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.g2s-1632-w480.polish.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.810",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/polish.weights"
+      },
+      "value": 0.8098711789083792
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 polish weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.g2s-1632-w480.polish.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/polish.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 polish weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.g2s-1632-w480.polish.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/polish.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 polish weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w480.polish.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0000",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/polish.weights"
+      },
+      "value": 0.9999976484246578
+    },
+    {
+      "derivation": "Re-derived from the committed g2s-1632-w480 polish weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.g2s-1632-w480.polish.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0031",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/polish.weights"
+      },
+      "value": 0.003067356085567043
+    },
+    {
+      "derivation": "The number of scored times, the same on every state.",
+      "id": "cpu.n_times",
+      "label": "arithmetic",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_n_times"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 adam weights on the CPU in float64; equals states.adam.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.r1-1632.adam.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1571",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/adam.weights"
+      },
+      "value": 1.157053192989227
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 adam weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.r1-1632.adam.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.866",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/adam.weights"
+      },
+      "value": 0.8658810445024897
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 adam weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.r1-1632.adam.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.997",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/adam.weights"
+      },
+      "value": 0.9969209007327595
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 adam weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.r1-1632.adam.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.809",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/adam.weights"
+      },
+      "value": 0.8092453660952373
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 adam weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.r1-1632.adam.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/adam.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 adam weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.r1-1632.adam.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/adam.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 adam weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.r1-1632.adam.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0000",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/adam.weights"
+      },
+      "value": 1.0000156174710486
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 adam weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.r1-1632.adam.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0034",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/adam.weights"
+      },
+      "value": 0.003400346268788544
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.r1-1632.polish.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1600",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
         "state": "polish",
         "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/polish.weights"
       },
       "value": 1.1599973904350662
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 polish weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.r1-1632.polish.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.866",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/polish.weights"
+      },
+      "value": 0.866243122436896
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 polish weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.r1-1632.polish.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.996",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/polish.weights"
+      },
+      "value": 0.9960505436962268
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 polish weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.r1-1632.polish.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.807",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/polish.weights"
+      },
+      "value": 0.8065649443233558
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 polish weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.r1-1632.polish.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/polish.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 polish weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.r1-1632.polish.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/polish.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 polish weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.r1-1632.polish.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0000",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/polish.weights"
+      },
+      "value": 1.0000237210169605
+    },
+    {
+      "derivation": "Re-derived from the committed r1-1632 polish weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.r1-1632.polish.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0033",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/polish.weights"
+      },
+      "value": 0.0033451910267672945
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 adam weights on the CPU in float64; equals states.adam.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.r1-4658.adam.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1427",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/adam.weights"
+      },
+      "value": 1.142704272424714
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 adam weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.r1-4658.adam.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.935",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/adam.weights"
+      },
+      "value": 0.9348554741146471
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 adam weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.r1-4658.adam.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.897",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/adam.weights"
+      },
+      "value": 0.8969532144514586
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 adam weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.r1-4658.adam.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "1.009",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/adam.weights"
+      },
+      "value": 1.0094268878192518
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 adam weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.r1-4658.adam.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/adam.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 adam weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.r1-4658.adam.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/adam.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 adam weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.r1-4658.adam.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0000",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/adam.weights"
+      },
+      "value": 0.999958644030355
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 adam weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.r1-4658.adam.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0032",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/adam.weights"
+      },
+      "value": 0.0031896100107791344
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.r1-4658.polish.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1428",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/polish.weights"
+      },
+      "value": 1.1428474550621466
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 polish weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.r1-4658.polish.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.935",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/polish.weights"
+      },
+      "value": 0.9353343559286782
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 polish weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.r1-4658.polish.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.894",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/polish.weights"
+      },
+      "value": 0.8943173127301677
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 polish weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.r1-4658.polish.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "1.006",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/polish.weights"
+      },
+      "value": 1.0063014725870223
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 polish weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.r1-4658.polish.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/polish.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 polish weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.r1-4658.polish.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/polish.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 polish weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.r1-4658.polish.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0000",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/polish.weights"
+      },
+      "value": 0.9999858004618246
+    },
+    {
+      "derivation": "Re-derived from the committed r1-4658 polish weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.r1-4658.polish.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0031",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/polish.weights"
+      },
+      "value": 0.0030651010605025108
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 adam weights on the CPU in float64; equals states.adam.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.r1-851.adam.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.2367",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/adam.weights"
+      },
+      "value": 1.2367189444290603
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 adam weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.r1-851.adam.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.817",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/adam.weights"
+      },
+      "value": 0.816994148255415
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 adam weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.r1-851.adam.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.898",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/adam.weights"
+      },
+      "value": 0.8982178103965899
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 adam weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.r1-851.adam.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.987",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/adam.weights"
+      },
+      "value": 0.9874634550628935
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 adam weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.r1-851.adam.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/adam.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 adam weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.r1-851.adam.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/adam.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 adam weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.r1-851.adam.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0000",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/adam.weights"
+      },
+      "value": 1.0000429704027234
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 adam weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.r1-851.adam.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0031",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "adam",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/adam.weights"
+      },
+      "value": 0.00314963490650162
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.r1-851.polish.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.2373",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/polish.weights"
+      },
+      "value": 1.2372870290284872
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 polish weights on the CPU in float64: the minimum over the scored times of max(e_sys, e_in).",
+      "id": "cpu.r1-851.polish.best_moment",
+      "label": "rederived-cpu-float64",
+      "render": "0.817",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/polish.weights"
+      },
+      "value": 0.817273494422139
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 polish weights on the CPU in float64: e_in at the first scored time.",
+      "id": "cpu.r1-851.polish.e_in_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.895",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/polish.weights"
+      },
+      "value": 0.895359633790748
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 polish weights on the CPU in float64: e_sys at the first scored time.",
+      "id": "cpu.r1-851.polish.e_sys_t0",
+      "label": "rederived-cpu-float64",
+      "render": "0.987",
+      "render_rule": "F3",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/polish.weights"
+      },
+      "value": 0.9867120093144223
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 polish weights on the CPU in float64: the number of scored times on the gold grid.",
+      "id": "cpu.r1-851.polish.n_times",
+      "label": "rederived-cpu-float64",
+      "render": "1,001",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/polish.weights"
+      },
+      "value": 1001
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 polish weights on the CPU in float64: the scored times whose max(e_sys, e_in) is at or below the scorecard's Tier-1 E_max, inclusive.",
+      "id": "cpu.r1-851.polish.n_within_tier1",
+      "label": "rederived-cpu-float64",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/polish.weights"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 polish weights on the CPU in float64: RMS error over the RMS of the orbit about its own mean, all bodies and coordinates.",
+      "id": "cpu.r1-851.polish.rms_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "1.0001",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/polish.weights"
+      },
+      "value": 1.0001017502965284
+    },
+    {
+      "derivation": "Re-derived from the committed r1-851 polish weights on the CPU in float64: RMS deviation of the output about its own time mean over the same for the real orbit, all bodies and coordinates.",
+      "id": "cpu.r1-851.polish.timevar_ratio",
+      "label": "rederived-cpu-float64",
+      "render": "0.0031",
+      "render_rule": "E4",
+      "required_in": [],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/polish.weights"
+      },
+      "value": 0.003082346645470706
+    },
+    {
+      "derivation": "The greatest best moment across the 14 states.",
+      "id": "cpu.range.best_moment.max",
+      "label": "arithmetic",
+      "render": "0.935",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_range_best_moment_max"
+      },
+      "value": 0.9353343559286782
+    },
+    {
+      "derivation": "The least best moment across the 14 states.",
+      "id": "cpu.range.best_moment.min",
+      "label": "arithmetic",
+      "render": "0.817",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_range_best_moment_min"
+      },
+      "value": 0.816994148255415
+    },
+    {
+      "derivation": "The greatest e_in at the first scored time across the 14 states.",
+      "id": "cpu.range.e_in_t0.max",
+      "label": "arithmetic",
+      "render": "0.998",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_range_e_in_t0_max"
+      },
+      "value": 0.9983103672335574
+    },
+    {
+      "derivation": "The least e_in at the first scored time across the 14 states.",
+      "id": "cpu.range.e_in_t0.min",
+      "label": "arithmetic",
+      "render": "0.894",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_range_e_in_t0_min"
+      },
+      "value": 0.8943173127301677
+    },
+    {
+      "derivation": "The greatest e_sys at the first scored time across the 14 states.",
+      "id": "cpu.range.e_sys_t0.max",
+      "label": "arithmetic",
+      "render": "1.009",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_range_e_sys_t0_max"
+      },
+      "value": 1.0094268878192518
+    },
+    {
+      "derivation": "The least e_sys at the first scored time across the 14 states.",
+      "id": "cpu.range.e_sys_t0.min",
+      "label": "arithmetic",
+      "render": "0.805",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_range_e_sys_t0_min"
+      },
+      "value": 0.80478092809378
+    },
+    {
+      "derivation": "The greatest RMS ratio across the 14 states.",
+      "id": "cpu.range.rms_ratio.max",
+      "label": "arithmetic",
+      "render": "1.0001",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_range_rms_ratio_max"
+      },
+      "value": 1.0001357325116416
+    },
+    {
+      "derivation": "The least RMS ratio across the 14 states.",
+      "id": "cpu.range.rms_ratio.min",
+      "label": "arithmetic",
+      "render": "0.9999",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_range_rms_ratio_min"
+      },
+      "value": 0.9998705189061837
+    },
+    {
+      "derivation": "The greatest time-variation ratio across the 14 states.",
+      "id": "cpu.range.timevar.max",
+      "label": "arithmetic",
+      "render": "0.0034",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_range_timevar_max"
+      },
+      "value": 0.003400346268788544
+    },
+    {
+      "derivation": "The least time-variation ratio across the 14 states.",
+      "id": "cpu.range.timevar.min",
+      "label": "arithmetic",
+      "render": "0.0030",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_range_timevar_min"
+      },
+      "value": 0.0029521706856745354
+    },
+    {
+      "derivation": "The sum over the 14 states of the scored times within the Tier-1 limit.",
+      "id": "cpu.total.n_within_tier1",
+      "label": "arithmetic",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "cpu_total_n_within_tier1"
+      },
+      "value": 0
     },
     {
       "derivation": "The greatest final result.E across the seven arms.",
@@ -3348,7 +5234,7 @@
   ],
   "plain_language": "Every number the Phase 64 verdict and charter quote, each with the file it comes from and how it was computed, re-derived independently by verify_phase64_verdict.py.",
   "producer_sha256": {
-    ".planning/phases/64-feasibility-verdict/evidence/build_phase64_evidence.py": "0b7f00f70c261a6d558a5bf129b94bf3d23e735cac0bafbe28723034198c4d7b",
+    ".planning/phases/64-feasibility-verdict/evidence/build_phase64_evidence.py": "d91e0bcd6d529b402570d9121f4553591f7c1a43d5998b95f2902d106d6e7a12",
     "pinn/architecture_spec.py": "3cc1b9c21c6a483b6acfa4be551ea533784aee1872d46b365e66fc50806f5085",
     "pinn/network.py": "af993b79c7ebeab4b28adcd58dfa6febfa75ef9186b57a6aa67487f40a980a81",
     "pinn/verification/diagnostic_architecture.py": "d2c1f450c13779bee3ed4e68445491b5f9c2ceb55d5a304e193b048ac23a6eef",
