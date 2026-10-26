@@ -107,6 +107,26 @@ CPU_FIELDS = frozenset(
     }
 )
 
+# The figure (64-03). The verifier re-derives the plotted series with its own
+# code, compares the series digest, regenerates the SVG bytes from that series
+# and parses the committed document for out-of-canvas text, script elements and
+# external references.
+FIGURE_REL = EVIDENCE_REL / "figure-1632.svg"
+FIGURE_PROVENANCE_REL = EVIDENCE_REL / "figure-1632.provenance.json"
+FIGURE_PRODUCER_REL = EVIDENCE_REL / "build_phase64_figure.py"
+FIGURE_SCHEMA = "phase64-figure-provenance/v1"
+FIGURE_ARM = "r1-1632"
+FIGURE_STATE = "polish"
+FIGURE_PRECISION = "CPU float64"
+FIGURE_GROUPS = ("panel-a",)
+FIGURE_INPUTS = (
+    (P60_EVIDENCE_REL / "arms" / FIGURE_ARM / "record.json").as_posix(),
+    (P60_EVIDENCE_REL / "arms" / FIGURE_ARM / f"{FIGURE_STATE}.weights").as_posix(),
+    HANDOFF_REL.as_posix(),
+    SCORECARD_ARTIFACT_REL.as_posix(),
+)
+FIGURE_PRODUCERS = (FIGURE_PRODUCER_REL.as_posix(), PRODUCER_REL)
+
 
 # The frozen check: the phase base every frozen byte must predate, the eight
 # sealed files named here, the 33 pinned modules read from run-protocol.json at
@@ -2168,19 +2188,16 @@ def cmd_numbers(_args: argparse.Namespace) -> None:
     print("NUMBERS-OK")
 
 
-def _check_open_attestation(ctx: Any) -> None:
-    """The open attestation must show every counter at zero."""
-    attestation = getattr(ctx, "attestation", None)
-    if attestation is None:
-        fail("the real context carries no open attestation")
-    summary = attestation.summary()
+def _check_attestation_summary(summary: Any, *, what: str = "the open attestation") -> None:
+    """Every counter of an open-attestation summary must be zero."""
     if not isinstance(summary, Mapping):
-        fail("the open attestation summary is not an object")
+        fail(f"{what} summary is not an object")
     if summary.get("schema") != "phase59-files-opened/v1":
-        fail(f"open attestation schema {summary.get('schema')!r} is not phase59-files-opened/v1")
+        label = "open attestation schema" if what == "the open attestation" else f"{what} schema"
+        fail(f"{label} {summary.get('schema')!r} is not phase59-files-opened/v1")
     opened = summary.get("opened")
     if not isinstance(opened, Mapping):
-        fail("the open attestation has no opened block")
+        fail(f"{what} has no opened block")
     for name, value in (
         ("test_split_opened", summary.get("test_split_opened")),
         ("opened.validation", opened.get("validation")),
@@ -2189,7 +2206,15 @@ def _check_open_attestation(ctx: Any) -> None:
         ("refused_before_open", summary.get("refused_before_open")),
     ):
         if value != 0:
-            fail(f"the open attestation shows {name} {value!r}, not 0")
+            fail(f"{what} shows {name} {value!r}, not 0")
+
+
+def _check_open_attestation(ctx: Any) -> None:
+    """The open attestation must show every counter at zero."""
+    attestation = getattr(ctx, "attestation", None)
+    if attestation is None:
+        fail("the real context carries no open attestation")
+    _check_attestation_summary(attestation.summary())
 
 
 def rederive_constant_error(ref: Any, inner_pair: Any) -> tuple[Any, Any]:
@@ -2473,12 +2498,332 @@ def cmd_derive(_args: argparse.Namespace) -> None:
     print("DERIVE-OK")
 
 
+# ---------------------------------------------------------------------------
+# The figure (64-03): independent re-derivation, byte regeneration and parsing.
+# ---------------------------------------------------------------------------
+
+
+def _canonical_bytes(payload: Any) -> bytes:
+    """The verifier's own canonical JSON bytes (the evidence writer's format)."""
+    return (
+        json.dumps(payload, sort_keys=True, indent=2, ensure_ascii=True, allow_nan=False)
+        + "\n"
+    ).encode("ascii")
+
+
+def _r10(value: Any) -> float:
+    """A plain Python float rounded to the ten decimals the series records."""
+    return round(float(value), 10)
+
+
+def _figure_payload(
+    derived: Mapping[str, Any],
+    e_sys_const: Any,
+    e_in_const: Any,
+    tier1_max: float,
+    attestation: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Assemble the plotted series in the producer's key order and rounding."""
+    import numpy as np
+
+    ref = np.asarray(derived["ref"], dtype=np.float64)
+    pos = np.asarray(derived["pos"], dtype=np.float64)
+    times = np.asarray(derived["times"], dtype=np.float64)
+    mean = ref.mean(axis=0)
+    err_net = np.maximum(
+        np.asarray(derived["e_sys"], dtype=np.float64),
+        np.asarray(derived["e_in"], dtype=np.float64),
+    )
+    err_const = np.maximum(
+        np.asarray(e_sys_const, dtype=np.float64),
+        np.asarray(e_in_const, dtype=np.float64),
+    )
+    series = {
+        "arm": FIGURE_ARM,
+        "state": FIGURE_STATE,
+        "times": [_r10(value) for value in times],
+        "ref_xy": [
+            [[_r10(point[0]), _r10(point[1])] for point in ref[:, body, :]]
+            for body in range(3)
+        ],
+        "pred_xy": [
+            [[_r10(point[0]), _r10(point[1])] for point in pos[:, body, :]]
+            for body in range(3)
+        ],
+        "mean_xy": [[_r10(mean[body][0]), _r10(mean[body][1])] for body in range(3)],
+        "err_net": [_r10(value) for value in err_net],
+        "err_const": [_r10(value) for value in err_const],
+        "tier1": _r10(tier1_max),
+        "attestation": dict(attestation),
+    }
+    count = len(series["times"])
+    if count < 2:
+        fail(f"the re-derived series holds {count} times, fewer than 2")
+    for key in ("ref_xy", "pred_xy"):
+        if len(series[key]) != 3 or any(len(body) != count for body in series[key]):
+            fail(f"the re-derived series {key} does not hold three tracks of {count} times")
+    for key in ("err_net", "err_const"):
+        if len(series[key]) != count:
+            fail(f"the re-derived series {key} length differs from times")
+    return series
+
+
+def _figure_series(ctx: Any, card: Any) -> dict[str, Any]:
+    """The verifier's own plotted series for r1-1632's official state.
+
+    It calls ``rederive_state`` and ``rederive_constant_error`` from 64-02, never
+    the producer's ``derive_state`` or ``constant_predictor_error``.
+    """
+    import torch
+
+    from pinn.verification.learnability_arms import arm_spec
+    from pinn.verification.learnability_data import load_arm_data
+
+    arm_data = load_arm_data(
+        arm_spec(FIGURE_ARM), ctx, scorecard=card, dtype=torch.float32, device="cpu"
+    )
+    derived = rederive_state(ctx, card, FIGURE_ARM, FIGURE_STATE, arm_data=arm_data)
+    e_sys_const, e_in_const = rederive_constant_error(
+        derived["ref"], derived["inner_pair"]
+    )
+    attestation = getattr(ctx, "attestation", None)
+    if attestation is None:
+        fail("the real context carries no open attestation")
+    return _figure_payload(
+        derived, e_sys_const, e_in_const, _tier1_max(card), attestation.summary()
+    )
+
+
+def _figure_series_digest(series: Mapping[str, Any]) -> str:
+    """SHA-256 of the canonical plotted series, without the attestation."""
+    payload = {key: value for key, value in series.items() if key != "attestation"}
+    return hashlib.sha256(_canonical_bytes(payload)).hexdigest()
+
+
+def _load_figure_producer() -> Any:
+    """Import the committed figure producer by path, never by package name."""
+    import importlib.util
+
+    path = repo_path(FIGURE_PRODUCER_REL, what="figure producer")
+    spec = importlib.util.spec_from_file_location("build_phase64_figure", path)
+    if spec is None or spec.loader is None:
+        fail(f"cannot import the figure producer {FIGURE_PRODUCER_REL}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _check_svg_document(svg_text: str, *, required_ids: Sequence[str]) -> None:
+    """Parse the SVG: viewBox, text and polyline bounds, no script or href."""
+    import xml.etree.ElementTree as ElementTree
+
+    try:
+        root = ElementTree.fromstring(svg_text)
+    except ElementTree.ParseError as exc:
+        fail(f"the figure SVG is not well-formed XML: {exc}")
+    view = root.get("viewBox")
+    if view is None:
+        fail("the figure SVG has no viewBox")
+    parts = view.replace(",", " ").split()
+    if len(parts) != 4:
+        fail(f"the figure SVG viewBox {view!r} does not hold four numbers")
+    try:
+        min_x, min_y, width, height = (float(part) for part in parts)
+    except ValueError:
+        fail(f"the figure SVG viewBox {view!r} does not hold four numbers")
+    if width <= 0.0 or height <= 0.0:
+        fail(f"the figure SVG viewBox {view!r} has no area")
+    max_x, max_y = min_x + width, min_y + height
+
+    found: set[str] = set()
+    for element in root.iter():
+        tag = element.tag.rsplit("}", 1)[-1]
+        if tag == "script":
+            fail("the figure SVG holds a script element")
+        for name in element.attrib:
+            if name.rsplit("}", 1)[-1] == "href":
+                fail("the figure SVG holds an href attribute")
+        element_id = element.get("id")
+        if element_id:
+            found.add(element_id)
+        if tag == "text":
+            x_raw, y_raw = element.get("x"), element.get("y")
+            if x_raw is None or y_raw is None:
+                fail("a figure text element has no x or y")
+            try:
+                x, y = float(x_raw), float(y_raw)
+            except ValueError:
+                fail(
+                    f"a figure text element has a non-numeric position "
+                    f"{x_raw!r},{y_raw!r}"
+                )
+            if not (min_x <= x <= max_x and min_y <= y <= max_y):
+                fail(f"a figure text element at {x:.1f},{y:.1f} lies outside the viewBox")
+        elif tag == "polyline":
+            points = element.get("points")
+            if not points:
+                fail("a figure polyline has no points")
+            for pair in points.split():
+                if pair.count(",") != 1:
+                    fail(f"a figure polyline point {pair!r} is not x,y")
+                x_raw, y_raw = pair.split(",", 1)
+                try:
+                    x, y = float(x_raw), float(y_raw)
+                except ValueError:
+                    fail(f"a figure polyline point {pair!r} is not numeric")
+                if not (min_x <= x <= max_x and min_y <= y <= max_y):
+                    fail(
+                        f"a figure polyline point at {x:.1f},{y:.1f} lies outside "
+                        "the viewBox"
+                    )
+    for required in required_ids:
+        if required not in found:
+            fail(f"the figure SVG has no group with id {required!r}")
+
+
+def _check_figure_provenance(payload: Any, svg_path: Path) -> None:
+    """Schema, figure digest, input digests, producer digests and fixed fields."""
+    if not isinstance(payload, Mapping):
+        fail("the figure provenance is not an object")
+    if payload.get("schema") != FIGURE_SCHEMA:
+        fail(f"the figure provenance schema {payload.get('schema')!r} != {FIGURE_SCHEMA!r}")
+
+    figure = payload.get("figure")
+    if not isinstance(figure, Mapping):
+        fail("the figure provenance holds no figure block")
+    if figure.get("path") != FIGURE_REL.as_posix():
+        fail(
+            f"the figure provenance path {figure.get('path')!r} != "
+            f"{FIGURE_REL.as_posix()!r}"
+        )
+    digest = sha256_file(svg_path)
+    if figure.get("sha256") != digest:
+        fail(
+            f"the figure SVG SHA-256 {digest} != recorded {figure.get('sha256')!r}"
+        )
+
+    inputs = payload.get("inputs")
+    if not isinstance(inputs, list) or len(inputs) != len(FIGURE_INPUTS):
+        fail(
+            f"the figure provenance names {len(inputs) if isinstance(inputs, list) else 'no'} "
+            f"inputs, not {len(FIGURE_INPUTS)}"
+        )
+    recorded_inputs: dict[str, str] = {}
+    for item in inputs:
+        if not isinstance(item, Mapping):
+            fail("a figure provenance input is not an object")
+        path, item_digest = item.get("path"), item.get("sha256")
+        if not isinstance(path, str) or not isinstance(item_digest, str):
+            fail(f"a figure provenance input is malformed: {item!r}")
+        if path in recorded_inputs:
+            fail(f"the figure provenance names the input {path!r} twice")
+        recorded_inputs[path] = item_digest
+    if tuple(sorted(recorded_inputs)) != tuple(sorted(FIGURE_INPUTS)):
+        fail(f"the figure provenance inputs {sorted(recorded_inputs)!r} != the four inputs")
+    for path, item_digest in recorded_inputs.items():
+        actual = sha256_file(repo_path(path, what="figure input"))
+        if actual != item_digest:
+            fail(f"the figure input {path} SHA-256 {actual} != recorded {item_digest}")
+
+    producers = payload.get("producers")
+    if not isinstance(producers, Mapping):
+        fail("the figure provenance holds no producers block")
+    if tuple(sorted(producers)) != tuple(sorted(FIGURE_PRODUCERS)):
+        fail(f"the figure provenance producers {sorted(producers)!r} != the two scripts")
+    for path, producer_digest in producers.items():
+        actual = sha256_file(repo_path(path, what="figure producer"))
+        if actual != producer_digest:
+            fail(
+                f"the figure producer {path} SHA-256 {actual} != recorded "
+                f"{producer_digest}"
+            )
+
+    if payload.get("arm") != FIGURE_ARM:
+        fail(f"the figure provenance arm {payload.get('arm')!r} != {FIGURE_ARM!r}")
+    if payload.get("state") != FIGURE_STATE:
+        fail(f"the figure provenance state {payload.get('state')!r} != {FIGURE_STATE!r}")
+    if payload.get("precision") != FIGURE_PRECISION:
+        fail(
+            f"the figure provenance precision {payload.get('precision')!r} != "
+            f"{FIGURE_PRECISION!r}"
+        )
+    versions = payload.get("versions")
+    if not isinstance(versions, Mapping) or set(versions) != {"python", "numpy", "torch"}:
+        fail("the figure provenance versions block is not python, numpy and torch")
+    for name, value in versions.items():
+        if not isinstance(value, str) or not value:
+            fail(f"the figure provenance version {name} is not a non-empty string")
+    if payload.get("data_root_source") != "git_common_dir_default":
+        fail(
+            "the figure provenance data_root_source "
+            f"{payload.get('data_root_source')!r} != 'git_common_dir_default'"
+        )
+    _check_attestation_summary(
+        payload.get("attestation"), what="the recorded attestation"
+    )
+
+
+def cmd_figure(_args: argparse.Namespace) -> None:
+    """Re-derive the plotted series, regenerate the SVG and parse the document."""
+    import os
+
+    try:
+        import torch
+
+        from pinn.verification.feasibility_scorecard import load_scorecard
+        from pinn.verification.learnability_data import open_real_context
+    except Exception as exc:  # noqa: BLE001 - fail-closed CLI
+        fail(f"cannot import the CPU re-derivation: {exc}")
+
+    os.chdir(REPO_ROOT)
+    provenance_path = repo_path(FIGURE_PROVENANCE_REL, what="figure provenance")
+    payload = load_json(provenance_path, what="figure provenance")
+    svg_path = repo_path(FIGURE_REL, what="figure SVG")
+    if not svg_path.is_file():
+        fail(f"the figure SVG is missing: {FIGURE_REL.as_posix()}")
+    _check_figure_provenance(payload, svg_path)
+
+    record = load_json(
+        repo_path(FIGURE_INPUTS[0], what="r1-1632 record"), what="r1-1632 record"
+    )
+    if record.get("better_state") != FIGURE_STATE:
+        fail(
+            f"r1-1632 better_state {record.get('better_state')!r} is not "
+            f"{FIGURE_STATE!r}"
+        )
+
+    svg_text = svg_path.read_text(encoding="utf-8")
+    home = str(Path.home())
+    if home and home in svg_text:
+        fail("the figure SVG contains the host home prefix")
+    if home and home in provenance_path.read_text(encoding="utf-8"):
+        fail("the figure provenance contains the host home prefix")
+    _check_svg_document(svg_text, required_ids=FIGURE_GROUPS)
+
+    torch.set_num_threads(1)
+    card = load_scorecard()
+    ctx = open_real_context(repo_root=REPO_ROOT)
+    _check_open_attestation(ctx)
+    series = _figure_series(ctx, card)
+    digest = _figure_series_digest(series)
+    recorded = payload.get("series_sha256")
+    if digest != recorded:
+        fail(f"the re-derived series SHA-256 {digest} != recorded {recorded!r}")
+    producer = _load_figure_producer()
+    regenerated = producer.render_svg(series)
+    if regenerated.encode("utf-8") != svg_path.read_bytes():
+        fail("the regenerated figure SVG differs from the committed bytes")
+    print(f"figure times {len(series['times'])}")
+    print("FIGURE-OK")
+
+
 COMMANDS = {
     "inputs": cmd_inputs,
     "frozen": cmd_frozen,
     "traceability": cmd_traceability,
     "numbers": cmd_numbers,
     "derive": cmd_derive,
+    "figure": cmd_figure,
 }
 
 

@@ -1,0 +1,53 @@
+{
+  "arm": "r1-1632",
+  "attestation": {
+    "blocked_attempts": 0,
+    "data_root_source": "git_common_dir_default",
+    "opened": {
+      "other_under_root": 0,
+      "train": 258,
+      "validation": 0
+    },
+    "refused_before_open": 0,
+    "schema": "phase59-files-opened/v1",
+    "test_split_opened": 0
+  },
+  "command": "python -B .planning/phases/64-feasibility-verdict/evidence/build_phase64_figure.py",
+  "data_root_source": "git_common_dir_default",
+  "figure": {
+    "path": ".planning/phases/64-feasibility-verdict/evidence/figure-1632.svg",
+    "sha256": "23d650ab25fda59addc577aebb1ef0c9e7a066a25abbd9cffa7063ed42c2b4de"
+  },
+  "inputs": [
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/polish.weights",
+      "sha256": "d0521ed6a09cf5125d52fdcbd08b50d19f4251bacab3a5bd4937976ca5a68a35"
+    },
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+      "sha256": "a87273674785128714f5eae4981dcee31fe4c2332dbd84213b7aeaa0098da0b7"
+    },
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json",
+      "sha256": "7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5"
+    },
+    {
+      "path": "pinn/verification/artifacts/feasibility_scorecard_v1.json",
+      "sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
+    }
+  ],
+  "plain_language": "System 1632's real orbit beside the trained network's prediction, drawn read-only from the committed polish weights and re-scored on the CPU in float64; nothing is trained.",
+  "precision": "CPU float64",
+  "producers": {
+    ".planning/phases/64-feasibility-verdict/evidence/build_phase64_evidence.py": "d91e0bcd6d529b402570d9121f4553591f7c1a43d5998b95f2902d106d6e7a12",
+    ".planning/phases/64-feasibility-verdict/evidence/build_phase64_figure.py": "81d79e3c40a951ff248333278e161c9c49d7e384dcd56a7888a382d4b3b1bec2"
+  },
+  "schema": "phase64-figure-provenance/v1",
+  "series_sha256": "6574144710f53fa6fa86b7d0990fa2801578bf443a5c898ac216d2a939c6f8ec",
+  "state": "polish",
+  "versions": {
+    "numpy": "2.4.6",
+    "python": "3.11.15",
+    "torch": "2.12.1"
+  }
+}

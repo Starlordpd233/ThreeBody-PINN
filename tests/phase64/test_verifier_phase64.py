@@ -20,6 +20,7 @@ import os
 import subprocess
 import tempfile
 import unittest
+import xml.etree.ElementTree as ElementTree
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -34,6 +35,22 @@ P60 = ".planning/phases/60-single-system-learnability/evidence"
 P59 = ".planning/phases/59-read-only-baseline-scorecard/evidence"
 VERIFIER_PATH = ROOT / EVIDENCE / "verify_phase64_verdict.py"
 PRODUCER_PATH = ROOT / EVIDENCE / "build_phase64_evidence.py"
+FIGURE_PRODUCER_PATH = ROOT / EVIDENCE / "build_phase64_figure.py"
+FIGURE_SVG_PATH = ROOT / EVIDENCE / "figure-1632.svg"
+FIGURE_PROVENANCE_PATH = ROOT / EVIDENCE / "figure-1632.provenance.json"
+
+# The four inputs the figure provenance names and the two producer scripts it
+# hashes; the temporary figure repository holds byte copies of all six.
+FIGURE_INPUT_RELS = (
+    f"{P60}/arms/r1-1632/record.json",
+    f"{P60}/arms/r1-1632/polish.weights",
+    f"{P60}/g2/stop-handoff.json",
+    "pinn/verification/artifacts/feasibility_scorecard_v1.json",
+)
+FIGURE_PRODUCER_RELS = (
+    f"{EVIDENCE}/build_phase64_figure.py",
+    f"{EVIDENCE}/build_phase64_evidence.py",
+)
 
 G2_FILES = (
     f"{P60}/g2/stop-handoff.json",
@@ -54,6 +71,16 @@ def load_verifier():
 def load_producer():
     spec = importlib.util.spec_from_file_location(
         "build_phase64_evidence", PRODUCER_PATH
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_figure_producer():
+    spec = importlib.util.spec_from_file_location(
+        "build_phase64_figure", FIGURE_PRODUCER_PATH
     )
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -1484,6 +1511,310 @@ class DeriveRealTests(unittest.TestCase):
                 err_msg=f"{field} differs between the two re-derivations",
             )
         self.assertEqual(rederived["inner_pair"], produced["inner_pair"])
+
+
+def _zero_attestation_summary() -> dict:
+    """The shape ``_check_attestation_summary`` accepts, with every counter zero."""
+    return {
+        "schema": "phase59-files-opened/v1",
+        "data_root_source": "fixture",
+        "opened": {"train": 0, "validation": 0, "other_under_root": 0},
+        "test_split_opened": 0,
+        "blocked_attempts": 0,
+        "refused_before_open": 0,
+    }
+
+
+def _synthetic_series() -> dict:
+    """A real-shaped plotted series: three bodies, four times, distinct tracks.
+
+    The predicted tracks are tiny beside the real ones, like the real figure's
+    (64-RESEARCH Pitfall 11), and every body's mean differs from its track, so a
+    renderer that drops a body or a marker cannot pass the shape assertions.
+    """
+    times = [0.0, 1.0, 2.0, 3.0]
+    ref_xy = []
+    pred_xy = []
+    mean_xy = []
+    for body in range(3):
+        base = (body - 1) * 3.0
+        ref_xy.append(
+            [
+                [base + 0.0, base + 0.0],
+                [base + 0.4, base + 0.2],
+                [base + 0.8, base + 0.3],
+                [base + 1.2, base + 0.5],
+            ]
+        )
+        pred_xy.append(
+            [
+                [base + 0.50, base + 0.10],
+                [base + 0.52, base + 0.11],
+                [base + 0.54, base + 0.09],
+                [base + 0.56, base + 0.12],
+            ]
+        )
+        mean_xy.append([base + 0.6, base + 0.2])
+    return {
+        "arm": "r1-1632",
+        "state": "polish",
+        "times": times,
+        "ref_xy": ref_xy,
+        "pred_xy": pred_xy,
+        "mean_xy": mean_xy,
+        "err_net": [1.0, 1.1, 1.2, 1.3],
+        "err_const": [1.05, 1.15, 1.25, 1.35],
+        "tier1": 0.1,
+        "attestation": _zero_attestation_summary(),
+    }
+
+
+class FigureRenderTests(unittest.TestCase):
+    """The SVG renderer on a small synthetic series: pure, no data root needed."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.producer = load_figure_producer()
+        cls.series = _synthetic_series()
+
+    def test_two_calls_are_byte_identical(self):
+        first = self.producer.render_svg(self.series)
+        second = self.producer.render_svg(self.series)
+        self.assertEqual(first.encode("utf-8"), second.encode("utf-8"))
+
+    def test_the_panel_a_group_holds_three_real_and_three_predicted_tracks(self):
+        root = ElementTree.fromstring(self.producer.render_svg(self.series))
+        panel = next(
+            element for element in root.iter() if element.get("id") == "panel-a"
+        )
+        polylines = [
+            element
+            for element in panel.iter()
+            if element.tag.rsplit("}", 1)[-1] == "polyline"
+        ]
+        widths = [element.get("stroke-width") for element in polylines]
+        # The main panel draws the real tracks at 1.5 px and the predicted ones
+        # at 3 px over a 5 px white halo; the inset's magnified tracks are 1.2 px
+        # so they cannot be mistaken for a fourth real track.
+        self.assertEqual(widths.count("1.5"), 3, widths)
+        self.assertEqual(widths.count("3"), 3, widths)
+        self.assertEqual(widths.count("5"), 3, widths)
+        self.assertEqual(widths.count("1.2"), 3, widths)
+
+    def test_every_text_and_point_lies_inside_the_viewbox(self):
+        verifier = load_verifier()
+        verifier._check_svg_document(
+            self.producer.render_svg(self.series), required_ids=("panel-a",)
+        )
+
+    def test_the_document_holds_no_script_and_no_href(self):
+        text = self.producer.render_svg(self.series)
+        self.assertNotIn("<script", text)
+        self.assertNotIn("href", text)
+
+    def test_the_predicted_track_label_is_drawn(self):
+        self.assertIn(
+            "network prediction (barely moves)",
+            self.producer.render_svg(self.series),
+        )
+
+    def test_a_one_time_series_is_refused(self):
+        broken = dict(self.series)
+        broken["times"] = [0.0]
+        with self.assertRaises(self.producer.FigureError):
+            self.producer.render_svg(broken)
+
+
+class FigureModeTests(unittest.TestCase):
+    """The committed figure set in a temporary repository, then one mutation each.
+
+    The fixture copies the four inputs and both producer scripts byte for byte
+    and patches ``REPO_ROOT``, so every digest the verifier checks is a digest
+    of real bytes. The series derivation is patched to the synthetic series: the
+    real derivation is FigureRealTests' job, and the synthetic one lets each
+    negative control fail for exactly one reason.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_verifier()
+        cls.producer = load_figure_producer()
+        cls.series = _synthetic_series()
+        cls._tmp = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls._tmp.cleanup)
+        cls.root = Path(cls._tmp.name).resolve()
+        for relative in FIGURE_INPUT_RELS + FIGURE_PRODUCER_RELS:
+            copy_bytes(cls.root, relative)
+        cls.svg_text = cls.producer.render_svg(cls.series)
+        (cls.root / f"{EVIDENCE}/figure-1632.svg").write_text(
+            cls.svg_text, encoding="utf-8"
+        )
+        payload = json.loads(FIGURE_PROVENANCE_PATH.read_text(encoding="utf-8"))
+        payload["figure"]["sha256"] = hashlib.sha256(
+            cls.svg_text.encode("utf-8")
+        ).hexdigest()
+        payload["series_sha256"] = cls.module._figure_series_digest(cls.series)
+        cls.provenance = payload
+        cls.write_provenance(payload)
+
+    @classmethod
+    def write_provenance(cls, payload: dict) -> None:
+        (cls.root / f"{EVIDENCE}/figure-1632.provenance.json").write_bytes(
+            cls.module._canonical_bytes(payload)
+        )
+
+    def setUp(self):
+        cwd = Path.cwd()
+        self.addCleanup(os.chdir, cwd)
+        self.write_svg(self.svg_text)
+        self.write_provenance(self.provenance)
+
+    def write_svg(self, text: str) -> None:
+        (self.root / f"{EVIDENCE}/figure-1632.svg").write_text(text, encoding="utf-8")
+
+    def mutated_provenance(self) -> dict:
+        return json.loads(json.dumps(self.provenance))
+
+    def rewrite_with_svg(self, text: str) -> None:
+        """Write new SVG bytes and keep the provenance's figure digest honest."""
+        self.write_svg(text)
+        payload = self.mutated_provenance()
+        payload["figure"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        self.write_provenance(payload)
+
+    def run_figure(self) -> tuple[int, str, str]:
+        context = SimpleNamespace(
+            attestation=SimpleNamespace(summary=_zero_attestation_summary)
+        )
+        with mock.patch.object(self.module, "REPO_ROOT", self.root), mock.patch.object(
+            self.module, "_figure_series", return_value=self.series
+        ), mock.patch.object(
+            self.module, "_load_figure_producer", return_value=self.producer
+        ), mock.patch(
+            "pinn.verification.learnability_data.open_real_context",
+            return_value=context,
+        ):
+            return run_main(self.module, ["figure"])
+
+    def assert_rejected(self, needle: str) -> None:
+        code, _stdout, stderr = self.run_figure()
+        self.assertEqual(code, 1, f"the mutated figure set passed: {stderr}")
+        self.assertIn("FAIL-CLOSED", stderr)
+        self.assertIn(needle, stderr)
+
+    def test_the_committed_set_passes(self):
+        code, stdout, stderr = self.run_figure()
+        self.assertEqual(code, 0, stderr)
+        self.assertEqual(
+            stdout.splitlines(),
+            [f"figure times {len(self.series['times'])}", "FIGURE-OK"],
+        )
+
+    def test_one_changed_svg_byte_fails(self):
+        changed = self.svg_text.replace("#2a78d6", "#2a78d7", 1)
+        self.assertNotEqual(changed, self.svg_text)
+        self.write_svg(changed)
+        self.assert_rejected("figure SVG SHA-256")
+
+    def test_a_stale_provenance_svg_digest_fails(self):
+        payload = self.mutated_provenance()
+        payload["figure"]["sha256"] = "0" * 64
+        self.write_provenance(payload)
+        self.assert_rejected("figure SVG SHA-256")
+
+    def test_a_stale_input_digest_fails(self):
+        payload = self.mutated_provenance()
+        payload["inputs"][0]["sha256"] = "0" * 64
+        self.write_provenance(payload)
+        self.assert_rejected("figure input")
+
+    def test_a_series_digest_that_differs_fails(self):
+        payload = self.mutated_provenance()
+        payload["series_sha256"] = "0" * 64
+        self.write_provenance(payload)
+        self.assert_rejected("re-derived series SHA-256")
+
+    def test_a_text_element_outside_the_viewbox_fails(self):
+        changed = self.svg_text.replace('x="60.0" y="30.0"', 'x="1600.0" y="30.0"', 1)
+        self.assertNotEqual(changed, self.svg_text)
+        self.rewrite_with_svg(changed)
+        self.assert_rejected("lies outside the viewBox")
+
+    def test_a_home_directory_string_fails(self):
+        home = str(Path.home())
+        self.assertTrue(home)
+        changed = self.svg_text.replace("</svg>", f"<!-- {home} -->\n</svg>", 1)
+        self.rewrite_with_svg(changed)
+        self.assert_rejected("contains the host home prefix")
+
+    def test_a_script_element_fails(self):
+        changed = self.svg_text.replace(
+            "</svg>", "<script>alert(1)</script>\n</svg>", 1
+        )
+        self.rewrite_with_svg(changed)
+        self.assert_rejected("script element")
+
+    def test_an_href_attribute_fails(self):
+        changed = self.svg_text.replace("</svg>", '<use href="#panel-a"/>\n</svg>', 1)
+        self.rewrite_with_svg(changed)
+        self.assert_rejected("href attribute")
+
+    def test_a_missing_panel_a_group_fails(self):
+        changed = self.svg_text.replace('id="panel-a"', 'id="panel-aa"', 1)
+        self.assertNotEqual(changed, self.svg_text)
+        self.rewrite_with_svg(changed)
+        self.assert_rejected("no group with id 'panel-a'")
+
+    def test_a_non_zero_recorded_attestation_fails(self):
+        payload = self.mutated_provenance()
+        payload["attestation"]["opened"]["validation"] = 1
+        self.write_provenance(payload)
+        self.assert_rejected("shows opened.validation 1")
+
+    def test_the_provenance_holds_the_contracted_keys(self):
+        self.assertEqual(self.provenance["schema"], "phase64-figure-provenance/v1")
+        self.assertEqual(
+            set(self.provenance),
+            {
+                "schema",
+                "plain_language",
+                "figure",
+                "inputs",
+                "producers",
+                "series_sha256",
+                "arm",
+                "state",
+                "precision",
+                "versions",
+                "data_root_source",
+                "attestation",
+                "command",
+            },
+        )
+        self.assertNotIn("git_head", self.provenance)
+        self.assertNotIn("utc_started", self.provenance)
+
+
+@unittest.skipUnless(_external_data_root_present(), "external data root absent")
+class FigureRealTests(unittest.TestCase):
+    """The figure mode on the real committed figure and the real weights."""
+
+    def setUp(self):
+        self.verifier = load_verifier()
+        cwd = Path.cwd()
+        self.addCleanup(os.chdir, cwd)
+
+    def test_real_figure_prints_figure_ok(self):
+        code, stdout, stderr = run_main(self.verifier, ["figure"])
+        self.assertEqual(code, 0, stderr)
+        self.assertEqual(stdout.splitlines(), ["figure times 1001", "FIGURE-OK"])
+
+    def test_the_provenance_records_the_committed_svg_digest(self):
+        payload = json.loads(FIGURE_PROVENANCE_PATH.read_text(encoding="utf-8"))
+        self.assertEqual(payload["figure"]["sha256"], sha256_of(FIGURE_SVG_PATH))
+        self.assertEqual(
+            payload["figure"]["path"], f"{EVIDENCE}/figure-1632.svg"
+        )
 
 
 class OrderedSumTests(unittest.TestCase):
