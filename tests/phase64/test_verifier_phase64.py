@@ -106,8 +106,19 @@ class VerifierModuleTests(unittest.TestCase):
 
     def test_commands_and_parser(self):
         self.assertIn("inputs", self.module.COMMANDS)
+        self.assertIn("frozen", self.module.COMMANDS)
         parser = self.module.build_parser()
         self.assertEqual(parser.parse_args(["inputs"]).command, "inputs")
+        self.assertEqual(parser.parse_args(["frozen"]).command, "frozen")
+
+    def test_frozen_constants(self):
+        self.assertEqual(
+            self.module.PHASE_BASE, "1ebb1d9b0c89e678961a8764bbf27ac19cd9b2a9"
+        )
+        self.assertEqual(self.module.EXPECTED_PINNED_COUNT, 33)
+        self.assertEqual(self.module.EXPECTED_PATHSPEC_COUNT, 45)
+        self.assertEqual(len(self.module.SEALED_RELS), 8)
+        self.assertEqual(len(self.module.FROZEN_TREES), 4)
 
 
 class InputsRealTests(unittest.TestCase):
@@ -300,6 +311,249 @@ class InputsSyntheticTests(unittest.TestCase):
         commit_all(self.root, "change the sweep outcome")
         err = self.assert_fails_closed()
         self.assertIn("no_rescue", err)
+
+
+class FrozenRealTests(unittest.TestCase):
+    """The mode on the real committed files."""
+
+    def setUp(self):
+        self.module = load_verifier()
+
+    def test_real_worktree_prints_frozen_ok(self):
+        code, out, err = run_main(self.module, ["frozen"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(
+            out.splitlines(),
+            ["frozen paths pinned=33 sealed=8 trees=4", "FROZEN-OK"],
+        )
+        self.assertNotIn("FAIL-CLOSED", err)
+
+
+class FrozenSyntheticTests(unittest.TestCase):
+    """Byte copies of the real frozen paths in a temporary git repository.
+
+    The base is the fixture's own setup commit, so a change after it is a change
+    after the phase base. The 33 pinned paths are read from run-protocol.json,
+    never typed here.
+    """
+
+    def setUp(self):
+        self.module = load_verifier()
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        self.root = Path(self.temp_dir.name)
+        init_repo(self.root)
+
+        for relative in self.module.SEALED_RELS:
+            copy_bytes(self.root, relative)
+        protocol = json.loads(
+            (ROOT / f"{P60}/run-protocol.json").read_text(encoding="utf-8")
+        )
+        for relative in protocol["module_sha256"]:
+            copy_bytes(self.root, relative)
+
+        # One extra file under each frozen tree not already covered by a copy,
+        # plus one P60 note and one STATE.md that sit inside and outside the
+        # pathspecs respectively (the scope negative controls).
+        specs = self.root / "pinn_instruction/markdown_conversion/framework-specs"
+        specs.mkdir(parents=True, exist_ok=True)
+        (specs / "ctl_instruction.md").write_text("# synthetic spec\n", encoding="utf-8")
+        (self.root / "pinn" / "unpinned_note.txt").write_text("note\n", encoding="utf-8")
+        (self.root / P60 / "scratch-note.txt").write_text("note\n", encoding="utf-8")
+        state = self.root / ".planning/STATE.md"
+        state.parent.mkdir(parents=True, exist_ok=True)
+        state.write_text("# state\n", encoding="utf-8")
+
+        self.base = commit_all(self.root, "setup frozen test")
+        patcher = mock.patch.object(self.module, "REPO_ROOT", self.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        base_patcher = mock.patch.object(self.module, "PHASE_BASE", self.base)
+        base_patcher.start()
+        self.addCleanup(base_patcher.stop)
+
+    def path(self, relative: str) -> Path:
+        return self.root / relative
+
+    def append_and_commit(self, relative: str, message: str) -> None:
+        path = self.path(relative)
+        path.write_bytes(path.read_bytes() + b"\n")
+        commit_all(self.root, message)
+
+    def assert_fails_closed(self) -> str:
+        code, out, err = run_main(self.module, ["frozen"])
+        self.assertEqual(code, 1, f"expected failure, stdout: {out}")
+        self.assertIn("verify_phase64_verdict FAIL-CLOSED:", err)
+        return err
+
+    # -- the passing case ------------------------------------------------
+
+    def test_clean_tree_passes(self):
+        code, out, err = run_main(self.module, ["frozen"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(
+            out.splitlines(),
+            ["frozen paths pinned=33 sealed=8 trees=4", "FROZEN-OK"],
+        )
+
+    def test_committed_state_md_change_passes(self):
+        # Scope negative control: the check is neither vacuous nor over-broad.
+        self.append_and_commit(".planning/STATE.md", "move the state pointer")
+        code, out, err = run_main(self.module, ["frozen"])
+        self.assertEqual(code, 0, err)
+        self.assertIn("FROZEN-OK", out)
+
+    # -- changes inside the 45 pathspecs ---------------------------------
+
+    def test_committed_change_to_sealed_file_fails(self):
+        relative = (
+            ".planning/phases/60-single-system-learnability/60-RUN-PROTOCOL.md"
+        )
+        self.append_and_commit(relative, "amend a sealed protocol doc")
+        err = self.assert_fails_closed()
+        self.assertIn(relative, err)
+
+    def test_pinned_bytes_changed_fails(self):
+        self.append_and_commit("pinn/network.py", "change a pinned module")
+        err = self.assert_fails_closed()
+        self.assertIn("pinned module pinn/network.py SHA-256", err)
+
+    def test_uncommitted_edit_to_pinned_module_fails(self):
+        path = self.path("pinn/constants.py")
+        path.write_bytes(path.read_bytes() + b"\n")
+        err = self.assert_fails_closed()
+        self.assertIn("pinn/constants.py", err)
+        self.assertIn("not tracked and clean", err)
+
+    def test_uncommitted_edit_under_pinn_tree_fails(self):
+        # A tracked file under pinn/ that no module_sha256 pin names: only the
+        # git status gate can catch it, so this proves the gate itself.
+        path = self.path("pinn/unpinned_note.txt")
+        path.write_bytes(path.read_bytes() + b"\n")
+        err = self.assert_fails_closed()
+        self.assertIn("uncommitted or untracked", err)
+        self.assertIn("pinn/unpinned_note.txt", err)
+
+    def test_untracked_file_under_pinn_fails(self):
+        (self.path("pinn") / "new_module.py").write_text("x = 1\n", encoding="utf-8")
+        err = self.assert_fails_closed()
+        self.assertIn("uncommitted or untracked", err)
+        self.assertIn("pinn/new_module.py", err)
+
+    def test_committed_change_under_p60_evidence_fails(self):
+        relative = f"{P60}/scratch-note.txt"
+        self.append_and_commit(relative, "change a P60 evidence note")
+        err = self.assert_fails_closed()
+        self.assertIn(relative, err)
+
+    def test_committed_change_under_specs_fails(self):
+        relative = "pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md"
+        self.append_and_commit(relative, "change a frozen spec")
+        err = self.assert_fails_closed()
+        self.assertIn(relative, err)
+
+    # -- the shape of the frozen inputs ----------------------------------
+
+    def test_short_module_map_fails(self):
+        protocol_path = self.path(f"{P60}/run-protocol.json")
+        protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+        dropped = list(protocol["module_sha256"])[0]
+        del protocol["module_sha256"][dropped]
+        protocol_path.write_text(json.dumps(protocol, indent=2) + "\n", encoding="utf-8")
+        commit_all(self.root, "drop one pinned module")
+        err = self.assert_fails_closed()
+        self.assertIn("exactly 33", err)
+
+    def test_base_not_ancestor_fails(self):
+        patcher = mock.patch.object(self.module, "PHASE_BASE", "0" * 40)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        err = self.assert_fails_closed()
+        self.assertIn("not an ancestor", err)
+
+
+class FrozenArgvTests(unittest.TestCase):
+    """The zsh-safe argument-count self-test of 64-VALIDATION.md Wave 0 (H4)."""
+
+    def setUp(self):
+        self.module = load_verifier()
+        self.protocol = json.loads(
+            (ROOT / f"{P60}/run-protocol.json").read_text(encoding="utf-8")
+        )
+
+    def test_real_pathspecs_are_45_in_three_parts(self):
+        pathspecs = self.module.frozen_pathspecs(self.protocol["module_sha256"])
+        self.assertEqual(len(pathspecs), 45)
+        self.assertEqual(tuple(pathspecs[:8]), self.module.SEALED_RELS)
+        self.assertEqual(
+            pathspecs[8:41], list(self.protocol["module_sha256"]), "file order"
+        )
+        self.assertEqual(tuple(pathspecs[41:]), self.module.FROZEN_TREES)
+        for entry in pathspecs:
+            self.assertIsInstance(entry, str)
+            self.assertTrue(entry)
+            self.assertEqual(entry, entry.strip())
+        self.assertEqual(len(set(pathspecs)), 45)
+
+    def test_git_calls_receive_45_separate_argv_items(self):
+        pathspecs = self.module.frozen_pathspecs(self.protocol["module_sha256"])
+        calls: list[list[str]] = []
+        real_run = subprocess.run
+
+        def spy(command, *args, **kwargs):
+            calls.append(list(command))
+            return real_run(command, *args, **kwargs)
+
+        with mock.patch("subprocess.run", side_effect=spy):
+            code, out, err = run_main(self.module, ["frozen"])
+        self.assertEqual(code, 0, err)
+        self.assertIn("FROZEN-OK", out)
+
+        diff_calls = [call for call in calls if call[:3] == ["git", "diff", "--quiet"]]
+        status_calls = [
+            call
+            for call in calls
+            if call[:4] == ["git", "status", "--porcelain", "--untracked-files=all"]
+        ]
+        self.assertEqual(len(diff_calls), 1, calls)
+        self.assertEqual(len(status_calls), 1, calls)
+        for call in (diff_calls[0], status_calls[0]):
+            separator = call.index("--")
+            self.assertEqual(call[separator + 1 :], pathspecs)
+
+    def test_dropped_tree_fails(self):
+        patcher = mock.patch.object(
+            self.module, "FROZEN_TREES", self.module.FROZEN_TREES[:3]
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        with self.assertRaises(self.module.VerifyError) as raised:
+            self.module.frozen_pathspecs(self.protocol["module_sha256"])
+        self.assertIn("FROZEN_TREES must hold exactly 4", str(raised.exception))
+
+    def test_empty_module_map_fails(self):
+        with self.assertRaises(self.module.VerifyError) as raised:
+            self.module.frozen_pathspecs([])
+        self.assertIn("module_sha256 must hold exactly 33", str(raised.exception))
+
+    def test_empty_sealed_entry_fails(self):
+        patched = ("",) + tuple(self.module.SEALED_RELS[1:])
+        patcher = mock.patch.object(self.module, "SEALED_RELS", patched)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        with self.assertRaises(self.module.VerifyError) as raised:
+            self.module.frozen_pathspecs(self.protocol["module_sha256"])
+        self.assertIn("not a non-empty string", str(raised.exception))
+
+    def test_duplicate_pathspec_fails(self):
+        trees = self.module.FROZEN_TREES
+        patched = (trees[0], trees[0], trees[2], trees[3])
+        patcher = mock.patch.object(self.module, "FROZEN_TREES", patched)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        with self.assertRaises(self.module.VerifyError) as raised:
+            self.module.frozen_pathspecs(self.protocol["module_sha256"])
+        self.assertIn("duplicates", str(raised.exception))
 
 
 class OrderedSumTests(unittest.TestCase):

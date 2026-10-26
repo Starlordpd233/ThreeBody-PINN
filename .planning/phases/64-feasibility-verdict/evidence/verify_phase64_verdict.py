@@ -39,6 +39,37 @@ HANDOFF_REL = P60_EVIDENCE_REL / "g2" / "stop-handoff.json"
 HANDOFF_SHA256 = "7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5"
 HANDOFF_SCHEMA = "phase60-stop-handoff/v1"
 
+# The frozen check: the phase base every frozen byte must predate, the eight
+# sealed files named here, the 33 pinned modules read from run-protocol.json at
+# run time, and the four trees no Phase 64 change may touch. EXPECTED_PATHSPEC_COUNT
+# is a literal, never derived from the lists it checks, so a dropped sealed file,
+# a dropped tree or a short module map fails closed instead of shrinking the diff.
+PHASE_BASE = "1ebb1d9b0c89e678961a8764bbf27ac19cd9b2a9"
+P60_PROTOCOL_REL = P60_EVIDENCE_REL / "run-protocol.json"
+P60_PROTOCOL_DOC_REL = Path(".planning/phases/60-single-system-learnability/60-RUN-PROTOCOL.md")
+P59_FREEZE_REL = P59_EVIDENCE_REL / "scorecard-freeze.json"
+P59_SCORECARD_REL = Path(".planning/phases/59-read-only-baseline-scorecard/59-SCORECARD.md")
+SEALED_RELS = (
+    P60_PROTOCOL_REL.as_posix(),
+    P60_PROTOCOL_DOC_REL.as_posix(),
+    (P60_EVIDENCE_REL / "g2" / "g2-outcome.json").as_posix(),
+    (P60_EVIDENCE_REL / "g2" / "sweep-curve.json").as_posix(),
+    (P60_EVIDENCE_REL / "g2" / "skip-records.json").as_posix(),
+    (P60_EVIDENCE_REL / "g2" / "stop-handoff.json").as_posix(),
+    P59_FREEZE_REL.as_posix(),
+    P59_SCORECARD_REL.as_posix(),
+)
+FROZEN_TREES = (
+    "pinn/",
+    "pinn_instruction/markdown_conversion/framework-specs/",
+    P59_EVIDENCE_REL.as_posix(),
+    P60_EVIDENCE_REL.as_posix(),
+)
+EXPECTED_SEALED_COUNT = 8
+EXPECTED_PINNED_COUNT = 33
+EXPECTED_TREE_COUNT = 4
+EXPECTED_PATHSPEC_COUNT = 45
+
 # The seven arms the ladder actually ran, in handoff order. The four later-arm
 # families and the two probe arms never ran: Gate G2 fired and the sweep
 # rescued nothing, so Phases 61 to 63 were skipped, not failed.
@@ -336,6 +367,109 @@ def _check_g2_records() -> tuple[tuple[int, ...], dict[str, Any]]:
     return tier_tuple, curve
 
 
+def frozen_pathspecs(module_sha256: Any) -> list[str]:
+    """The 45 git pathspecs of the frozen check, built in one place.
+
+    The 8 sealed files and the 4 frozen trees are named here; the 33 pinned
+    module paths come from run-protocol.json's ``module_sha256`` keys at run
+    time, so no second copy of that list is committed. Each part and the whole
+    list are checked against a literal count, so a dropped tree, a short module
+    map or an empty entry fails closed rather than shrinking the git diff.
+    """
+    sealed = list(SEALED_RELS)
+    pinned = list(module_sha256) if module_sha256 is not None else []
+    trees = list(FROZEN_TREES)
+    if len(sealed) != EXPECTED_SEALED_COUNT:
+        fail(f"SEALED_RELS must hold exactly {EXPECTED_SEALED_COUNT} paths, not {len(sealed)}")
+    if len(pinned) != EXPECTED_PINNED_COUNT:
+        fail(
+            "module_sha256 must hold exactly "
+            f"{EXPECTED_PINNED_COUNT} paths, not {len(pinned)}"
+        )
+    if len(trees) != EXPECTED_TREE_COUNT:
+        fail(f"FROZEN_TREES must hold exactly {EXPECTED_TREE_COUNT} trees, not {len(trees)}")
+    pathspecs = sealed + pinned + trees
+    if len(pathspecs) != EXPECTED_PATHSPEC_COUNT:
+        fail(f"frozen pathspecs must number {EXPECTED_PATHSPEC_COUNT}, not {len(pathspecs)}")
+    for entry in pathspecs:
+        if not isinstance(entry, str) or not entry:
+            fail(f"frozen pathspec is not a non-empty string: {entry!r}")
+        if entry != entry.strip():
+            fail(f"frozen pathspec has surrounding whitespace: {entry!r}")
+    if len(set(pathspecs)) != len(pathspecs):
+        duplicates = sorted({entry for entry in pathspecs if pathspecs.count(entry) > 1})
+        fail(f"frozen pathspecs hold duplicates: {duplicates!r}")
+    return pathspecs
+
+
+def cmd_frozen(_args: argparse.Namespace) -> None:
+    """The 33 pinned modules, the 8 sealed files and the 4 frozen trees, unchanged."""
+    protocol_file = repo_path(P60_PROTOCOL_REL, what="run-protocol.json")
+    if not protocol_file.is_file():
+        fail(f"run-protocol.json is missing: {P60_PROTOCOL_REL.as_posix()}")
+    protocol = load_json(protocol_file, what="run-protocol.json")
+    if not isinstance(protocol, Mapping):
+        fail("run-protocol.json is not an object")
+    module_sha256 = protocol.get("module_sha256")
+    if not isinstance(module_sha256, Mapping):
+        fail("run-protocol.json module_sha256 is not a mapping")
+    if len(module_sha256) != EXPECTED_PINNED_COUNT:
+        fail(
+            "run-protocol.json module_sha256 must hold exactly "
+            f"{EXPECTED_PINNED_COUNT} paths, not {len(module_sha256)}"
+        )
+
+    for mod_rel in module_sha256:
+        pinned = module_sha256[mod_rel]
+        if not isinstance(mod_rel, str) or not mod_rel:
+            fail(f"run-protocol.json module_sha256 holds a non-string key: {mod_rel!r}")
+        if not isinstance(pinned, str) or HEX64.match(pinned) is None:
+            fail(f"pinned module {mod_rel} has no 64-hex sha256")
+        mod_path = repo_path(mod_rel, what=f"pinned module {mod_rel}")
+        if not mod_path.is_file():
+            fail(f"pinned module {mod_rel} does not exist")
+        if not is_tracked(mod_rel) or not is_clean(mod_rel):
+            fail(f"pinned module {mod_rel} is not tracked and clean")
+        mod_disk_sha = sha256_file(mod_path)
+        if mod_disk_sha != pinned:
+            fail(f"pinned module {mod_rel} SHA-256 {mod_disk_sha} != pinned {pinned}")
+
+    head = _git("rev-parse", "HEAD")
+    if head.returncode != 0 or not head.stdout.strip():
+        fail(f"cannot resolve HEAD: {head.stderr.strip()}")
+    head_sha = head.stdout.strip()
+    if not is_ancestor(PHASE_BASE, head_sha):
+        fail(f"the phase base {PHASE_BASE} is not an ancestor of HEAD {head_sha}")
+
+    pathspecs = frozen_pathspecs(module_sha256)
+
+    # One list spread into separate argv items after '--' (never a shell string,
+    # so no word-splitting can collapse 45 pathspecs into one that matches
+    # nothing). The diff covers committed changes since the phase base; the
+    # status call covers uncommitted edits and untracked files.
+    diff = _git("diff", "--quiet", PHASE_BASE, head_sha, "--", *pathspecs)
+    if diff.returncode != 0:
+        changed = _git("diff", "--name-only", PHASE_BASE, head_sha, "--", *pathspecs)
+        first = changed.stdout.splitlines()[0] if changed.stdout.strip() else "<unknown>"
+        fail(
+            f"a sealed, pinned or frozen path changed since the phase base {PHASE_BASE}: "
+            f"{first}"
+        )
+
+    status = _git("status", "--porcelain", "--untracked-files=all", "--", *pathspecs)
+    if status.returncode != 0:
+        fail(f"git status failed: {status.stderr.strip()}")
+    if status.stdout.strip():
+        first = status.stdout.splitlines()[0]
+        fail(f"an uncommitted or untracked change sits in a frozen path: {first}")
+
+    print(
+        f"frozen paths pinned={EXPECTED_PINNED_COUNT} "
+        f"sealed={len(SEALED_RELS)} trees={len(FROZEN_TREES)}"
+    )
+    print("FROZEN-OK")
+
+
 def cmd_inputs(_args: argparse.Namespace) -> None:
     """The sealed handoff, its nine citations and the label re-derived by the rule."""
     handoff = _check_handoff()
@@ -373,6 +507,7 @@ def cmd_inputs(_args: argparse.Namespace) -> None:
 
 COMMANDS = {
     "inputs": cmd_inputs,
+    "frozen": cmd_frozen,
 }
 
 
