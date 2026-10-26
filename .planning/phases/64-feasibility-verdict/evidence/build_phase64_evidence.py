@@ -56,6 +56,21 @@ SCORECARD_REL = Path("pinn/verification/artifacts/feasibility_scorecard_v1.json"
 HANDOFF_REL = P60_EVIDENCE_REL / "g2" / "stop-handoff.json"
 RESEARCH_REL = PHASE_REL / "64-RESEARCH.md"
 RESEARCH_COMMIT = "7fda0a55fc84447ea17abbb4d1188761add94d8a"
+BASELINES_REL = P59_EVIDENCE_REL / "baselines" / "baselines.json"
+SURVEY_REL = P59_EVIDENCE_REL / "survey" / "survey.json"
+PICKS_REL = P59_EVIDENCE_REL / "survey" / "picks.json"
+CENSUS_REL = P59_EVIDENCE_REL / "census" / "census.json"
+STATUS_REL = Path("runs/stage0-v23g7-seed42/status.json")
+GAPS_REL = Path(".planning/phases/59-read-only-baseline-scorecard/59-GAPS.md")
+PROJECT_REL = Path(".planning/PROJECT.md")
+AMENDMENTS_REL = Path(
+    "docs/work/designs/cross_cutting/v2.4-milestone-proposal/"
+    "2026-10-11-v2.4-feasibility-amendments.md"
+)
+# Each cited source pinned at its last commit before this plan ran.
+GAPS_COMMIT = "ec2853b0f445d28ac462afd7cc4d395961934da7"
+PROJECT_COMMIT = "bb323a52a7eab24e401d3bdc903a5e01528fcbc0"
+AMENDMENTS_COMMIT = "e72060daf0de7b31334ccb7fddf8876d8506c27f"
 
 SCHEMA = "phase64-numbers/v1"
 PRODUCER_REL = (EVIDENCE_REL / "build_phase64_evidence.py").as_posix()
@@ -272,8 +287,15 @@ def _read_json(path: Path) -> Any:
 
 
 def _field(payload: Any, dotted: str) -> Any:
+    """Walk a dotted key path; a numeric part indexes a list (``trace.0.E``)."""
     current = payload
     for part in dotted.split("."):
+        if isinstance(current, (list, tuple)) and part.isdigit():
+            index = int(part)
+            if index >= len(current):
+                fail(f"missing field {dotted}")
+            current = current[index]
+            continue
         if not isinstance(current, Mapping) or part not in current:
             fail(f"missing field {dotted}")
         current = current[part]
@@ -401,22 +423,1079 @@ def derive_state(ctx: Any, card: Any, arm_id: str, state: str) -> dict[str, Any]
     }
 
 
-def _inputs(repo_root: Path, record_arms: Sequence[str]) -> list[dict[str, str]]:
+def _facts(root: Path) -> dict[str, Any]:
+    """Every committed file the manifest reads, loaded once."""
+    from pinn.verification.feasibility_scorecard import load_scorecard
+
+    return {
+        "records": {arm_id: _read_json(root / _record_rel(arm_id)) for arm_id in ARMS},
+        "handoff": _read_json(root / HANDOFF_REL),
+        "card": load_scorecard(),
+        "baselines": _read_json(root / BASELINES_REL),
+        "survey": _read_json(root / SURVEY_REL),
+        "picks": _read_json(root / PICKS_REL),
+        "census": _read_json(root / CENSUS_REL),
+        "status": _read_json(root / STATUS_REL),
+    }
+
+
+def _arm_field(facts: Mapping[str, Any], arm_id: str, dotted: str) -> Any:
+    return _field(facts["records"][arm_id], dotted)
+
+
+def _tier_level(card: Any, tier: int) -> Mapping[str, Any]:
+    for level in card.section("tiers")["levels"]:
+        if int(level["tier"]) == tier:
+            return level
+    fail(f"the scorecard names no level whose tier is {tier}")
+
+
+def _f_hours(facts: Mapping[str, Any], arms: Sequence[str]) -> float:
+    return ordered_sum(_arm_field(facts, arm_id, "wall.hours") for arm_id in arms)
+
+
+def _f_adam_steps(facts: Mapping[str, Any], arm_id: str) -> int:
+    budget = facts["records"][arm_id]["budget"]
+    value = budget["new_budget_steps"] if budget["extended"] else budget["budget_steps"]
+    if isinstance(value, bool) or not isinstance(value, int):
+        fail(f"arm {arm_id} budget names no integer step count: {value!r}")
+    return value
+
+
+def _f_trace(facts: Mapping[str, Any], arm_id: str) -> Sequence[Mapping[str, Any]]:
+    trace = facts["records"][arm_id]["trace"]
+    if not isinstance(trace, Sequence) or len(trace) < 2:
+        fail(f"arm {arm_id} trace is not a list of at least two readings")
+    return trace
+
+
+def _f_sustained(facts: Mapping[str, Any], arm_id: str) -> float:
+    return facts["records"][arm_id]["wall"]["adam_seconds"] / _f_adam_steps(facts, arm_id)
+
+
+def _f_extended_hours(facts: Mapping[str, Any]) -> float:
+    extended = [
+        arm_id for arm_id in ARMS if facts["records"][arm_id]["budget"]["extended"]
+    ]
+    if len(extended) != 1:
+        fail(f"expected exactly one arm with a doubled budget, found {extended!r}")
+    return _arm_field(facts, extended[0], "wall.hours")
+
+
+def _f_first_reading_fraction(facts: Mapping[str, Any], arm_id: str) -> float:
+    return _f_trace(facts, arm_id)[1]["step"] / facts["records"][arm_id]["budget"][
+        "frozen_budget_steps"
+    ]
+
+
+def _f_range_after_first(facts: Mapping[str, Any], arm_id: str) -> float:
+    tail = [entry["E"] for entry in _f_trace(facts, arm_id)[1:]]
+    return max(tail) - min(tail)
+
+
+def _f_sweep_budget(facts: Mapping[str, Any]) -> list[int]:
+    """The frozen budget rule re-applied to each sweep arm's own timing run."""
+    from pinn.verification import feasibility_scorecard as scorecard_module
+
+    cap = float(facts["card"].section("budget_rule")["cap_hours_single_system"])
+    values = []
+    for arm_id in SWEEP_ARMS:
+        timing = facts["records"][arm_id]["timing"]
+        computed = scorecard_module.steps_budget(
+            cap, timing["wall_seconds"], timing["steps"], scorecard=facts["card"]
+        )
+        recorded = facts["records"][arm_id]["budget"]["budget_steps"]
+        if computed != recorded:
+            fail(
+                f"{arm_id} recorded budget {recorded} != the frozen rule's {computed}"
+            )
+        values.append(computed)
+    return values
+
+
+def _f_best_eps_h(facts: Mapping[str, Any]) -> float:
+    return min(_arm_field(facts, arm_id, "result.eps_h") for arm_id in ARMS)
+
+
+def _f_best_eps_h_arms(facts: Mapping[str, Any]) -> str:
+    best = _f_best_eps_h(facts)
+    return ", ".join(
+        arm_id for arm_id in ARMS if _arm_field(facts, arm_id, "result.eps_h") == best
+    )
+
+
+def _f_state_eps_h(facts: Mapping[str, Any]) -> list[tuple[float, str, str]]:
+    return [
+        (_arm_field(facts, arm_id, f"states.{state}.score_gold.eps_h"), arm_id, state)
+        for arm_id in ARMS
+        for state in ("adam", "polish")
+    ]
+
+
+def _f_trace_eps_h(facts: Mapping[str, Any]) -> list[tuple[float, str, int]]:
+    return [
+        (entry["eps_h"], arm_id, entry["step"])
+        for arm_id in ARMS
+        for entry in _f_trace(facts, arm_id)
+    ]
+
+
+def _f_rung1_below(facts: Mapping[str, Any]) -> int:
+    return sum(
+        1
+        for arm_id in RUNG1_ARMS
+        if _arm_field(facts, arm_id, "result.E")
+        < _arm_field(facts, arm_id, "formula.E_formula")
+    )
+
+
+def _f_rung1_below_systems(facts: Mapping[str, Any]) -> str:
+    return ", ".join(
+        arm_id[len("r1-") :]
+        for arm_id in RUNG1_ARMS
+        if _arm_field(facts, arm_id, "result.E")
+        < _arm_field(facts, arm_id, "formula.E_formula")
+    )
+
+
+def _f_rung1_counts_true(facts: Mapping[str, Any]) -> int:
+    return sum(
+        1 for arm_id in RUNG1_ARMS if _arm_field(facts, arm_id, "formula.counts") is True
+    )
+
+
+def _f_curve(facts: Mapping[str, Any], fn: Any) -> list[float]:
+    return [fn(facts, arm_id) for arm_id in ARMS]
+
+
+def _f_rung_rule(facts: Mapping[str, Any], which: str) -> list[int]:
+    rule = facts["card"].section("decision_rule")
+    return [int(rule[f"{which}_min_count"]), int(rule[f"{which}_panel_size"])]
+
+
+def _f_rung3_share(facts: Mapping[str, Any]) -> float:
+    minimum, panel = _f_rung_rule(facts, "rung3")
+    return minimum / panel
+
+
+def _f_formula_tier1(facts: Mapping[str, Any], split: str) -> list[int]:
+    counts = facts["baselines"]["formula_tier_counts"][split]
+    total = sum(int(counts[key]) for key in ("0", "1", "2", "3", "not_applicable"))
+    reached = sum(int(counts[key]) for key in ("1", "2", "3"))
+    return [reached, total]
+
+
+def _f_gen7_rate(facts: Mapping[str, Any]) -> float:
+    return float(facts["status"]["s_per_step_ema"])
+
+
+def _f_example_sps(facts: Mapping[str, Any]) -> float:
+    values = sorted(_arm_field(facts, arm_id, "timing.seconds_per_step") for arm_id in ARMS)
+    return values[len(values) // 2]
+
+
+# The illustration sizes the for-scale and example entries quote. The cited
+# entries carry the same ints, so the citation and the arithmetic cannot drift.
+FORSCALE_STEPS_LOW = 200000
+FORSCALE_STEPS_HIGH = 300000
+EXAMPLE_STEPS = 100000
+
+
+def _arm_id_of(entry_id: str) -> str:
+    parts = entry_id.split(".")
+    if len(parts) < 3 or parts[0] != "arm":
+        fail(f"{entry_id} is not an arm.<arm>.<field> id")
+    return parts[1]
+
+
+# Every arithmetic entry's formula, by name. Both programs carry their own copy
+# of this table; the manifest records only the name.
+ARITHMETIC: dict[str, Any] = {
+    "hours_total": lambda facts, _id: _f_hours(facts, ARMS),
+    "hours_rung1": lambda facts, _id: _f_hours(facts, RUNG1_ARMS),
+    "hours_sweep": lambda facts, _id: _f_hours(facts, SWEEP_ARMS),
+    "steps_total_adam": lambda facts, _id: sum(_f_adam_steps(facts, a) for a in ARMS),
+    "steps_sweep_budget_min": lambda facts, _id: min(_f_sweep_budget(facts)),
+    "steps_sweep_budget_max": lambda facts, _id: max(_f_sweep_budget(facts)),
+    "timed_sps_min": lambda facts, _id: min(
+        _arm_field(facts, a, "timing.seconds_per_step") for a in ARMS
+    ),
+    "timed_sps_max": lambda facts, _id: max(
+        _arm_field(facts, a, "timing.seconds_per_step") for a in ARMS
+    ),
+    "sustained_sps_min": lambda facts, _id: min(_f_sustained(facts, a) for a in ARMS),
+    "sustained_sps_max": lambda facts, _id: max(_f_sustained(facts, a) for a in ARMS),
+    "timing_wall_min": lambda facts, _id: min(
+        _arm_field(facts, a, "timing.wall_seconds") for a in ARMS
+    ),
+    "timing_wall_max": lambda facts, _id: max(
+        _arm_field(facts, a, "timing.wall_seconds") for a in ARMS
+    ),
+    "timing_wall_total": lambda facts, _id: ordered_sum(
+        _arm_field(facts, a, "timing.wall_seconds") for a in ARMS
+    ),
+    "polish_min": lambda facts, _id: min(
+        _arm_field(facts, a, "wall.polish_seconds") for a in ARMS
+    ),
+    "polish_max": lambda facts, _id: max(
+        _arm_field(facts, a, "wall.polish_seconds") for a in ARMS
+    ),
+    "unextended_hours_min": lambda facts, _id: min(
+        _arm_field(facts, a, "wall.hours")
+        for a in ARMS
+        if not facts["records"][a]["budget"]["extended"]
+    ),
+    "unextended_hours_max": lambda facts, _id: max(
+        _arm_field(facts, a, "wall.hours")
+        for a in ARMS
+        if not facts["records"][a]["budget"]["extended"]
+    ),
+    "extended_hours": lambda facts, _id: _f_extended_hours(facts),
+    "best_eps_h_official": lambda facts, _id: _f_best_eps_h(facts),
+    "best_eps_h_official_arms": lambda facts, _id: _f_best_eps_h_arms(facts),
+    "best_ratio_to_bar": lambda facts, _id: _f_best_eps_h(facts)
+    / float(_tier_level(facts["card"], 3)["eps_h_max"]),
+    "best_lowest_state": lambda facts, _id: min(v for v, _a, _s in _f_state_eps_h(facts)),
+    "best_lowest_state_arm": lambda facts, _id: next(
+        a for v, a, _s in _f_state_eps_h(facts) if v == min(x for x, _b, _c in _f_state_eps_h(facts))
+    ),
+    "best_lowest_state_state": lambda facts, _id: next(
+        s for v, _a, s in _f_state_eps_h(facts) if v == min(x for x, _b, _c in _f_state_eps_h(facts))
+    ),
+    "best_lowest_trace": lambda facts, _id: min(v for v, _a, _s in _f_trace_eps_h(facts)),
+    "best_lowest_trace_arm": lambda facts, _id: next(
+        a for v, a, _s in _f_trace_eps_h(facts) if v == min(x for x, _b, _c in _f_trace_eps_h(facts))
+    ),
+    "best_lowest_trace_step": lambda facts, _id: next(
+        s for v, _a, s in _f_trace_eps_h(facts) if v == min(x for x, _b, _c in _f_trace_eps_h(facts))
+    ),
+    "rung1_below_formula": lambda facts, _id: [_f_rung1_below(facts), len(RUNG1_ARMS)],
+    "rung1_below_formula_systems": lambda facts, _id: _f_rung1_below_systems(facts),
+    "rung1_counts_true": lambda facts, _id: [_f_rung1_counts_true(facts), len(RUNG1_ARMS)],
+    "curve_e_step0_min": lambda facts, _id: min(
+        _f_curve(facts, lambda f, a: _arm_field(f, a, "trace.0.E"))
+    ),
+    "curve_e_step0_max": lambda facts, _id: max(
+        _f_curve(facts, lambda f, a: _arm_field(f, a, "trace.0.E"))
+    ),
+    "curve_first_reading_min": lambda facts, _id: min(
+        _f_curve(facts, lambda f, a: _arm_field(f, a, "trace.1.E"))
+    ),
+    "curve_first_reading_max": lambda facts, _id: max(
+        _f_curve(facts, lambda f, a: _arm_field(f, a, "trace.1.E"))
+    ),
+    "curve_fold_drop_min": lambda facts, _id: min(
+        _f_curve(
+            facts,
+            lambda f, a: _arm_field(f, a, "trace.0.E")
+            / _arm_field(f, a, "trace.1.E"),
+        )
+    ),
+    "curve_fold_drop_max": lambda facts, _id: max(
+        _f_curve(
+            facts,
+            lambda f, a: _arm_field(f, a, "trace.0.E")
+            / _arm_field(f, a, "trace.1.E"),
+        )
+    ),
+    "curve_first_fraction_min": lambda facts, _id: min(
+        _f_curve(facts, _f_first_reading_fraction)
+    ),
+    "curve_first_fraction_max": lambda facts, _id: max(
+        _f_curve(facts, _f_first_reading_fraction)
+    ),
+    "curve_e_final_min": lambda facts, _id: min(
+        _f_curve(facts, lambda f, a: _arm_field(f, a, "result.E"))
+    ),
+    "curve_e_final_max": lambda facts, _id: max(
+        _f_curve(facts, lambda f, a: _arm_field(f, a, "result.E"))
+    ),
+    "curve_tier1_multiple_min": lambda facts, _id: min(
+        _f_curve(
+            facts,
+            lambda f, a: _arm_field(f, a, "result.E")
+            / float(_tier_level(f["card"], 1)["E_max"]),
+        )
+    ),
+    "curve_tier1_multiple_max": lambda facts, _id: max(
+        _f_curve(
+            facts,
+            lambda f, a: _arm_field(f, a, "result.E")
+            / float(_tier_level(f["card"], 1)["E_max"]),
+        )
+    ),
+    "curve_range_after_first_min": lambda facts, _id: min(
+        _f_curve(facts, _f_range_after_first)
+    ),
+    "curve_range_after_first_max": lambda facts, _id: max(
+        _f_curve(facts, _f_range_after_first)
+    ),
+    "decision_rung2b": lambda facts, _id: _f_rung_rule(facts, "rung2b"),
+    "decision_rung3": lambda facts, _id: _f_rung_rule(facts, "rung3"),
+    "decision_rung3_share": lambda facts, _id: _f_rung3_share(facts),
+    "formula_tier1_train": lambda facts, _id: _f_formula_tier1(facts, "train"),
+    "formula_tier1_validation": lambda facts, _id: _f_formula_tier1(facts, "validation"),
+    "census_one_part_in_0p1": lambda facts, _id: int(
+        facts["census"]["phase_accuracy"]["0.1"]["one_part_in"]
+    ),
+    "forscale_days_low": lambda facts, _id: FORSCALE_STEPS_LOW
+    * _f_gen7_rate(facts)
+    / 86400.0,
+    "forscale_days_high": lambda facts, _id: FORSCALE_STEPS_HIGH
+    * _f_gen7_rate(facts)
+    / 86400.0,
+    "forscale_hours_low": lambda facts, _id: FORSCALE_STEPS_LOW
+    * _f_gen7_rate(facts)
+    / 3600.0,
+    "example_sps": lambda facts, _id: _f_example_sps(facts),
+    "example_hours": lambda facts, _id: EXAMPLE_STEPS * _f_example_sps(facts) / 3600.0,
+    "arm_adam_steps": lambda facts, entry_id: _f_adam_steps(facts, _arm_id_of(entry_id)),
+    "arm_sustained": lambda facts, entry_id: _f_sustained(facts, _arm_id_of(entry_id)),
+    "arm_first_fraction": lambda facts, entry_id: _f_first_reading_fraction(
+        facts, _arm_id_of(entry_id)
+    ),
+    "arm_range_after_first": lambda facts, entry_id: _f_range_after_first(
+        facts, _arm_id_of(entry_id)
+    ),
+}
+
+
+def _record_entry(
+    entry_id: str,
+    value: Any,
+    rule: str,
+    arm_id: str,
+    key: str,
+    derivation: str,
+    required_in: Sequence[str],
+    label: str = "committed-record",
+) -> dict[str, Any]:
+    return _entry(
+        entry_id,
+        value,
+        rule,
+        label,
+        {"path": _record_rel(arm_id), "key": key},
+        derivation,
+        required_in,
+    )
+
+
+def _arithmetic(
+    entry_id: str, rule: str, formula: str, derivation: str, required_in: Sequence[str]
+) -> dict[str, Any]:
+    return _entry(
+        entry_id,
+        ARITHMETIC[formula](_FACTS, entry_id),
+        rule,
+        "arithmetic",
+        {"formula": formula},
+        derivation,
+        required_in,
+    )
+
+
+_FACTS: dict[str, Any] = {}
+
+
+def _inputs(root: Path, record_arms: Sequence[str]) -> list[dict[str, str]]:
     """Every committed file a value is read from, sorted by path."""
     rels = {
         SCORECARD_REL.as_posix(),
         HANDOFF_REL.as_posix(),
+        BASELINES_REL.as_posix(),
+        SURVEY_REL.as_posix(),
+        PICKS_REL.as_posix(),
+        CENSUS_REL.as_posix(),
+        STATUS_REL.as_posix(),
         *_retained_rels(),
     }
     for arm_id in record_arms:
         rels.add(_record_rel(arm_id))
     entries = []
     for relative in sorted(rels):
-        path = repo_root / relative
+        path = root / relative
         if not path.is_file():
             fail(f"input is missing: {relative}")
         entries.append({"path": relative, "sha256": sha256_file(path)})
     return entries
+
+
+def _arm_entries(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Group 1: every per-arm number, in handoff order."""
+    entries: list[dict[str, Any]] = []
+    for arm_id in ARMS:
+        result = facts["records"][arm_id]["result"]
+        official = "official-mps-float32"
+        entries += [
+            _record_entry(
+                f"arm.{arm_id}.tier",
+                result["tier"],
+                "INT",
+                arm_id,
+                "result.tier",
+                f"result.tier of the committed {arm_id} record: the tier the official score earned.",
+                ["verdict"],
+                label=official,
+            ),
+            _record_entry(
+                f"arm.{arm_id}.E",
+                result["E"],
+                "E4",
+                arm_id,
+                "result.E",
+                f"result.E of the committed {arm_id} record: the official MPS float32 score.",
+                ["verdict"],
+                label=official,
+            ),
+            _record_entry(
+                f"arm.{arm_id}.eps_h",
+                result["eps_h"],
+                "EPS",
+                arm_id,
+                "result.eps_h",
+                f"result.eps_h of the committed {arm_id} record, the official MPS float32 value.",
+                ["verdict"],
+                label=official,
+            ),
+            _record_entry(
+                f"arm.{arm_id}.h_1pct",
+                _field(result, "h.0.1"),
+                "F1",
+                arm_id,
+                "result.h.0.1",
+                f"The recorded fraction of the window the {arm_id} arm held within 1%.",
+                ["verdict"],
+                label=official,
+            ),
+            _record_entry(
+                f"arm.{arm_id}.h_10pct",
+                _field(result, "h.1.1"),
+                "F1",
+                arm_id,
+                "result.h.1.1",
+                f"The recorded fraction of the window the {arm_id} arm held within 10%.",
+                ["verdict"],
+                label=official,
+            ),
+            _record_entry(
+                f"arm.{arm_id}.state",
+                result["state"],
+                "STR",
+                arm_id,
+                "result.state",
+                f"The state the {arm_id} record reports as its better one.",
+                ["verdict"],
+            ),
+            _record_entry(
+                f"arm.{arm_id}.first_omega_0",
+                facts["records"][arm_id]["first_omega_0"],
+                "F0",
+                arm_id,
+                "first_omega_0",
+                f"The first-layer frequency the {arm_id} arm ran at.",
+                ["verdict"],
+            ),
+            _record_entry(
+                f"arm.{arm_id}.E_formula",
+                _field(facts["records"][arm_id], "formula.E_formula"),
+                "E4",
+                arm_id,
+                "formula.E_formula",
+                f"The two-Kepler formula's own error on {arm_id}'s system, for comparison with the arm.",
+                ["verdict"],
+            ),
+            _record_entry(
+                f"arm.{arm_id}.counts",
+                _field(facts["records"][arm_id], "formula.counts"),
+                "BOOL",
+                arm_id,
+                "formula.counts",
+                f"Whether the formula alone reaches Tier 1 on {arm_id}'s system.",
+                [],
+            ),
+            _record_entry(
+                f"arm.{arm_id}.seconds_per_step",
+                _field(facts["records"][arm_id], "timing.seconds_per_step"),
+                "F6",
+                arm_id,
+                "timing.seconds_per_step",
+                f"The {arm_id} timing run's wall seconds per step; it must equal the handoff's.",
+                ["verdict"],
+            ),
+            _record_entry(
+                f"arm.{arm_id}.timing_wall_seconds",
+                _field(facts["records"][arm_id], "timing.wall_seconds"),
+                "F1",
+                arm_id,
+                "timing.wall_seconds",
+                f"The {arm_id} timing run's wall seconds.",
+                [],
+            ),
+            _record_entry(
+                f"arm.{arm_id}.polish_seconds",
+                _field(facts["records"][arm_id], "wall.polish_seconds"),
+                "F1",
+                arm_id,
+                "wall.polish_seconds",
+                f"The {arm_id} arm's L-BFGS polish wall seconds.",
+                [],
+            ),
+            _record_entry(
+                f"arm.{arm_id}.wall_hours",
+                _field(facts["records"][arm_id], "wall.hours"),
+                "F3",
+                arm_id,
+                "wall.hours",
+                f"The {arm_id} arm's measured wall hours; it must equal the handoff's.",
+                ["verdict"],
+            ),
+            _record_entry(
+                f"arm.{arm_id}.curve.E_step0",
+                _field(facts["records"][arm_id], "trace.0.E"),
+                "F1",
+                arm_id,
+                "trace.0.E",
+                f"The {arm_id} convergence curve's E at step 0.",
+                [],
+            ),
+            _record_entry(
+                f"arm.{arm_id}.curve.E_first_reading",
+                _field(facts["records"][arm_id], "trace.1.E"),
+                "F1",
+                arm_id,
+                "trace.1.E",
+                f"The {arm_id} convergence curve's E at its first reading.",
+                [],
+            ),
+        ]
+        entries += [
+            _arithmetic(
+                f"arm.{arm_id}.adam_steps",
+                "INT",
+                "arm_adam_steps",
+                f"The {arm_id} arm's Adam steps: the doubled budget when it was extended, else the recorded budget.",
+                [],
+            ),
+            _arithmetic(
+                f"arm.{arm_id}.sustained_seconds_per_step",
+                "F5",
+                "arm_sustained",
+                f"The {arm_id} arm's sustained rate: wall.adam_seconds over its Adam steps.",
+                ["verdict"],
+            ),
+            _arithmetic(
+                f"arm.{arm_id}.curve.first_reading_fraction",
+                "PCT0",
+                "arm_first_fraction",
+                f"The {arm_id} first reading's step as a fraction of its frozen budget.",
+                [],
+            ),
+            _arithmetic(
+                f"arm.{arm_id}.curve.range_after_first",
+                "F2",
+                "arm_range_after_first",
+                f"The {arm_id} curve's E range after the first reading: max minus min of trace[1:].E.",
+                [],
+            ),
+        ]
+    return entries
+
+
+def _aggregate_entries(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Group 2: totals, ranges, the best readings and the curve aggregates."""
+    both = ["verdict", "charter"]
+    entries = [
+        _arithmetic(
+            "hours.total",
+            "F3",
+            "hours_total",
+            "ordered_sum over the seven records' wall.hours in handoff arm order, the explicit left-to-right += loop from 0.0.",
+            both,
+        ),
+        _arithmetic(
+            "hours.rung1",
+            "F3",
+            "hours_rung1",
+            "ordered_sum over the three Rung 1 arms' wall.hours in handoff order.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "hours.sweep",
+            "F3",
+            "hours_sweep",
+            "ordered_sum over the four sweep arms' wall.hours in handoff order.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "steps.total_adam",
+            "INT",
+            "steps_total_adam",
+            "The sum of the seven arms' Adam steps, the doubled 1,961,246 for r1-4658 included.",
+            [],
+        ),
+        _arithmetic(
+            "steps.sweep_budget.min",
+            "INT",
+            "steps_sweep_budget_min",
+            "The least budget_steps of the four sweep arms, each equal to the frozen steps_budget rule re-applied to its own timing run.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "steps.sweep_budget.max",
+            "INT",
+            "steps_sweep_budget_max",
+            "The greatest budget_steps of the four sweep arms, each equal to the frozen steps_budget rule re-applied to its own timing run.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "seconds_per_step.timed.min",
+            "F6",
+            "timed_sps_min",
+            "The least timing.seconds_per_step of the seven timing runs.",
+            [],
+        ),
+        _arithmetic(
+            "seconds_per_step.timed.max",
+            "F6",
+            "timed_sps_max",
+            "The greatest timing.seconds_per_step of the seven timing runs.",
+            [],
+        ),
+        _arithmetic(
+            "seconds_per_step.sustained.min",
+            "F5",
+            "sustained_sps_min",
+            "The least sustained rate, wall.adam_seconds over Adam steps, across the seven arms.",
+            [],
+        ),
+        _arithmetic(
+            "seconds_per_step.sustained.max",
+            "F5",
+            "sustained_sps_max",
+            "The greatest sustained rate, wall.adam_seconds over Adam steps, across the seven arms.",
+            [],
+        ),
+        _arithmetic(
+            "timing.wall_seconds.min",
+            "F1",
+            "timing_wall_min",
+            "The least timing-run wall seconds across the seven arms.",
+            [],
+        ),
+        _arithmetic(
+            "timing.wall_seconds.max",
+            "F1",
+            "timing_wall_max",
+            "The greatest timing-run wall seconds across the seven arms.",
+            [],
+        ),
+        _arithmetic(
+            "timing.wall_seconds.total",
+            "F1",
+            "timing_wall_total",
+            "ordered_sum over the seven timing runs' wall seconds in handoff order.",
+            [],
+        ),
+        _arithmetic(
+            "polish.seconds.min",
+            "F1",
+            "polish_min",
+            "The least L-BFGS polish wall seconds across the seven arms.",
+            [],
+        ),
+        _arithmetic(
+            "polish.seconds.max",
+            "F1",
+            "polish_max",
+            "The greatest L-BFGS polish wall seconds across the seven arms.",
+            [],
+        ),
+        _arithmetic(
+            "cost.arm_hours.unextended.min",
+            "F3",
+            "unextended_hours_min",
+            "The least wall hours among the six arms that did not earn a budget doubling.",
+            both,
+        ),
+        _arithmetic(
+            "cost.arm_hours.unextended.max",
+            "F3",
+            "unextended_hours_max",
+            "The greatest wall hours among the six arms that did not earn a budget doubling.",
+            both,
+        ),
+        _arithmetic(
+            "cost.arm_hours.extended",
+            "F3",
+            "extended_hours",
+            "The wall hours of the one arm whose budget was doubled, r1-4658.",
+            both,
+        ),
+        _arithmetic(
+            "best.eps_h_official",
+            "EPS",
+            "best_eps_h_official",
+            "The minimum result.eps_h over the seven arms: the official best energy reading.",
+            both,
+        ),
+        _arithmetic(
+            "best.eps_h_official_arms",
+            "STR",
+            "best_eps_h_official_arms",
+            "Every arm attaining that exact minimum, in handoff order; no tie on the committed records.",
+            both,
+        ),
+        _arithmetic(
+            "best.ratio_to_bar",
+            "SCI2",
+            "best_ratio_to_bar",
+            "The best official eps_h over the scorecard's Tier-3 eps_h_max.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "best.eps_h_lowest_state",
+            "EPS",
+            "best_lowest_state",
+            "The least score_gold.eps_h over all fourteen scored states.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "best.eps_h_lowest_state_arm",
+            "STR",
+            "best_lowest_state_arm",
+            "The arm holding that least state eps_h.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "best.eps_h_lowest_state_state",
+            "STR",
+            "best_lowest_state_state",
+            "The state holding that least state eps_h.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "best.eps_h_lowest_trace",
+            "E4",
+            "best_lowest_trace",
+            "The least trace eps_h at any reading of any arm.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "best.eps_h_lowest_trace_arm",
+            "STR",
+            "best_lowest_trace_arm",
+            "The arm holding that least trace eps_h.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "best.eps_h_lowest_trace_step",
+            "INT",
+            "best_lowest_trace_step",
+            "The training step of that least trace eps_h.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "rung1.below_formula",
+            "OFN",
+            "rung1_below_formula",
+            "How many Rung 1 arms scored strictly below their system's formula E, under the frozen strictly-less rule.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "rung1.below_formula_systems",
+            "STR",
+            "rung1_below_formula_systems",
+            "The systems whose Rung 1 arm scored below the formula, as their numeric ids.",
+            ["verdict"],
+        ),
+        _arithmetic(
+            "rung1.counts_true",
+            "OFN",
+            "rung1_counts_true",
+            "How many Rung 1 systems the formula alone reaches Tier 1 on.",
+            [],
+        ),
+    ]
+    for name, rule, formula, what in (
+        ("E_step0", "F1", "curve_e_step0_min", "The least E at step 0 across the seven convergence curves."),
+        ("E_step0", "F1", "curve_e_step0_max", "The greatest E at step 0 across the seven convergence curves."),
+        ("E_first_reading", "F1", "curve_first_reading_min", "The least E at the first reading across the seven convergence curves."),
+        ("E_first_reading", "F1", "curve_first_reading_max", "The greatest E at the first reading across the seven convergence curves."),
+        ("fold_drop", "F0", "curve_fold_drop_min", "The least step-0 E over first-reading E across the seven curves."),
+        ("fold_drop", "F0", "curve_fold_drop_max", "The greatest step-0 E over first-reading E across the seven curves."),
+        ("first_reading_fraction", "PCT0", "curve_first_fraction_min", "The least first-reading fraction of the frozen budget."),
+        ("first_reading_fraction", "PCT0", "curve_first_fraction_max", "The greatest first-reading fraction of the frozen budget."),
+        ("E_final", "F2", "curve_e_final_min", "The least final result.E across the seven arms."),
+        ("E_final", "F2", "curve_e_final_max", "The greatest final result.E across the seven arms."),
+        ("tier1_multiple", "F0", "curve_tier1_multiple_min", "The least result.E over the Tier-1 E_max across the seven arms."),
+        ("tier1_multiple", "F0", "curve_tier1_multiple_max", "The greatest result.E over the Tier-1 E_max across the seven arms."),
+        ("range_after_first", "F2", "curve_range_after_first_min", "The least E range after the first reading across the seven curves."),
+        ("range_after_first", "F2", "curve_range_after_first_max", "The greatest E range after the first reading across the seven curves."),
+    ):
+        suffix = "min" if formula.endswith("_min") else "max"
+        entries.append(
+            _arithmetic(
+                f"curve.{name}.{suffix}",
+                rule,
+                formula,
+                what,
+                both if name == "E_final" else [],
+            )
+        )
+    entries.append(
+        _arithmetic(
+            "decision.rung3_share",
+            "PCT0",
+            "decision_rung3_share",
+            "The frozen Rung-3 proportion: rung3_min_count over rung3_panel_size.",
+            ["charter"],
+        )
+    )
+    return entries
+
+
+def _handoff_entries(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Group 3: the sealed handoff's own statements."""
+    entries = []
+    for entry_id, key, rule, what in (
+        ("handoff.verdict", "verdict.verdict", "STR", "The sealed handoff's verdict string."),
+        ("handoff.reason", "verdict.reasons.0", "STR", "The sealed handoff's first reason, verbatim."),
+        ("handoff.qualifier", "verdict.representation_limit_qualifier", "BOOL", "The sealed handoff's representation-limit qualifier."),
+        ("handoff.level3", "level3", "STR", "The sealed handoff's Level-3 readiness statement."),
+        ("handoff.phases_61_63", "phases_61_63", "STR", "The sealed handoff's statement about Phases 61 to 63."),
+        ("handoff.stop_reason", "stop_reason", "STR", "The sealed handoff's stop reason."),
+    ):
+        entries.append(
+            _entry(
+                entry_id,
+                _field(facts["handoff"], key),
+                rule,
+                "committed-record",
+                {"path": HANDOFF_REL.as_posix(), "key": key},
+                what,
+                ["verdict"],
+            )
+        )
+    return entries
+
+
+def _scorecard_entries(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Group 4: the frozen thresholds and decision proportions."""
+    card = facts["card"]
+    levels = card.section("tiers")["levels"]
+    index = {int(level["tier"]): position for position, level in enumerate(levels)}
+    entries = []
+    for entry_id, tier, field, rule, what, required in (
+        ("tiers.tier1.E_max", 1, "E_max", "F1", "The Tier-1 E limit from the frozen scorecard.", ["verdict", "charter"]),
+        ("tiers.tier2.E_max", 2, "E_max", "F2", "The Tier-2 E limit from the frozen scorecard.", ["verdict", "charter"]),
+        ("tiers.tier2.eps_h_max", 2, "eps_h_max", "POW10", "The Tier-2 eps_h limit from the frozen scorecard.", ["verdict", "charter"]),
+        ("tiers.tier3.E_max", 3, "E_max", "F2", "The Tier-3 E limit, the E_max of the level whose tier is 3.", ["verdict", "charter"]),
+        ("tiers.tier3.eps_h_max", 3, "eps_h_max", "POW10", "The Tier-3 eps_h limit from the frozen scorecard.", ["verdict", "charter"]),
+    ):
+        key = f"tiers.levels.{index[tier]}.{field}"
+        entries.append(
+            _entry(
+                entry_id,
+                levels[index[tier]][field],
+                rule,
+                "committed-record",
+                {"path": SCORECARD_REL.as_posix(), "key": key},
+                what,
+                required,
+            )
+        )
+    for entry_id, formula, rule, what in (
+        ("decision.rung2b", "decision_rung2b", "OFN", "The frozen Rung-2b proportion: min count over panel size."),
+        ("decision.rung3", "decision_rung3", "OFN", "The frozen Rung-3 proportion: min count over panel size."),
+    ):
+        entries.append(
+            _arithmetic(entry_id, rule, formula, what, ["verdict"])
+        )
+    return entries
+
+
+def _baseline_entries(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Group 5: the Phase 59 baseline medians and Tier-1 counts."""
+    both = ["verdict", "charter"]
+    entries = []
+    for entry_id, key, what in (
+        ("baseline.formula.median_E.train", "median_E.formula_train", "The formula's median E on the 1,812 Stage-0 training systems."),
+        ("baseline.formula.median_E.validation", "median_E.formula_validation", "The formula's median E on the 227 validation systems."),
+        ("baseline.copy.median_E.validation", "median_E.copy_validation", "The nearest-neighbour copy's median E on the 227 validation systems."),
+    ):
+        entries.append(
+            _entry(
+                entry_id,
+                _field(facts["baselines"], key),
+                "F3",
+                "committed-record",
+                {"path": BASELINES_REL.as_posix(), "key": key},
+                what,
+                both,
+            )
+        )
+    for entry_id, formula, what in (
+        ("baseline.formula.tier1.train", "formula_tier1_train", "How many of the 1,812 Stage-0 training systems the formula alone brings to Tier 1 or better."),
+        ("baseline.formula.tier1.validation", "formula_tier1_validation", "How many of the 227 validation systems the formula alone brings to Tier 1 or better."),
+    ):
+        entries.append(_arithmetic(entry_id, "OFN", formula, what, ["verdict"]))
+    entries.append(
+        _entry(
+            "baseline.copy.tier1.validation",
+            facts["baselines"]["nn_copy_reaches_tier1_on_validation"],
+            "STR",
+            "committed-record",
+            {"path": BASELINES_REL.as_posix(), "key": "nn_copy_reaches_tier1_on_validation"},
+            "The committed count of validation systems the nearest-neighbour copy brings to Tier 1 or better.",
+            ["verdict"],
+        )
+    )
+    return entries
+
+
+def _survey_entries(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Group 6: the dataset survey and the inner-lap census."""
+    entries = []
+    for entry_id, path, key, rule, what, required in (
+        ("survey.stage0.error_growth_median", SURVEY_REL, "per_stage.0.measures.error_growth.median", "F2", "Stage 0's median error-growth measure from the committed survey.", ["verdict"]),
+        ("survey.stage4b.error_growth_median", SURVEY_REL, "per_stage.4b.measures.error_growth.median", "F2", "Stage 4b's median error-growth measure from the committed survey.", ["verdict"]),
+        ("survey.stage6.error_growth_median", SURVEY_REL, "per_stage.6.measures.error_growth.median", "F1", "Stage 6's median error-growth measure from the committed survey.", ["verdict"]),
+        ("survey.stage3.count", SURVEY_REL, "stage3.count", "INT", "How many records the committed survey places in Stage 3: none.", ["verdict"]),
+        ("survey.picks.stage4b", PICKS_REL, "stage4b.record", "STR", "The FEAS-09 Stage-4b probe system the frozen rule picked.", ["verdict"]),
+        ("survey.picks.stage6", PICKS_REL, "stage6.record", "STR", "The FEAS-09 Stage-6 probe system the frozen rule picked.", ["verdict"]),
+        ("census.stage0.N_in_median", CENSUS_REL, "distributions.N_in.quantiles.50", "F2", "The median inner-lap count over the 1,812 Stage-0 training systems.", ["charter"]),
+    ):
+        source = facts["survey"] if path is SURVEY_REL else facts["picks"] if path is PICKS_REL else facts["census"]
+        entries.append(
+            _entry(
+                entry_id,
+                _field(source, key),
+                rule,
+                "committed-record",
+                {"path": path.as_posix(), "key": key},
+                what,
+                required,
+            )
+        )
+    entries.append(
+        _arithmetic(
+            "census.one_part_in_0p1",
+            "INT",
+            "census_one_part_in_0p1",
+            "The census's 10% phase-accuracy figure as one part in this many, read from the committed census.",
+            ["charter"],
+        )
+    )
+    return entries
+
+
+def _cost_entries(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Group 7: the measured cost primitives and the labelled for-scale figure."""
+    both = ["verdict", "charter"]
+    entries = [
+        _entry(
+            "cost.gen7.seconds_per_step",
+            _field(facts["status"], "s_per_step_ema"),
+            "F1",
+            "committed-record",
+            {"path": STATUS_REL.as_posix(), "key": "s_per_step_ema"},
+            "Generation 7's measured seconds per step, the EMA at step 951 of a run that ended in a failed state.",
+            both,
+        ),
+        _entry(
+            "cost.gen7.step",
+            _field(facts["status"], "step"),
+            "INT",
+            "committed-record",
+            {"path": STATUS_REL.as_posix(), "key": "step"},
+            "The step at which generation 7's status file was last written.",
+            ["verdict"],
+        ),
+        _entry(
+            "cost.forscale.steps_low",
+            FORSCALE_STEPS_LOW,
+            "INT",
+            "cited",
+            {
+                "path": AMENDMENTS_REL.as_posix(),
+                "commit": AMENDMENTS_COMMIT,
+                "token": "200,000",
+            },
+            "The lower for-scale step count the v2.4 amendments doc states, quoted for scale only.",
+            both,
+        ),
+        _entry(
+            "cost.forscale.steps_high",
+            FORSCALE_STEPS_HIGH,
+            "INT",
+            "cited",
+            {
+                "path": RESEARCH_REL.as_posix(),
+                "commit": RESEARCH_COMMIT,
+                "token": "300,000",
+            },
+            "The upper for-scale step count the Phase 64 research page states, quoted for scale only.",
+            both,
+        ),
+        _entry(
+            "cost.example.steps",
+            EXAMPLE_STEPS,
+            "INT",
+            "cited",
+            {
+                "path": RESEARCH_REL.as_posix(),
+                "commit": RESEARCH_COMMIT,
+                "token": "10\u2075 steps",
+            },
+            "The data-only illustration the research page states as 10 to the fifth steps, written as its decimal transcription.",
+            ["verdict"],
+        ),
+    ]
+    entries += [
+        _arithmetic("cost.forscale.days_low", "F1", "forscale_days_low", "The lower for-scale step count at generation 7's rate, over 86,400 seconds: for scale only, not a forecast.", both),
+        _arithmetic("cost.forscale.days_high", "F1", "forscale_days_high", "The upper for-scale step count at generation 7's rate, over 86,400 seconds: for scale only, not a forecast.", both),
+        _arithmetic("cost.forscale.hours_low", "F1", "forscale_hours_low", "The lower for-scale step count at generation 7's rate, in hours.", []),
+        _arithmetic("cost.example.seconds_per_step", "F6", "example_sps", "The median of the seven timing runs' seconds per step, the rate the example uses.", ["verdict"]),
+        _arithmetic("cost.example.hours", "F1", "example_hours", "The 100,000-step data-only example at that median rate, in hours: a labelled illustration, not a plan.", ["verdict"]),
+    ]
+    return entries
+
+
+def _cited_entries() -> list[dict[str, Any]]:
+    """Group 8: the published and gap figures, each pinned to a commit."""
+    research = RESEARCH_REL.as_posix()
+    gaps = GAPS_REL.as_posix()
+    project = PROJECT_REL.as_posix()
+    both = ["verdict", "charter"]
+    rows = [
+        ("pub.breen.energy_typical", "10\u207b\u00b2", research, RESEARCH_COMMIT, "of order 10\u207b\u00b2", both, "Breen et al.'s relative energy error, quoted from the Phase 64 research page."),
+        ("pub.breen.energy_projected", "10\u207b\u2075", research, RESEARCH_COMMIT, "brings it to order 10\u207b\u2075", ["verdict"], "Breen et al.'s energy error after the projection layer, quoted from the research page."),
+        ("pub.kollias.energy_range", "0.02\u20133%", research, RESEARCH_COMMIT, "to within \u223c 0.02\u20133%", both, "The 2026 study's relative energy error over one orbital period; the research page corrects the amendment's 0.08-3%."),
+        ("pub.kollias.euler", "7.74 \u00d7 10\u207b\u2074", research, RESEARCH_COMMIT, "Euler 7.74 \u00d7 10\u207b\u2074", ["verdict"], "The 2026 study's Euler-orbit energy error, quoted from the research page."),
+        ("pub.kollias.lagrange", "3.23 \u00d7 10\u207b\u00b2", research, RESEARCH_COMMIT, "Lagrange 3.23 \u00d7 10\u207b\u00b2", ["verdict"], "The 2026 study's Lagrange-orbit energy error, quoted from the research page."),
+        ("pub.kollias.figure8", "1.64 \u00d7 10\u207b\u2074", research, RESEARCH_COMMIT, "figure-eight 1.64 \u00d7 10\u207b\u2074", ["verdict"], "The 2026 study's figure-eight energy error, quoted from the research page."),
+        ("pub.kollias.adam_epochs", "2 to 3 \u00d7 10\u2075", research, RESEARCH_COMMIT, "2 to 3 \u00d7 10\u2075 Adam epochs", ["verdict"], "The 2026 study's Adam training length for one forward orbit, quoted from the research page."),
+        ("pub.kollias.lbfgs_epochs", "1.5 \u00d7 10\u2074", research, RESEARCH_COMMIT, "1.5 \u00d7 10\u2074 L-BFGS epochs", ["verdict"], "The 2026 study's L-BFGS training length for one forward orbit, quoted from the research page."),
+        ("gap5908.floor.1632", "4.7e-2", gaps, GAPS_COMMIT, "4.7e-2, 2.1e-1 and 3.8e-1", ["charter"], "The finite-difference eps_h floor GAP-59-08 measured on system 1632."),
+        ("gap5908.floor.851", "2.1e-1", gaps, GAPS_COMMIT, "4.7e-2, 2.1e-1 and 3.8e-1", ["charter"], "The finite-difference eps_h floor GAP-59-08 measured on system 851."),
+        ("gap5908.floor.4658", "3.8e-1", gaps, GAPS_COMMIT, "4.7e-2, 2.1e-1 and 3.8e-1", ["charter"], "The finite-difference eps_h floor GAP-59-08 measured on system 4658."),
+        ("gap5908.floor_range", "5\u201338%", gaps, GAPS_COMMIT, "5\u201338%", ["charter"], "The exact Brutus answer's own score range on the coarse grid, GAP-59-08's floor."),
+        ("machine.model", "Apple M5 Pro", project, PROJECT_COMMIT, "Apple M5 Pro", ["verdict"], "The machine every number here was measured on, from PROJECT.md."),
+        ("machine.memory", "24 GB", project, PROJECT_COMMIT, "24 GB", ["verdict"], "The machine's unified memory, from PROJECT.md."),
+    ]
+    return [
+        _entry(
+            entry_id,
+            value,
+            "LIT",
+            "cited",
+            {"path": path, "commit": commit, "token": token},
+            derivation,
+            required,
+        )
+        for entry_id, value, path, commit, token, required, derivation in rows
+    ]
 
 
 def build_manifest(repo_root: Path) -> dict[str, Any]:
@@ -424,57 +1503,34 @@ def build_manifest(repo_root: Path) -> dict[str, Any]:
     import torch
 
     from pinn.verification.feasibility_scorer import tier_defining_error
-    from pinn.verification.feasibility_scorecard import load_scorecard
     from pinn.verification.learnability_data import open_real_context
 
     root = Path(repo_root)
     torch.set_num_threads(1)
-    card = load_scorecard()
+    facts = _facts(root)
+    _FACTS.clear()
+    _FACTS.update(facts)
+    card = facts["card"]
     ctx = open_real_context(repo_root=root)
-    handoff = _read_json(root / HANDOFF_REL)
-    records = {arm_id: _read_json(root / _record_rel(arm_id)) for arm_id in ARMS}
 
-    total_hours = ordered_sum(records[arm_id]["wall"]["hours"] for arm_id in ARMS)
-    stored_total = handoff.get("total_wall_hours")
+    total_hours = _f_hours(facts, ARMS)
+    stored_total = facts["handoff"].get("total_wall_hours")
     if total_hours != stored_total:
         fail(
             "the seven wall.hours do not sum to the handoff's total_wall_hours: "
             f"ordered_sum {total_hours!r} != stored {stored_total!r}"
         )
 
-    entries = [
-        _entry(
-            "arm.r1-1632.E",
-            records["r1-1632"]["result"]["E"],
-            "E4",
-            "official-mps-float32",
-            {"path": _record_rel("r1-1632"), "key": "result.E"},
-            "result.E of the committed r1-1632 record: the official score the arm wrote on the MPS device in float32.",
-            ["verdict"],
-        ),
-        _entry(
-            "hours.total",
-            total_hours,
-            "F3",
-            "arithmetic",
-            {"formula": "hours_total"},
-            "ordered_sum over the seven records' wall.hours in handoff arm order, the explicit left-to-right += loop from 0.0.",
-            ["verdict", "charter"],
-        ),
-        _entry(
-            "pub.kollias.energy_range",
-            "0.02\u20133%",
-            "LIT",
-            "cited",
-            {
-                "path": RESEARCH_REL.as_posix(),
-                "commit": RESEARCH_COMMIT,
-                "token": "to within \u223c 0.02\u20133%",
-            },
-            "The 2026 study's relative energy error over one orbital period, quoted from the Phase 64 research page.",
-            ["verdict", "charter"],
-        ),
-    ]
+    entries = (
+        _arm_entries(facts)
+        + _aggregate_entries(facts)
+        + _handoff_entries(facts)
+        + _scorecard_entries(facts)
+        + _baseline_entries(facts)
+        + _survey_entries(facts)
+        + _cost_entries(facts)
+        + _cited_entries()
+    )
 
     derived = derive_state(ctx, card, "r1-1632", "polish")
     entries.append(
@@ -493,6 +1549,10 @@ def build_manifest(repo_root: Path) -> dict[str, Any]:
         )
     )
     entries.sort(key=lambda entry: entry["id"])
+    ids = [entry["id"] for entry in entries]
+    if len(set(ids)) != len(ids):
+        duplicates = sorted({entry_id for entry_id in ids if ids.count(entry_id) > 1})
+        fail(f"the manifest names these ids twice: {duplicates!r}")
 
     attestation = ctx.attestation
     if attestation is None:

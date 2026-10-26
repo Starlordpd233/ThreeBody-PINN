@@ -13,7 +13,1067 @@
   },
   "entries": [
     {
-      "derivation": "result.E of the committed r1-1632 record: the official score the arm wrote on the MPS device in float32.",
+      "derivation": "result.E of the committed g2s-1632-w060 record: the official MPS float32 score.",
+      "id": "arm.g2s-1632-w060.E",
+      "label": "official-mps-float32",
+      "render": "1.1569",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 1.1568902471907625
+    },
+    {
+      "derivation": "The two-Kepler formula's own error on g2s-1632-w060's system, for comparison with the arm.",
+      "id": "arm.g2s-1632-w060.E_formula",
+      "label": "committed-record",
+      "render": "0.9168",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "formula.E_formula",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 0.916813577071981
+    },
+    {
+      "derivation": "The g2s-1632-w060 arm's Adam steps: the doubled budget when it was extended, else the recorded budget.",
+      "id": "arm.g2s-1632-w060.adam_steps",
+      "label": "arithmetic",
+      "render": "908,063",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "arm_adam_steps"
+      },
+      "value": 908063
+    },
+    {
+      "derivation": "Whether the formula alone reaches Tier 1 on g2s-1632-w060's system.",
+      "id": "arm.g2s-1632-w060.counts",
+      "label": "committed-record",
+      "render": "false",
+      "render_rule": "BOOL",
+      "required_in": [],
+      "source": {
+        "key": "formula.counts",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": false
+    },
+    {
+      "derivation": "The g2s-1632-w060 convergence curve's E at its first reading.",
+      "id": "arm.g2s-1632-w060.curve.E_first_reading",
+      "label": "committed-record",
+      "render": "1.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.1.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 1.4342925988402944
+    },
+    {
+      "derivation": "The g2s-1632-w060 convergence curve's E at step 0.",
+      "id": "arm.g2s-1632-w060.curve.E_step0",
+      "label": "committed-record",
+      "render": "35.6",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.0.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 35.623157260148716
+    },
+    {
+      "derivation": "The g2s-1632-w060 first reading's step as a fraction of its frozen budget.",
+      "id": "arm.g2s-1632-w060.curve.first_reading_fraction",
+      "label": "arithmetic",
+      "render": "5%",
+      "render_rule": "PCT0",
+      "required_in": [],
+      "source": {
+        "formula": "arm_first_fraction"
+      },
+      "value": 0.049999834813223315
+    },
+    {
+      "derivation": "The g2s-1632-w060 curve's E range after the first reading: max minus min of trace[1:].E.",
+      "id": "arm.g2s-1632-w060.curve.range_after_first",
+      "label": "arithmetic",
+      "render": "0.28",
+      "render_rule": "F2",
+      "required_in": [],
+      "source": {
+        "formula": "arm_range_after_first"
+      },
+      "value": 0.27740235164953186
+    },
+    {
+      "derivation": "result.eps_h of the committed g2s-1632-w060 record, the official MPS float32 value.",
+      "id": "arm.g2s-1632-w060.eps_h",
+      "label": "official-mps-float32",
+      "render": "4,052.3",
+      "render_rule": "EPS",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.eps_h",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 4052.307884590454
+    },
+    {
+      "derivation": "The first-layer frequency the g2s-1632-w060 arm ran at.",
+      "id": "arm.g2s-1632-w060.first_omega_0",
+      "label": "committed-record",
+      "render": "60",
+      "render_rule": "F0",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "first_omega_0",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 60.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the g2s-1632-w060 arm held within 10%.",
+      "id": "arm.g2s-1632-w060.h_10pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.1.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the g2s-1632-w060 arm held within 1%.",
+      "id": "arm.g2s-1632-w060.h_1pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.0.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The g2s-1632-w060 arm's L-BFGS polish wall seconds.",
+      "id": "arm.g2s-1632-w060.polish_seconds",
+      "label": "committed-record",
+      "render": "5.0",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "wall.polish_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 4.964095584000461
+    },
+    {
+      "derivation": "The g2s-1632-w060 timing run's wall seconds per step; it must equal the handoff's.",
+      "id": "arm.g2s-1632-w060.seconds_per_step",
+      "label": "committed-record",
+      "render": "0.011893",
+      "render_rule": "F6",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "timing.seconds_per_step",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 0.011893442581989802
+    },
+    {
+      "derivation": "The state the g2s-1632-w060 record reports as its better one.",
+      "id": "arm.g2s-1632-w060.state",
+      "label": "committed-record",
+      "render": "adam",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.state",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": "adam"
+    },
+    {
+      "derivation": "The g2s-1632-w060 arm's sustained rate: wall.adam_seconds over its Adam steps.",
+      "id": "arm.g2s-1632-w060.sustained_seconds_per_step",
+      "label": "arithmetic",
+      "render": "0.01080",
+      "render_rule": "F5",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "arm_sustained"
+      },
+      "value": 0.010801957749938813
+    },
+    {
+      "derivation": "result.tier of the committed g2s-1632-w060 record: the tier the official score earned.",
+      "id": "arm.g2s-1632-w060.tier",
+      "label": "official-mps-float32",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.tier",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The g2s-1632-w060 timing run's wall seconds.",
+      "id": "arm.g2s-1632-w060.timing_wall_seconds",
+      "label": "committed-record",
+      "render": "5.9",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "timing.wall_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 5.946721290994901
+    },
+    {
+      "derivation": "The g2s-1632-w060 arm's measured wall hours; it must equal the handoff's.",
+      "id": "arm.g2s-1632-w060.wall_hours",
+      "label": "committed-record",
+      "render": "2.730",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "wall.hours",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json"
+      },
+      "value": 2.729588698749996
+    },
+    {
+      "derivation": "result.E of the committed g2s-1632-w120 record: the official MPS float32 score.",
+      "id": "arm.g2s-1632-w120.E",
+      "label": "official-mps-float32",
+      "render": "1.1561",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 1.1561271988298742
+    },
+    {
+      "derivation": "The two-Kepler formula's own error on g2s-1632-w120's system, for comparison with the arm.",
+      "id": "arm.g2s-1632-w120.E_formula",
+      "label": "committed-record",
+      "render": "0.9168",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "formula.E_formula",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 0.916813577071981
+    },
+    {
+      "derivation": "The g2s-1632-w120 arm's Adam steps: the doubled budget when it was extended, else the recorded budget.",
+      "id": "arm.g2s-1632-w120.adam_steps",
+      "label": "arithmetic",
+      "render": "955,466",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "arm_adam_steps"
+      },
+      "value": 955466
+    },
+    {
+      "derivation": "Whether the formula alone reaches Tier 1 on g2s-1632-w120's system.",
+      "id": "arm.g2s-1632-w120.counts",
+      "label": "committed-record",
+      "render": "false",
+      "render_rule": "BOOL",
+      "required_in": [],
+      "source": {
+        "key": "formula.counts",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": false
+    },
+    {
+      "derivation": "The g2s-1632-w120 convergence curve's E at its first reading.",
+      "id": "arm.g2s-1632-w120.curve.E_first_reading",
+      "label": "committed-record",
+      "render": "1.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.1.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 1.3722721755501015
+    },
+    {
+      "derivation": "The g2s-1632-w120 convergence curve's E at step 0.",
+      "id": "arm.g2s-1632-w120.curve.E_step0",
+      "label": "committed-record",
+      "render": "38.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.0.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 38.374322324116555
+    },
+    {
+      "derivation": "The g2s-1632-w120 first reading's step as a fraction of its frozen budget.",
+      "id": "arm.g2s-1632-w120.curve.first_reading_fraction",
+      "label": "arithmetic",
+      "render": "5%",
+      "render_rule": "PCT0",
+      "required_in": [],
+      "source": {
+        "formula": "arm_first_fraction"
+      },
+      "value": 0.049999686017084856
+    },
+    {
+      "derivation": "The g2s-1632-w120 curve's E range after the first reading: max minus min of trace[1:].E.",
+      "id": "arm.g2s-1632-w120.curve.range_after_first",
+      "label": "arithmetic",
+      "render": "0.30",
+      "render_rule": "F2",
+      "required_in": [],
+      "source": {
+        "formula": "arm_range_after_first"
+      },
+      "value": 0.2994718679357047
+    },
+    {
+      "derivation": "result.eps_h of the committed g2s-1632-w120 record, the official MPS float32 value.",
+      "id": "arm.g2s-1632-w120.eps_h",
+      "label": "official-mps-float32",
+      "render": "1,342.9",
+      "render_rule": "EPS",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.eps_h",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 1342.8990081795432
+    },
+    {
+      "derivation": "The first-layer frequency the g2s-1632-w120 arm ran at.",
+      "id": "arm.g2s-1632-w120.first_omega_0",
+      "label": "committed-record",
+      "render": "120",
+      "render_rule": "F0",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "first_omega_0",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 120.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the g2s-1632-w120 arm held within 10%.",
+      "id": "arm.g2s-1632-w120.h_10pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.1.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the g2s-1632-w120 arm held within 1%.",
+      "id": "arm.g2s-1632-w120.h_1pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.0.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The g2s-1632-w120 arm's L-BFGS polish wall seconds.",
+      "id": "arm.g2s-1632-w120.polish_seconds",
+      "label": "committed-record",
+      "render": "4.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "wall.polish_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 4.404155833006371
+    },
+    {
+      "derivation": "The g2s-1632-w120 timing run's wall seconds per step; it must equal the handoff's.",
+      "id": "arm.g2s-1632-w120.seconds_per_step",
+      "label": "committed-record",
+      "render": "0.011303",
+      "render_rule": "F6",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "timing.seconds_per_step",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 0.011303378249984234
+    },
+    {
+      "derivation": "The state the g2s-1632-w120 record reports as its better one.",
+      "id": "arm.g2s-1632-w120.state",
+      "label": "committed-record",
+      "render": "adam",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.state",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": "adam"
+    },
+    {
+      "derivation": "The g2s-1632-w120 arm's sustained rate: wall.adam_seconds over its Adam steps.",
+      "id": "arm.g2s-1632-w120.sustained_seconds_per_step",
+      "label": "arithmetic",
+      "render": "0.01092",
+      "render_rule": "F5",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "arm_sustained"
+      },
+      "value": 0.010922024310352801
+    },
+    {
+      "derivation": "result.tier of the committed g2s-1632-w120 record: the tier the official score earned.",
+      "id": "arm.g2s-1632-w120.tier",
+      "label": "official-mps-float32",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.tier",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The g2s-1632-w120 timing run's wall seconds.",
+      "id": "arm.g2s-1632-w120.timing_wall_seconds",
+      "label": "committed-record",
+      "render": "5.7",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "timing.wall_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 5.651689124992117
+    },
+    {
+      "derivation": "The g2s-1632-w120 arm's measured wall hours; it must equal the handoff's.",
+      "id": "arm.g2s-1632-w120.wall_hours",
+      "label": "committed-record",
+      "render": "2.903",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "wall.hours",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json"
+      },
+      "value": 2.9034401994561145
+    },
+    {
+      "derivation": "result.E of the committed g2s-1632-w240 record: the official MPS float32 score.",
+      "id": "arm.g2s-1632-w240.E",
+      "label": "official-mps-float32",
+      "render": "1.1539",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 1.1538869568817232
+    },
+    {
+      "derivation": "The two-Kepler formula's own error on g2s-1632-w240's system, for comparison with the arm.",
+      "id": "arm.g2s-1632-w240.E_formula",
+      "label": "committed-record",
+      "render": "0.9168",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "formula.E_formula",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 0.916813577071981
+    },
+    {
+      "derivation": "The g2s-1632-w240 arm's Adam steps: the doubled budget when it was extended, else the recorded budget.",
+      "id": "arm.g2s-1632-w240.adam_steps",
+      "label": "arithmetic",
+      "render": "994,807",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "arm_adam_steps"
+      },
+      "value": 994807
+    },
+    {
+      "derivation": "Whether the formula alone reaches Tier 1 on g2s-1632-w240's system.",
+      "id": "arm.g2s-1632-w240.counts",
+      "label": "committed-record",
+      "render": "false",
+      "render_rule": "BOOL",
+      "required_in": [],
+      "source": {
+        "key": "formula.counts",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": false
+    },
+    {
+      "derivation": "The g2s-1632-w240 convergence curve's E at its first reading.",
+      "id": "arm.g2s-1632-w240.curve.E_first_reading",
+      "label": "committed-record",
+      "render": "1.3",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.1.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 1.3164505505443829
+    },
+    {
+      "derivation": "The g2s-1632-w240 convergence curve's E at step 0.",
+      "id": "arm.g2s-1632-w240.curve.E_step0",
+      "label": "committed-record",
+      "render": "36.6",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.0.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 36.56545390183853
+    },
+    {
+      "derivation": "The g2s-1632-w240 first reading's step as a fraction of its frozen budget.",
+      "id": "arm.g2s-1632-w240.curve.first_reading_fraction",
+      "label": "arithmetic",
+      "render": "5%",
+      "render_rule": "PCT0",
+      "required_in": [],
+      "source": {
+        "formula": "arm_first_fraction"
+      },
+      "value": 0.049999648172962194
+    },
+    {
+      "derivation": "The g2s-1632-w240 curve's E range after the first reading: max minus min of trace[1:].E.",
+      "id": "arm.g2s-1632-w240.curve.range_after_first",
+      "label": "arithmetic",
+      "render": "0.27",
+      "render_rule": "F2",
+      "required_in": [],
+      "source": {
+        "formula": "arm_range_after_first"
+      },
+      "value": 0.265752453515387
+    },
+    {
+      "derivation": "result.eps_h of the committed g2s-1632-w240 record, the official MPS float32 value.",
+      "id": "arm.g2s-1632-w240.eps_h",
+      "label": "official-mps-float32",
+      "render": "123.62",
+      "render_rule": "EPS",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.eps_h",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 123.61725046233964
+    },
+    {
+      "derivation": "The first-layer frequency the g2s-1632-w240 arm ran at.",
+      "id": "arm.g2s-1632-w240.first_omega_0",
+      "label": "committed-record",
+      "render": "240",
+      "render_rule": "F0",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "first_omega_0",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 240.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the g2s-1632-w240 arm held within 10%.",
+      "id": "arm.g2s-1632-w240.h_10pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.1.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the g2s-1632-w240 arm held within 1%.",
+      "id": "arm.g2s-1632-w240.h_1pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.0.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The g2s-1632-w240 arm's L-BFGS polish wall seconds.",
+      "id": "arm.g2s-1632-w240.polish_seconds",
+      "label": "committed-record",
+      "render": "5.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "wall.polish_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 5.443574291013647
+    },
+    {
+      "derivation": "The g2s-1632-w240 timing run's wall seconds per step; it must equal the handoff's.",
+      "id": "arm.g2s-1632-w240.seconds_per_step",
+      "label": "committed-record",
+      "render": "0.010856",
+      "render_rule": "F6",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "timing.seconds_per_step",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 0.010856373000016902
+    },
+    {
+      "derivation": "The state the g2s-1632-w240 record reports as its better one.",
+      "id": "arm.g2s-1632-w240.state",
+      "label": "committed-record",
+      "render": "adam",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.state",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": "adam"
+    },
+    {
+      "derivation": "The g2s-1632-w240 arm's sustained rate: wall.adam_seconds over its Adam steps.",
+      "id": "arm.g2s-1632-w240.sustained_seconds_per_step",
+      "label": "arithmetic",
+      "render": "0.01100",
+      "render_rule": "F5",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "arm_sustained"
+      },
+      "value": 0.011003420221925143
+    },
+    {
+      "derivation": "result.tier of the committed g2s-1632-w240 record: the tier the official score earned.",
+      "id": "arm.g2s-1632-w240.tier",
+      "label": "official-mps-float32",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.tier",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The g2s-1632-w240 timing run's wall seconds.",
+      "id": "arm.g2s-1632-w240.timing_wall_seconds",
+      "label": "committed-record",
+      "render": "5.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "timing.wall_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 5.428186500008451
+    },
+    {
+      "derivation": "The g2s-1632-w240 arm's measured wall hours; it must equal the handoff's.",
+      "id": "arm.g2s-1632-w240.wall_hours",
+      "label": "committed-record",
+      "render": "3.046",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "wall.hours",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json"
+      },
+      "value": 3.0458090288311115
+    },
+    {
+      "derivation": "result.E of the committed g2s-1632-w480 record: the official MPS float32 score.",
+      "id": "arm.g2s-1632-w480.E",
+      "label": "official-mps-float32",
+      "render": "1.1575",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 1.1574991563427022
+    },
+    {
+      "derivation": "The two-Kepler formula's own error on g2s-1632-w480's system, for comparison with the arm.",
+      "id": "arm.g2s-1632-w480.E_formula",
+      "label": "committed-record",
+      "render": "0.9168",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "formula.E_formula",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 0.916813577071981
+    },
+    {
+      "derivation": "The g2s-1632-w480 arm's Adam steps: the doubled budget when it was extended, else the recorded budget.",
+      "id": "arm.g2s-1632-w480.adam_steps",
+      "label": "arithmetic",
+      "render": "842,770",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "arm_adam_steps"
+      },
+      "value": 842770
+    },
+    {
+      "derivation": "Whether the formula alone reaches Tier 1 on g2s-1632-w480's system.",
+      "id": "arm.g2s-1632-w480.counts",
+      "label": "committed-record",
+      "render": "false",
+      "render_rule": "BOOL",
+      "required_in": [],
+      "source": {
+        "key": "formula.counts",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": false
+    },
+    {
+      "derivation": "The g2s-1632-w480 convergence curve's E at its first reading.",
+      "id": "arm.g2s-1632-w480.curve.E_first_reading",
+      "label": "committed-record",
+      "render": "1.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.1.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 1.423946771954557
+    },
+    {
+      "derivation": "The g2s-1632-w480 convergence curve's E at step 0.",
+      "id": "arm.g2s-1632-w480.curve.E_step0",
+      "label": "committed-record",
+      "render": "39.6",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.0.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 39.63416017979817
+    },
+    {
+      "derivation": "The g2s-1632-w480 first reading's step as a fraction of its frozen budget.",
+      "id": "arm.g2s-1632-w480.curve.first_reading_fraction",
+      "label": "arithmetic",
+      "render": "5%",
+      "render_rule": "PCT0",
+      "required_in": [],
+      "source": {
+        "formula": "arm_first_fraction"
+      },
+      "value": 0.049999406718321725
+    },
+    {
+      "derivation": "The g2s-1632-w480 curve's E range after the first reading: max minus min of trace[1:].E.",
+      "id": "arm.g2s-1632-w480.curve.range_after_first",
+      "label": "arithmetic",
+      "render": "0.27",
+      "render_rule": "F2",
+      "required_in": [],
+      "source": {
+        "formula": "arm_range_after_first"
+      },
+      "value": 0.2664476156118549
+    },
+    {
+      "derivation": "result.eps_h of the committed g2s-1632-w480 record, the official MPS float32 value.",
+      "id": "arm.g2s-1632-w480.eps_h",
+      "label": "official-mps-float32",
+      "render": "4,170.1",
+      "render_rule": "EPS",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.eps_h",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 4170.097273374068
+    },
+    {
+      "derivation": "The first-layer frequency the g2s-1632-w480 arm ran at.",
+      "id": "arm.g2s-1632-w480.first_omega_0",
+      "label": "committed-record",
+      "render": "480",
+      "render_rule": "F0",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "first_omega_0",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 480.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the g2s-1632-w480 arm held within 10%.",
+      "id": "arm.g2s-1632-w480.h_10pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.1.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the g2s-1632-w480 arm held within 1%.",
+      "id": "arm.g2s-1632-w480.h_1pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.0.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The g2s-1632-w480 arm's L-BFGS polish wall seconds.",
+      "id": "arm.g2s-1632-w480.polish_seconds",
+      "label": "committed-record",
+      "render": "4.5",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "wall.polish_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 4.488999166991562
+    },
+    {
+      "derivation": "The g2s-1632-w480 timing run's wall seconds per step; it must equal the handoff's.",
+      "id": "arm.g2s-1632-w480.seconds_per_step",
+      "label": "committed-record",
+      "render": "0.012815",
+      "render_rule": "F6",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "timing.seconds_per_step",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 0.012814876415999606
+    },
+    {
+      "derivation": "The state the g2s-1632-w480 record reports as its better one.",
+      "id": "arm.g2s-1632-w480.state",
+      "label": "committed-record",
+      "render": "adam",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.state",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": "adam"
+    },
+    {
+      "derivation": "The g2s-1632-w480 arm's sustained rate: wall.adam_seconds over its Adam steps.",
+      "id": "arm.g2s-1632-w480.sustained_seconds_per_step",
+      "label": "arithmetic",
+      "render": "0.01105",
+      "render_rule": "F5",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "arm_sustained"
+      },
+      "value": 0.01104812230284007
+    },
+    {
+      "derivation": "result.tier of the committed g2s-1632-w480 record: the tier the official score earned.",
+      "id": "arm.g2s-1632-w480.tier",
+      "label": "official-mps-float32",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.tier",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The g2s-1632-w480 timing run's wall seconds.",
+      "id": "arm.g2s-1632-w480.timing_wall_seconds",
+      "label": "committed-record",
+      "render": "6.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "timing.wall_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 6.407438207999803
+    },
+    {
+      "derivation": "The g2s-1632-w480 arm's measured wall hours; it must equal the handoff's.",
+      "id": "arm.g2s-1632-w480.wall_hours",
+      "label": "committed-record",
+      "render": "2.591",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "wall.hours",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json"
+      },
+      "value": 2.5913397308100117
+    },
+    {
+      "derivation": "result.E of the committed r1-1632 record: the official MPS float32 score.",
       "id": "arm.r1-1632.E",
       "label": "official-mps-float32",
       "render": "1.1574",
@@ -26,6 +1086,1236 @@
         "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
       },
       "value": 1.157387378319295
+    },
+    {
+      "derivation": "The two-Kepler formula's own error on r1-1632's system, for comparison with the arm.",
+      "id": "arm.r1-1632.E_formula",
+      "label": "committed-record",
+      "render": "0.9168",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "formula.E_formula",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 0.916813577071981
+    },
+    {
+      "derivation": "The r1-1632 arm's Adam steps: the doubled budget when it was extended, else the recorded budget.",
+      "id": "arm.r1-1632.adam_steps",
+      "label": "arithmetic",
+      "render": "794,350",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "arm_adam_steps"
+      },
+      "value": 794350
+    },
+    {
+      "derivation": "Whether the formula alone reaches Tier 1 on r1-1632's system.",
+      "id": "arm.r1-1632.counts",
+      "label": "committed-record",
+      "render": "false",
+      "render_rule": "BOOL",
+      "required_in": [],
+      "source": {
+        "key": "formula.counts",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": false
+    },
+    {
+      "derivation": "The r1-1632 convergence curve's E at its first reading.",
+      "id": "arm.r1-1632.curve.E_first_reading",
+      "label": "committed-record",
+      "render": "1.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.1.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 1.4123354568379731
+    },
+    {
+      "derivation": "The r1-1632 convergence curve's E at step 0.",
+      "id": "arm.r1-1632.curve.E_step0",
+      "label": "committed-record",
+      "render": "38.8",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.0.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 38.77550798095054
+    },
+    {
+      "derivation": "The r1-1632 first reading's step as a fraction of its frozen budget.",
+      "id": "arm.r1-1632.curve.first_reading_fraction",
+      "label": "arithmetic",
+      "render": "5%",
+      "render_rule": "PCT0",
+      "required_in": [],
+      "source": {
+        "formula": "arm_first_fraction"
+      },
+      "value": 0.04999937055454145
+    },
+    {
+      "derivation": "The r1-1632 curve's E range after the first reading: max minus min of trace[1:].E.",
+      "id": "arm.r1-1632.curve.range_after_first",
+      "label": "arithmetic",
+      "render": "0.33",
+      "render_rule": "F2",
+      "required_in": [],
+      "source": {
+        "formula": "arm_range_after_first"
+      },
+      "value": 0.3345826853016771
+    },
+    {
+      "derivation": "result.eps_h of the committed r1-1632 record, the official MPS float32 value.",
+      "id": "arm.r1-1632.eps_h",
+      "label": "official-mps-float32",
+      "render": "705.69",
+      "render_rule": "EPS",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.eps_h",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 705.6851162096285
+    },
+    {
+      "derivation": "The first-layer frequency the r1-1632 arm ran at.",
+      "id": "arm.r1-1632.first_omega_0",
+      "label": "committed-record",
+      "render": "30",
+      "render_rule": "F0",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "first_omega_0",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 30.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the r1-1632 arm held within 10%.",
+      "id": "arm.r1-1632.h_10pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.1.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the r1-1632 arm held within 1%.",
+      "id": "arm.r1-1632.h_1pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.0.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The r1-1632 arm's L-BFGS polish wall seconds.",
+      "id": "arm.r1-1632.polish_seconds",
+      "label": "committed-record",
+      "render": "4.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "wall.polish_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 4.438632375007728
+    },
+    {
+      "derivation": "The r1-1632 timing run's wall seconds per step; it must equal the handoff's.",
+      "id": "arm.r1-1632.seconds_per_step",
+      "label": "committed-record",
+      "render": "0.013596",
+      "render_rule": "F6",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "timing.seconds_per_step",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 0.013596008833963424
+    },
+    {
+      "derivation": "The state the r1-1632 record reports as its better one.",
+      "id": "arm.r1-1632.state",
+      "label": "committed-record",
+      "render": "polish",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.state",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": "polish"
+    },
+    {
+      "derivation": "The r1-1632 arm's sustained rate: wall.adam_seconds over its Adam steps.",
+      "id": "arm.r1-1632.sustained_seconds_per_step",
+      "label": "arithmetic",
+      "render": "0.01164",
+      "render_rule": "F5",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "arm_sustained"
+      },
+      "value": 0.011638224412889888
+    },
+    {
+      "derivation": "result.tier of the committed r1-1632 record: the tier the official score earned.",
+      "id": "arm.r1-1632.tier",
+      "label": "official-mps-float32",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.tier",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The r1-1632 timing run's wall seconds.",
+      "id": "arm.r1-1632.timing_wall_seconds",
+      "label": "committed-record",
+      "render": "6.8",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "timing.wall_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 6.798004416981712
+    },
+    {
+      "derivation": "The r1-1632 arm's measured wall hours; it must equal the handoff's.",
+      "id": "arm.r1-1632.wall_hours",
+      "label": "committed-record",
+      "render": "2.573",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "wall.hours",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 2.5732112903124977
+    },
+    {
+      "derivation": "result.E of the committed r1-4658 record: the official MPS float32 score.",
+      "id": "arm.r1-4658.E",
+      "label": "official-mps-float32",
+      "render": "1.1432",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 1.1431882900750805
+    },
+    {
+      "derivation": "The two-Kepler formula's own error on r1-4658's system, for comparison with the arm.",
+      "id": "arm.r1-4658.E_formula",
+      "label": "committed-record",
+      "render": "1.9697",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "formula.E_formula",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 1.9697113677004474
+    },
+    {
+      "derivation": "The r1-4658 arm's Adam steps: the doubled budget when it was extended, else the recorded budget.",
+      "id": "arm.r1-4658.adam_steps",
+      "label": "arithmetic",
+      "render": "1,961,246",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "arm_adam_steps"
+      },
+      "value": 1961246
+    },
+    {
+      "derivation": "Whether the formula alone reaches Tier 1 on r1-4658's system.",
+      "id": "arm.r1-4658.counts",
+      "label": "committed-record",
+      "render": "false",
+      "render_rule": "BOOL",
+      "required_in": [],
+      "source": {
+        "key": "formula.counts",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": false
+    },
+    {
+      "derivation": "The r1-4658 convergence curve's E at its first reading.",
+      "id": "arm.r1-4658.curve.E_first_reading",
+      "label": "committed-record",
+      "render": "1.6",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.1.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 1.6000550781230305
+    },
+    {
+      "derivation": "The r1-4658 convergence curve's E at step 0.",
+      "id": "arm.r1-4658.curve.E_step0",
+      "label": "committed-record",
+      "render": "76.7",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.0.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 76.65210424381783
+    },
+    {
+      "derivation": "The r1-4658 first reading's step as a fraction of its frozen budget.",
+      "id": "arm.r1-4658.curve.first_reading_fraction",
+      "label": "arithmetic",
+      "render": "5%",
+      "render_rule": "PCT0",
+      "required_in": [],
+      "source": {
+        "formula": "arm_first_fraction"
+      },
+      "value": 0.0499998470360169
+    },
+    {
+      "derivation": "The r1-4658 curve's E range after the first reading: max minus min of trace[1:].E.",
+      "id": "arm.r1-4658.curve.range_after_first",
+      "label": "arithmetic",
+      "render": "0.59",
+      "render_rule": "F2",
+      "required_in": [],
+      "source": {
+        "formula": "arm_range_after_first"
+      },
+      "value": 0.5882332866537396
+    },
+    {
+      "derivation": "result.eps_h of the committed r1-4658 record, the official MPS float32 value.",
+      "id": "arm.r1-4658.eps_h",
+      "label": "official-mps-float32",
+      "render": "13,127.5",
+      "render_rule": "EPS",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.eps_h",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 13127.530747638213
+    },
+    {
+      "derivation": "The first-layer frequency the r1-4658 arm ran at.",
+      "id": "arm.r1-4658.first_omega_0",
+      "label": "committed-record",
+      "render": "30",
+      "render_rule": "F0",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "first_omega_0",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 30.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the r1-4658 arm held within 10%.",
+      "id": "arm.r1-4658.h_10pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.1.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the r1-4658 arm held within 1%.",
+      "id": "arm.r1-4658.h_1pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.0.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The r1-4658 arm's L-BFGS polish wall seconds.",
+      "id": "arm.r1-4658.polish_seconds",
+      "label": "committed-record",
+      "render": "4.5",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "wall.polish_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 4.4975899170094635
+    },
+    {
+      "derivation": "The r1-4658 timing run's wall seconds per step; it must equal the handoff's.",
+      "id": "arm.r1-4658.seconds_per_step",
+      "label": "committed-record",
+      "render": "0.011013",
+      "render_rule": "F6",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "timing.seconds_per_step",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 0.011013396749971434
+    },
+    {
+      "derivation": "The state the r1-4658 record reports as its better one.",
+      "id": "arm.r1-4658.state",
+      "label": "committed-record",
+      "render": "adam",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.state",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": "adam"
+    },
+    {
+      "derivation": "The r1-4658 arm's sustained rate: wall.adam_seconds over its Adam steps.",
+      "id": "arm.r1-4658.sustained_seconds_per_step",
+      "label": "arithmetic",
+      "render": "0.01044",
+      "render_rule": "F5",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "arm_sustained"
+      },
+      "value": 0.010440264906521352
+    },
+    {
+      "derivation": "result.tier of the committed r1-4658 record: the tier the official score earned.",
+      "id": "arm.r1-4658.tier",
+      "label": "official-mps-float32",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.tier",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The r1-4658 timing run's wall seconds.",
+      "id": "arm.r1-4658.timing_wall_seconds",
+      "label": "committed-record",
+      "render": "5.5",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "timing.wall_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 5.506698374985717
+    },
+    {
+      "derivation": "The r1-4658 arm's measured wall hours; it must equal the handoff's.",
+      "id": "arm.r1-4658.wall_hours",
+      "label": "committed-record",
+      "render": "5.693",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "wall.hours",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json"
+      },
+      "value": 5.692558011354162
+    },
+    {
+      "derivation": "result.E of the committed r1-851 record: the official MPS float32 score.",
+      "id": "arm.r1-851.E",
+      "label": "official-mps-float32",
+      "render": "1.2375",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 1.2375295559620059
+    },
+    {
+      "derivation": "The two-Kepler formula's own error on r1-851's system, for comparison with the arm.",
+      "id": "arm.r1-851.E_formula",
+      "label": "committed-record",
+      "render": "0.4312",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "formula.E_formula",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 0.4312413103776787
+    },
+    {
+      "derivation": "The r1-851 arm's Adam steps: the doubled budget when it was extended, else the recorded budget.",
+      "id": "arm.r1-851.adam_steps",
+      "label": "arithmetic",
+      "render": "980,523",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "arm_adam_steps"
+      },
+      "value": 980523
+    },
+    {
+      "derivation": "Whether the formula alone reaches Tier 1 on r1-851's system.",
+      "id": "arm.r1-851.counts",
+      "label": "committed-record",
+      "render": "false",
+      "render_rule": "BOOL",
+      "required_in": [],
+      "source": {
+        "key": "formula.counts",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": false
+    },
+    {
+      "derivation": "The r1-851 convergence curve's E at its first reading.",
+      "id": "arm.r1-851.curve.E_first_reading",
+      "label": "committed-record",
+      "render": "1.5",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.1.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 1.489975202678463
+    },
+    {
+      "derivation": "The r1-851 convergence curve's E at step 0.",
+      "id": "arm.r1-851.curve.E_step0",
+      "label": "committed-record",
+      "render": "58.7",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "trace.0.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 58.743628337997706
+    },
+    {
+      "derivation": "The r1-851 first reading's step as a fraction of its frozen budget.",
+      "id": "arm.r1-851.curve.first_reading_fraction",
+      "label": "arithmetic",
+      "render": "5%",
+      "render_rule": "PCT0",
+      "required_in": [],
+      "source": {
+        "formula": "arm_first_fraction"
+      },
+      "value": 0.049999847020416655
+    },
+    {
+      "derivation": "The r1-851 curve's E range after the first reading: max minus min of trace[1:].E.",
+      "id": "arm.r1-851.curve.range_after_first",
+      "label": "arithmetic",
+      "render": "0.35",
+      "render_rule": "F2",
+      "required_in": [],
+      "source": {
+        "formula": "arm_range_after_first"
+      },
+      "value": 0.3500612028156711
+    },
+    {
+      "derivation": "result.eps_h of the committed r1-851 record, the official MPS float32 value.",
+      "id": "arm.r1-851.eps_h",
+      "label": "official-mps-float32",
+      "render": "165.50",
+      "render_rule": "EPS",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.eps_h",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 165.50004592927485
+    },
+    {
+      "derivation": "The first-layer frequency the r1-851 arm ran at.",
+      "id": "arm.r1-851.first_omega_0",
+      "label": "committed-record",
+      "render": "30",
+      "render_rule": "F0",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "first_omega_0",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 30.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the r1-851 arm held within 10%.",
+      "id": "arm.r1-851.h_10pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.1.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The recorded fraction of the window the r1-851 arm held within 1%.",
+      "id": "arm.r1-851.h_1pct",
+      "label": "official-mps-float32",
+      "render": "0.0",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.h.0.1",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 0.0
+    },
+    {
+      "derivation": "The r1-851 arm's L-BFGS polish wall seconds.",
+      "id": "arm.r1-851.polish_seconds",
+      "label": "committed-record",
+      "render": "4.8",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "wall.polish_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 4.794420458027162
+    },
+    {
+      "derivation": "The r1-851 timing run's wall seconds per step; it must equal the handoff's.",
+      "id": "arm.r1-851.seconds_per_step",
+      "label": "committed-record",
+      "render": "0.011015",
+      "render_rule": "F6",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "timing.seconds_per_step",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 0.01101452608400723
+    },
+    {
+      "derivation": "The state the r1-851 record reports as its better one.",
+      "id": "arm.r1-851.state",
+      "label": "committed-record",
+      "render": "adam",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.state",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": "adam"
+    },
+    {
+      "derivation": "The r1-851 arm's sustained rate: wall.adam_seconds over its Adam steps.",
+      "id": "arm.r1-851.sustained_seconds_per_step",
+      "label": "arithmetic",
+      "render": "0.01042",
+      "render_rule": "F5",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "arm_sustained"
+      },
+      "value": 0.010418480197501478
+    },
+    {
+      "derivation": "result.tier of the committed r1-851 record: the tier the official score earned.",
+      "id": "arm.r1-851.tier",
+      "label": "official-mps-float32",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.tier",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "The r1-851 timing run's wall seconds.",
+      "id": "arm.r1-851.timing_wall_seconds",
+      "label": "committed-record",
+      "render": "5.5",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "key": "timing.wall_seconds",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 5.507263042003615
+    },
+    {
+      "derivation": "The r1-851 arm's measured wall hours; it must equal the handoff's.",
+      "id": "arm.r1-851.wall_hours",
+      "label": "committed-record",
+      "render": "2.842",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "wall.hours",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json"
+      },
+      "value": 2.8423417745138835
+    },
+    {
+      "derivation": "The nearest-neighbour copy's median E on the 227 validation systems.",
+      "id": "baseline.copy.median_E.validation",
+      "label": "committed-record",
+      "render": "2.135",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "key": "median_E.copy_validation",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/baselines/baselines.json"
+      },
+      "value": 2.135396659314407
+    },
+    {
+      "derivation": "The committed count of validation systems the nearest-neighbour copy brings to Tier 1 or better.",
+      "id": "baseline.copy.tier1.validation",
+      "label": "committed-record",
+      "render": "0 of 227",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "nn_copy_reaches_tier1_on_validation",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/baselines/baselines.json"
+      },
+      "value": "0 of 227"
+    },
+    {
+      "derivation": "The formula's median E on the 1,812 Stage-0 training systems.",
+      "id": "baseline.formula.median_E.train",
+      "label": "committed-record",
+      "render": "0.989",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "key": "median_E.formula_train",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/baselines/baselines.json"
+      },
+      "value": 0.9890032980038623
+    },
+    {
+      "derivation": "The formula's median E on the 227 validation systems.",
+      "id": "baseline.formula.median_E.validation",
+      "label": "committed-record",
+      "render": "0.940",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "key": "median_E.formula_validation",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/baselines/baselines.json"
+      },
+      "value": 0.940265743143744
+    },
+    {
+      "derivation": "How many of the 1,812 Stage-0 training systems the formula alone brings to Tier 1 or better.",
+      "id": "baseline.formula.tier1.train",
+      "label": "arithmetic",
+      "render": "1 of 1812",
+      "render_rule": "OFN",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "formula_tier1_train"
+      },
+      "value": [
+        1,
+        1812
+      ]
+    },
+    {
+      "derivation": "How many of the 227 validation systems the formula alone brings to Tier 1 or better.",
+      "id": "baseline.formula.tier1.validation",
+      "label": "arithmetic",
+      "render": "0 of 227",
+      "render_rule": "OFN",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "formula_tier1_validation"
+      },
+      "value": [
+        0,
+        227
+      ]
+    },
+    {
+      "derivation": "The least score_gold.eps_h over all fourteen scored states.",
+      "id": "best.eps_h_lowest_state",
+      "label": "arithmetic",
+      "render": "30.29",
+      "render_rule": "EPS",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "best_lowest_state"
+      },
+      "value": 30.294846197068697
+    },
+    {
+      "derivation": "The arm holding that least state eps_h.",
+      "id": "best.eps_h_lowest_state_arm",
+      "label": "arithmetic",
+      "render": "r1-1632",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "best_lowest_state_arm"
+      },
+      "value": "r1-1632"
+    },
+    {
+      "derivation": "The state holding that least state eps_h.",
+      "id": "best.eps_h_lowest_state_state",
+      "label": "arithmetic",
+      "render": "adam",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "best_lowest_state_state"
+      },
+      "value": "adam"
+    },
+    {
+      "derivation": "The least trace eps_h at any reading of any arm.",
+      "id": "best.eps_h_lowest_trace",
+      "label": "arithmetic",
+      "render": "0.9999",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "best_lowest_trace"
+      },
+      "value": 0.999918700467295
+    },
+    {
+      "derivation": "The arm holding that least trace eps_h.",
+      "id": "best.eps_h_lowest_trace_arm",
+      "label": "arithmetic",
+      "render": "r1-4658",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "best_lowest_trace_arm"
+      },
+      "value": "r1-4658"
+    },
+    {
+      "derivation": "The training step of that least trace eps_h.",
+      "id": "best.eps_h_lowest_trace_step",
+      "label": "arithmetic",
+      "render": "1,863,178",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "best_lowest_trace_step"
+      },
+      "value": 1863178
+    },
+    {
+      "derivation": "The minimum result.eps_h over the seven arms: the official best energy reading.",
+      "id": "best.eps_h_official",
+      "label": "arithmetic",
+      "render": "123.62",
+      "render_rule": "EPS",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "best_eps_h_official"
+      },
+      "value": 123.61725046233964
+    },
+    {
+      "derivation": "Every arm attaining that exact minimum, in handoff order; no tie on the committed records.",
+      "id": "best.eps_h_official_arms",
+      "label": "arithmetic",
+      "render": "g2s-1632-w240",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "best_eps_h_official_arms"
+      },
+      "value": "g2s-1632-w240"
+    },
+    {
+      "derivation": "The best official eps_h over the scorecard's Tier-3 eps_h_max.",
+      "id": "best.ratio_to_bar",
+      "label": "arithmetic",
+      "render": "1.24 \u00d7 10\u2077",
+      "render_rule": "SCI2",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "best_ratio_to_bar"
+      },
+      "value": 12361725.046233963
+    },
+    {
+      "derivation": "The census's 10% phase-accuracy figure as one part in this many, read from the committed census.",
+      "id": "census.one_part_in_0p1",
+      "label": "arithmetic",
+      "render": "1,169",
+      "render_rule": "INT",
+      "required_in": [
+        "charter"
+      ],
+      "source": {
+        "formula": "census_one_part_in_0p1"
+      },
+      "value": 1169
+    },
+    {
+      "derivation": "The median inner-lap count over the 1,812 Stage-0 training systems.",
+      "id": "census.stage0.N_in_median",
+      "label": "committed-record",
+      "render": "18.61",
+      "render_rule": "F2",
+      "required_in": [
+        "charter"
+      ],
+      "source": {
+        "key": "distributions.N_in.quantiles.50",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/census/census.json"
+      },
+      "value": 18.6086833244856
+    },
+    {
+      "derivation": "The wall hours of the one arm whose budget was doubled, r1-4658.",
+      "id": "cost.arm_hours.extended",
+      "label": "arithmetic",
+      "render": "5.693",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "extended_hours"
+      },
+      "value": 5.692558011354162
+    },
+    {
+      "derivation": "The greatest wall hours among the six arms that did not earn a budget doubling.",
+      "id": "cost.arm_hours.unextended.max",
+      "label": "arithmetic",
+      "render": "3.046",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "unextended_hours_max"
+      },
+      "value": 3.0458090288311115
+    },
+    {
+      "derivation": "The least wall hours among the six arms that did not earn a budget doubling.",
+      "id": "cost.arm_hours.unextended.min",
+      "label": "arithmetic",
+      "render": "2.573",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "unextended_hours_min"
+      },
+      "value": 2.5732112903124977
+    },
+    {
+      "derivation": "The 100,000-step data-only example at that median rate, in hours: a labelled illustration, not a plan.",
+      "id": "cost.example.hours",
+      "label": "arithmetic",
+      "render": "0.3",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "example_hours"
+      },
+      "value": 0.3139827291662287
+    },
+    {
+      "derivation": "The median of the seven timing runs' seconds per step, the rate the example uses.",
+      "id": "cost.example.seconds_per_step",
+      "label": "arithmetic",
+      "render": "0.011303",
+      "render_rule": "F6",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "example_sps"
+      },
+      "value": 0.011303378249984234
+    },
+    {
+      "derivation": "The data-only illustration the research page states as 10 to the fifth steps, written as its decimal transcription.",
+      "id": "cost.example.steps",
+      "label": "cited",
+      "render": "100,000",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "commit": "7fda0a55fc84447ea17abbb4d1188761add94d8a",
+        "path": ".planning/phases/64-feasibility-verdict/64-RESEARCH.md",
+        "token": "10\u2075 steps"
+      },
+      "value": 100000
+    },
+    {
+      "derivation": "The upper for-scale step count at generation 7's rate, over 86,400 seconds: for scale only, not a forecast.",
+      "id": "cost.forscale.days_high",
+      "label": "arithmetic",
+      "render": "42.8",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "forscale_days_high"
+      },
+      "value": 42.770193915656876
+    },
+    {
+      "derivation": "The lower for-scale step count at generation 7's rate, over 86,400 seconds: for scale only, not a forecast.",
+      "id": "cost.forscale.days_low",
+      "label": "arithmetic",
+      "render": "28.5",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "forscale_days_low"
+      },
+      "value": 28.51346261043792
+    },
+    {
+      "derivation": "The lower for-scale step count at generation 7's rate, in hours.",
+      "id": "cost.forscale.hours_low",
+      "label": "arithmetic",
+      "render": "684.3",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "formula": "forscale_hours_low"
+      },
+      "value": 684.3231026505101
+    },
+    {
+      "derivation": "The upper for-scale step count the Phase 64 research page states, quoted for scale only.",
+      "id": "cost.forscale.steps_high",
+      "label": "cited",
+      "render": "300,000",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "commit": "7fda0a55fc84447ea17abbb4d1188761add94d8a",
+        "path": ".planning/phases/64-feasibility-verdict/64-RESEARCH.md",
+        "token": "300,000"
+      },
+      "value": 300000
+    },
+    {
+      "derivation": "The lower for-scale step count the v2.4 amendments doc states, quoted for scale only.",
+      "id": "cost.forscale.steps_low",
+      "label": "cited",
+      "render": "200,000",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "commit": "e72060daf0de7b31334ccb7fddf8876d8506c27f",
+        "path": "docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md",
+        "token": "200,000"
+      },
+      "value": 200000
+    },
+    {
+      "derivation": "Generation 7's measured seconds per step, the EMA at step 951 of a run that ended in a failed state.",
+      "id": "cost.gen7.seconds_per_step",
+      "label": "committed-record",
+      "render": "12.3",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "key": "s_per_step_ema",
+        "path": "runs/stage0-v23g7-seed42/status.json"
+      },
+      "value": 12.31781584770918
+    },
+    {
+      "derivation": "The step at which generation 7's status file was last written.",
+      "id": "cost.gen7.step",
+      "label": "committed-record",
+      "render": "951",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "step",
+        "path": "runs/stage0-v23g7-seed42/status.json"
+      },
+      "value": 951
     },
     {
       "derivation": "Re-scored from the committed polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
@@ -44,6 +2334,410 @@
       "value": 1.1599973904350662
     },
     {
+      "derivation": "The greatest final result.E across the seven arms.",
+      "id": "curve.E_final.max",
+      "label": "arithmetic",
+      "render": "1.24",
+      "render_rule": "F2",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "curve_e_final_max"
+      },
+      "value": 1.2375295559620059
+    },
+    {
+      "derivation": "The least final result.E across the seven arms.",
+      "id": "curve.E_final.min",
+      "label": "arithmetic",
+      "render": "1.14",
+      "render_rule": "F2",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "curve_e_final_min"
+      },
+      "value": 1.1431882900750805
+    },
+    {
+      "derivation": "The greatest E at the first reading across the seven convergence curves.",
+      "id": "curve.E_first_reading.max",
+      "label": "arithmetic",
+      "render": "1.6",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "formula": "curve_first_reading_max"
+      },
+      "value": 1.6000550781230305
+    },
+    {
+      "derivation": "The least E at the first reading across the seven convergence curves.",
+      "id": "curve.E_first_reading.min",
+      "label": "arithmetic",
+      "render": "1.3",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "formula": "curve_first_reading_min"
+      },
+      "value": 1.3164505505443829
+    },
+    {
+      "derivation": "The greatest E at step 0 across the seven convergence curves.",
+      "id": "curve.E_step0.max",
+      "label": "arithmetic",
+      "render": "76.7",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "formula": "curve_e_step0_max"
+      },
+      "value": 76.65210424381783
+    },
+    {
+      "derivation": "The least E at step 0 across the seven convergence curves.",
+      "id": "curve.E_step0.min",
+      "label": "arithmetic",
+      "render": "35.6",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "formula": "curve_e_step0_min"
+      },
+      "value": 35.623157260148716
+    },
+    {
+      "derivation": "The greatest first-reading fraction of the frozen budget.",
+      "id": "curve.first_reading_fraction.max",
+      "label": "arithmetic",
+      "render": "5%",
+      "render_rule": "PCT0",
+      "required_in": [],
+      "source": {
+        "formula": "curve_first_fraction_max"
+      },
+      "value": 0.0499998470360169
+    },
+    {
+      "derivation": "The least first-reading fraction of the frozen budget.",
+      "id": "curve.first_reading_fraction.min",
+      "label": "arithmetic",
+      "render": "5%",
+      "render_rule": "PCT0",
+      "required_in": [],
+      "source": {
+        "formula": "curve_first_fraction_min"
+      },
+      "value": 0.04999937055454145
+    },
+    {
+      "derivation": "The greatest step-0 E over first-reading E across the seven curves.",
+      "id": "curve.fold_drop.max",
+      "label": "arithmetic",
+      "render": "48",
+      "render_rule": "F0",
+      "required_in": [],
+      "source": {
+        "formula": "curve_fold_drop_max"
+      },
+      "value": 47.905916047424924
+    },
+    {
+      "derivation": "The least step-0 E over first-reading E across the seven curves.",
+      "id": "curve.fold_drop.min",
+      "label": "arithmetic",
+      "render": "25",
+      "render_rule": "F0",
+      "required_in": [],
+      "source": {
+        "formula": "curve_fold_drop_min"
+      },
+      "value": 24.83674341550115
+    },
+    {
+      "derivation": "The greatest E range after the first reading across the seven curves.",
+      "id": "curve.range_after_first.max",
+      "label": "arithmetic",
+      "render": "0.59",
+      "render_rule": "F2",
+      "required_in": [],
+      "source": {
+        "formula": "curve_range_after_first_max"
+      },
+      "value": 0.5882332866537396
+    },
+    {
+      "derivation": "The least E range after the first reading across the seven curves.",
+      "id": "curve.range_after_first.min",
+      "label": "arithmetic",
+      "render": "0.27",
+      "render_rule": "F2",
+      "required_in": [],
+      "source": {
+        "formula": "curve_range_after_first_min"
+      },
+      "value": 0.265752453515387
+    },
+    {
+      "derivation": "The greatest result.E over the Tier-1 E_max across the seven arms.",
+      "id": "curve.tier1_multiple.max",
+      "label": "arithmetic",
+      "render": "12",
+      "render_rule": "F0",
+      "required_in": [],
+      "source": {
+        "formula": "curve_tier1_multiple_max"
+      },
+      "value": 12.375295559620058
+    },
+    {
+      "derivation": "The least result.E over the Tier-1 E_max across the seven arms.",
+      "id": "curve.tier1_multiple.min",
+      "label": "arithmetic",
+      "render": "11",
+      "render_rule": "F0",
+      "required_in": [],
+      "source": {
+        "formula": "curve_tier1_multiple_min"
+      },
+      "value": 11.431882900750804
+    },
+    {
+      "derivation": "The frozen Rung-2b proportion: min count over panel size.",
+      "id": "decision.rung2b",
+      "label": "arithmetic",
+      "render": "2 of 3",
+      "render_rule": "OFN",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "decision_rung2b"
+      },
+      "value": [
+        2,
+        3
+      ]
+    },
+    {
+      "derivation": "The frozen Rung-3 proportion: min count over panel size.",
+      "id": "decision.rung3",
+      "label": "arithmetic",
+      "render": "12 of 16",
+      "render_rule": "OFN",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "decision_rung3"
+      },
+      "value": [
+        12,
+        16
+      ]
+    },
+    {
+      "derivation": "The frozen Rung-3 proportion: rung3_min_count over rung3_panel_size.",
+      "id": "decision.rung3_share",
+      "label": "arithmetic",
+      "render": "75%",
+      "render_rule": "PCT0",
+      "required_in": [
+        "charter"
+      ],
+      "source": {
+        "formula": "decision_rung3_share"
+      },
+      "value": 0.75
+    },
+    {
+      "derivation": "The finite-difference eps_h floor GAP-59-08 measured on system 1632.",
+      "id": "gap5908.floor.1632",
+      "label": "cited",
+      "render": "4.7e-2",
+      "render_rule": "LIT",
+      "required_in": [
+        "charter"
+      ],
+      "source": {
+        "commit": "ec2853b0f445d28ac462afd7cc4d395961934da7",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/59-GAPS.md",
+        "token": "4.7e-2, 2.1e-1 and 3.8e-1"
+      },
+      "value": "4.7e-2"
+    },
+    {
+      "derivation": "The finite-difference eps_h floor GAP-59-08 measured on system 4658.",
+      "id": "gap5908.floor.4658",
+      "label": "cited",
+      "render": "3.8e-1",
+      "render_rule": "LIT",
+      "required_in": [
+        "charter"
+      ],
+      "source": {
+        "commit": "ec2853b0f445d28ac462afd7cc4d395961934da7",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/59-GAPS.md",
+        "token": "4.7e-2, 2.1e-1 and 3.8e-1"
+      },
+      "value": "3.8e-1"
+    },
+    {
+      "derivation": "The finite-difference eps_h floor GAP-59-08 measured on system 851.",
+      "id": "gap5908.floor.851",
+      "label": "cited",
+      "render": "2.1e-1",
+      "render_rule": "LIT",
+      "required_in": [
+        "charter"
+      ],
+      "source": {
+        "commit": "ec2853b0f445d28ac462afd7cc4d395961934da7",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/59-GAPS.md",
+        "token": "4.7e-2, 2.1e-1 and 3.8e-1"
+      },
+      "value": "2.1e-1"
+    },
+    {
+      "derivation": "The exact Brutus answer's own score range on the coarse grid, GAP-59-08's floor.",
+      "id": "gap5908.floor_range",
+      "label": "cited",
+      "render": "5\u201338%",
+      "render_rule": "LIT",
+      "required_in": [
+        "charter"
+      ],
+      "source": {
+        "commit": "ec2853b0f445d28ac462afd7cc4d395961934da7",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/59-GAPS.md",
+        "token": "5\u201338%"
+      },
+      "value": "5\u201338%"
+    },
+    {
+      "derivation": "The sealed handoff's Level-3 readiness statement.",
+      "id": "handoff.level3",
+      "label": "committed-record",
+      "render": "not tested (skipped at G2)",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "level3",
+        "path": ".planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json"
+      },
+      "value": "not tested (skipped at G2)"
+    },
+    {
+      "derivation": "The sealed handoff's statement about Phases 61 to 63.",
+      "id": "handoff.phases_61_63",
+      "label": "committed-record",
+      "render": "skipped at G2, not failed",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "phases_61_63",
+        "path": ".planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json"
+      },
+      "value": "skipped at G2, not failed"
+    },
+    {
+      "derivation": "The sealed handoff's representation-limit qualifier.",
+      "id": "handoff.qualifier",
+      "label": "committed-record",
+      "render": "false",
+      "render_rule": "BOOL",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "verdict.representation_limit_qualifier",
+        "path": ".planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json"
+      },
+      "value": false
+    },
+    {
+      "derivation": "The sealed handoff's first reason, verbatim.",
+      "id": "handoff.reason",
+      "label": "committed-record",
+      "render": "G2 fired and the sweep rescued nothing",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "verdict.reasons.0",
+        "path": ".planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json"
+      },
+      "value": "G2 fired and the sweep rescued nothing"
+    },
+    {
+      "derivation": "The sealed handoff's stop reason.",
+      "id": "handoff.stop_reason",
+      "label": "committed-record",
+      "render": "no rescue",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "stop_reason",
+        "path": ".planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json"
+      },
+      "value": "no rescue"
+    },
+    {
+      "derivation": "The sealed handoff's verdict string.",
+      "id": "handoff.verdict",
+      "label": "committed-record",
+      "render": "RETHINK-REPRESENTATION",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "verdict.verdict",
+        "path": ".planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json"
+      },
+      "value": "RETHINK-REPRESENTATION"
+    },
+    {
+      "derivation": "ordered_sum over the three Rung 1 arms' wall.hours in handoff order.",
+      "id": "hours.rung1",
+      "label": "arithmetic",
+      "render": "11.108",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "hours_rung1"
+      },
+      "value": 11.108111076180544
+    },
+    {
+      "derivation": "ordered_sum over the four sweep arms' wall.hours in handoff order.",
+      "id": "hours.sweep",
+      "label": "arithmetic",
+      "render": "11.270",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "hours_sweep"
+      },
+      "value": 11.270177657847233
+    },
+    {
       "derivation": "ordered_sum over the seven records' wall.hours in handoff arm order, the explicit left-to-right += loop from 0.0.",
       "id": "hours.total",
       "label": "arithmetic",
@@ -59,7 +2753,112 @@
       "value": 22.37828873402778
     },
     {
-      "derivation": "The 2026 study's relative energy error over one orbital period, quoted from the Phase 64 research page.",
+      "derivation": "The machine's unified memory, from PROJECT.md.",
+      "id": "machine.memory",
+      "label": "cited",
+      "render": "24 GB",
+      "render_rule": "LIT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "commit": "bb323a52a7eab24e401d3bdc903a5e01528fcbc0",
+        "path": ".planning/PROJECT.md",
+        "token": "24 GB"
+      },
+      "value": "24 GB"
+    },
+    {
+      "derivation": "The machine every number here was measured on, from PROJECT.md.",
+      "id": "machine.model",
+      "label": "cited",
+      "render": "Apple M5 Pro",
+      "render_rule": "LIT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "commit": "bb323a52a7eab24e401d3bdc903a5e01528fcbc0",
+        "path": ".planning/PROJECT.md",
+        "token": "Apple M5 Pro"
+      },
+      "value": "Apple M5 Pro"
+    },
+    {
+      "derivation": "The greatest L-BFGS polish wall seconds across the seven arms.",
+      "id": "polish.seconds.max",
+      "label": "arithmetic",
+      "render": "5.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "formula": "polish_max"
+      },
+      "value": 5.443574291013647
+    },
+    {
+      "derivation": "The least L-BFGS polish wall seconds across the seven arms.",
+      "id": "polish.seconds.min",
+      "label": "arithmetic",
+      "render": "4.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "formula": "polish_min"
+      },
+      "value": 4.404155833006371
+    },
+    {
+      "derivation": "Breen et al.'s energy error after the projection layer, quoted from the research page.",
+      "id": "pub.breen.energy_projected",
+      "label": "cited",
+      "render": "10\u207b\u2075",
+      "render_rule": "LIT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "commit": "7fda0a55fc84447ea17abbb4d1188761add94d8a",
+        "path": ".planning/phases/64-feasibility-verdict/64-RESEARCH.md",
+        "token": "brings it to order 10\u207b\u2075"
+      },
+      "value": "10\u207b\u2075"
+    },
+    {
+      "derivation": "Breen et al.'s relative energy error, quoted from the Phase 64 research page.",
+      "id": "pub.breen.energy_typical",
+      "label": "cited",
+      "render": "10\u207b\u00b2",
+      "render_rule": "LIT",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "commit": "7fda0a55fc84447ea17abbb4d1188761add94d8a",
+        "path": ".planning/phases/64-feasibility-verdict/64-RESEARCH.md",
+        "token": "of order 10\u207b\u00b2"
+      },
+      "value": "10\u207b\u00b2"
+    },
+    {
+      "derivation": "The 2026 study's Adam training length for one forward orbit, quoted from the research page.",
+      "id": "pub.kollias.adam_epochs",
+      "label": "cited",
+      "render": "2 to 3 \u00d7 10\u2075",
+      "render_rule": "LIT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "commit": "7fda0a55fc84447ea17abbb4d1188761add94d8a",
+        "path": ".planning/phases/64-feasibility-verdict/64-RESEARCH.md",
+        "token": "2 to 3 \u00d7 10\u2075 Adam epochs"
+      },
+      "value": "2 to 3 \u00d7 10\u2075"
+    },
+    {
+      "derivation": "The 2026 study's relative energy error over one orbital period; the research page corrects the amendment's 0.08-3%.",
       "id": "pub.kollias.energy_range",
       "label": "cited",
       "render": "0.02\u20133%",
@@ -74,10 +2873,430 @@
         "token": "to within \u223c 0.02\u20133%"
       },
       "value": "0.02\u20133%"
+    },
+    {
+      "derivation": "The 2026 study's Euler-orbit energy error, quoted from the research page.",
+      "id": "pub.kollias.euler",
+      "label": "cited",
+      "render": "7.74 \u00d7 10\u207b\u2074",
+      "render_rule": "LIT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "commit": "7fda0a55fc84447ea17abbb4d1188761add94d8a",
+        "path": ".planning/phases/64-feasibility-verdict/64-RESEARCH.md",
+        "token": "Euler 7.74 \u00d7 10\u207b\u2074"
+      },
+      "value": "7.74 \u00d7 10\u207b\u2074"
+    },
+    {
+      "derivation": "The 2026 study's figure-eight energy error, quoted from the research page.",
+      "id": "pub.kollias.figure8",
+      "label": "cited",
+      "render": "1.64 \u00d7 10\u207b\u2074",
+      "render_rule": "LIT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "commit": "7fda0a55fc84447ea17abbb4d1188761add94d8a",
+        "path": ".planning/phases/64-feasibility-verdict/64-RESEARCH.md",
+        "token": "figure-eight 1.64 \u00d7 10\u207b\u2074"
+      },
+      "value": "1.64 \u00d7 10\u207b\u2074"
+    },
+    {
+      "derivation": "The 2026 study's Lagrange-orbit energy error, quoted from the research page.",
+      "id": "pub.kollias.lagrange",
+      "label": "cited",
+      "render": "3.23 \u00d7 10\u207b\u00b2",
+      "render_rule": "LIT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "commit": "7fda0a55fc84447ea17abbb4d1188761add94d8a",
+        "path": ".planning/phases/64-feasibility-verdict/64-RESEARCH.md",
+        "token": "Lagrange 3.23 \u00d7 10\u207b\u00b2"
+      },
+      "value": "3.23 \u00d7 10\u207b\u00b2"
+    },
+    {
+      "derivation": "The 2026 study's L-BFGS training length for one forward orbit, quoted from the research page.",
+      "id": "pub.kollias.lbfgs_epochs",
+      "label": "cited",
+      "render": "1.5 \u00d7 10\u2074",
+      "render_rule": "LIT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "commit": "7fda0a55fc84447ea17abbb4d1188761add94d8a",
+        "path": ".planning/phases/64-feasibility-verdict/64-RESEARCH.md",
+        "token": "1.5 \u00d7 10\u2074 L-BFGS epochs"
+      },
+      "value": "1.5 \u00d7 10\u2074"
+    },
+    {
+      "derivation": "How many Rung 1 arms scored strictly below their system's formula E, under the frozen strictly-less rule.",
+      "id": "rung1.below_formula",
+      "label": "arithmetic",
+      "render": "1 of 3",
+      "render_rule": "OFN",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "rung1_below_formula"
+      },
+      "value": [
+        1,
+        3
+      ]
+    },
+    {
+      "derivation": "The systems whose Rung 1 arm scored below the formula, as their numeric ids.",
+      "id": "rung1.below_formula_systems",
+      "label": "arithmetic",
+      "render": "4658",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "rung1_below_formula_systems"
+      },
+      "value": "4658"
+    },
+    {
+      "derivation": "How many Rung 1 systems the formula alone reaches Tier 1 on.",
+      "id": "rung1.counts_true",
+      "label": "arithmetic",
+      "render": "0 of 3",
+      "render_rule": "OFN",
+      "required_in": [],
+      "source": {
+        "formula": "rung1_counts_true"
+      },
+      "value": [
+        0,
+        3
+      ]
+    },
+    {
+      "derivation": "The greatest sustained rate, wall.adam_seconds over Adam steps, across the seven arms.",
+      "id": "seconds_per_step.sustained.max",
+      "label": "arithmetic",
+      "render": "0.01164",
+      "render_rule": "F5",
+      "required_in": [],
+      "source": {
+        "formula": "sustained_sps_max"
+      },
+      "value": 0.011638224412889888
+    },
+    {
+      "derivation": "The least sustained rate, wall.adam_seconds over Adam steps, across the seven arms.",
+      "id": "seconds_per_step.sustained.min",
+      "label": "arithmetic",
+      "render": "0.01042",
+      "render_rule": "F5",
+      "required_in": [],
+      "source": {
+        "formula": "sustained_sps_min"
+      },
+      "value": 0.010418480197501478
+    },
+    {
+      "derivation": "The greatest timing.seconds_per_step of the seven timing runs.",
+      "id": "seconds_per_step.timed.max",
+      "label": "arithmetic",
+      "render": "0.013596",
+      "render_rule": "F6",
+      "required_in": [],
+      "source": {
+        "formula": "timed_sps_max"
+      },
+      "value": 0.013596008833963424
+    },
+    {
+      "derivation": "The least timing.seconds_per_step of the seven timing runs.",
+      "id": "seconds_per_step.timed.min",
+      "label": "arithmetic",
+      "render": "0.010856",
+      "render_rule": "F6",
+      "required_in": [],
+      "source": {
+        "formula": "timed_sps_min"
+      },
+      "value": 0.010856373000016902
+    },
+    {
+      "derivation": "The greatest budget_steps of the four sweep arms, each equal to the frozen steps_budget rule re-applied to its own timing run.",
+      "id": "steps.sweep_budget.max",
+      "label": "arithmetic",
+      "render": "994,807",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "steps_sweep_budget_max"
+      },
+      "value": 994807
+    },
+    {
+      "derivation": "The least budget_steps of the four sweep arms, each equal to the frozen steps_budget rule re-applied to its own timing run.",
+      "id": "steps.sweep_budget.min",
+      "label": "arithmetic",
+      "render": "842,770",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "formula": "steps_sweep_budget_min"
+      },
+      "value": 842770
+    },
+    {
+      "derivation": "The sum of the seven arms' Adam steps, the doubled 1,961,246 for r1-4658 included.",
+      "id": "steps.total_adam",
+      "label": "arithmetic",
+      "render": "7,437,225",
+      "render_rule": "INT",
+      "required_in": [],
+      "source": {
+        "formula": "steps_total_adam"
+      },
+      "value": 7437225
+    },
+    {
+      "derivation": "The FEAS-09 Stage-4b probe system the frozen rule picked.",
+      "id": "survey.picks.stage4b",
+      "label": "committed-record",
+      "render": "standard/base/2279",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "stage4b.record",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/survey/picks.json"
+      },
+      "value": "standard/base/2279"
+    },
+    {
+      "derivation": "The FEAS-09 Stage-6 probe system the frozen rule picked.",
+      "id": "survey.picks.stage6",
+      "label": "committed-record",
+      "render": "standard/base/3418",
+      "render_rule": "STR",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "stage6.record",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/survey/picks.json"
+      },
+      "value": "standard/base/3418"
+    },
+    {
+      "derivation": "Stage 0's median error-growth measure from the committed survey.",
+      "id": "survey.stage0.error_growth_median",
+      "label": "committed-record",
+      "render": "1.22",
+      "render_rule": "F2",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "per_stage.0.measures.error_growth.median",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/survey/survey.json"
+      },
+      "value": 1.2203913302561127
+    },
+    {
+      "derivation": "How many records the committed survey places in Stage 3: none.",
+      "id": "survey.stage3.count",
+      "label": "committed-record",
+      "render": "0",
+      "render_rule": "INT",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "stage3.count",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/survey/survey.json"
+      },
+      "value": 0
+    },
+    {
+      "derivation": "Stage 4b's median error-growth measure from the committed survey.",
+      "id": "survey.stage4b.error_growth_median",
+      "label": "committed-record",
+      "render": "28.53",
+      "render_rule": "F2",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "per_stage.4b.measures.error_growth.median",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/survey/survey.json"
+      },
+      "value": 28.5311402138236
+    },
+    {
+      "derivation": "Stage 6's median error-growth measure from the committed survey.",
+      "id": "survey.stage6.error_growth_median",
+      "label": "committed-record",
+      "render": "351.6",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "per_stage.6.measures.error_growth.median",
+        "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/survey/survey.json"
+      },
+      "value": 351.57597614613377
+    },
+    {
+      "derivation": "The Tier-1 E limit from the frozen scorecard.",
+      "id": "tiers.tier1.E_max",
+      "label": "committed-record",
+      "render": "0.1",
+      "render_rule": "F1",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "key": "tiers.levels.2.E_max",
+        "path": "pinn/verification/artifacts/feasibility_scorecard_v1.json"
+      },
+      "value": 0.1
+    },
+    {
+      "derivation": "The Tier-2 E limit from the frozen scorecard.",
+      "id": "tiers.tier2.E_max",
+      "label": "committed-record",
+      "render": "0.01",
+      "render_rule": "F2",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "key": "tiers.levels.1.E_max",
+        "path": "pinn/verification/artifacts/feasibility_scorecard_v1.json"
+      },
+      "value": 0.01
+    },
+    {
+      "derivation": "The Tier-2 eps_h limit from the frozen scorecard.",
+      "id": "tiers.tier2.eps_h_max",
+      "label": "committed-record",
+      "render": "10\u207b\u00b3",
+      "render_rule": "POW10",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "key": "tiers.levels.1.eps_h_max",
+        "path": "pinn/verification/artifacts/feasibility_scorecard_v1.json"
+      },
+      "value": 0.001
+    },
+    {
+      "derivation": "The Tier-3 E limit, the E_max of the level whose tier is 3.",
+      "id": "tiers.tier3.E_max",
+      "label": "committed-record",
+      "render": "0.01",
+      "render_rule": "F2",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "key": "tiers.levels.0.E_max",
+        "path": "pinn/verification/artifacts/feasibility_scorecard_v1.json"
+      },
+      "value": 0.01
+    },
+    {
+      "derivation": "The Tier-3 eps_h limit from the frozen scorecard.",
+      "id": "tiers.tier3.eps_h_max",
+      "label": "committed-record",
+      "render": "10\u207b\u2075",
+      "render_rule": "POW10",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "key": "tiers.levels.0.eps_h_max",
+        "path": "pinn/verification/artifacts/feasibility_scorecard_v1.json"
+      },
+      "value": 1e-05
+    },
+    {
+      "derivation": "The greatest timing-run wall seconds across the seven arms.",
+      "id": "timing.wall_seconds.max",
+      "label": "arithmetic",
+      "render": "6.8",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "formula": "timing_wall_max"
+      },
+      "value": 6.798004416981712
+    },
+    {
+      "derivation": "The least timing-run wall seconds across the seven arms.",
+      "id": "timing.wall_seconds.min",
+      "label": "arithmetic",
+      "render": "5.4",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "formula": "timing_wall_min"
+      },
+      "value": 5.428186500008451
+    },
+    {
+      "derivation": "ordered_sum over the seven timing runs' wall seconds in handoff order.",
+      "id": "timing.wall_seconds.total",
+      "label": "arithmetic",
+      "render": "41.2",
+      "render_rule": "F1",
+      "required_in": [],
+      "source": {
+        "formula": "timing_wall_total"
+      },
+      "value": 41.24600095796632
     }
   ],
   "handoff_sha256": "7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5",
   "inputs": [
+    {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/baselines/baselines.json",
+      "sha256": "3d7b7a687091cf9b1b0d803849c227990e1d45aa82888bd3e91980e62fc92d9e"
+    },
+    {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/census/census.json",
+      "sha256": "cf68e32d2a8b919dd1536a363aee2c6865b2841026263a3130e6edf8466dd034"
+    },
+    {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/survey/picks.json",
+      "sha256": "b6836d5095edc12b9b7af873bfd5b6cb82fdeeb2e5c34e1c75b608810cda7317"
+    },
+    {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/survey/survey.json",
+      "sha256": "0e3295edff60c8e09c8e629b4b2a2d63a7e62d66d405e4c08db805120fa720a1"
+    },
     {
       "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
       "sha256": "cf1bc1fac780c21e26c917f4573c4845ccd36ed88136e23658f5a0eb5c960c42"
@@ -121,11 +3340,15 @@
     {
       "path": "runs/stage0-v23g7-seed42/splits.json",
       "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/status.json",
+      "sha256": "e7f43b9af426ac92e88489c27be8bc12a08644a2bb0748148534c9f818183f69"
     }
   ],
   "plain_language": "Every number the Phase 64 verdict and charter quote, each with the file it comes from and how it was computed, re-derived independently by verify_phase64_verdict.py.",
   "producer_sha256": {
-    ".planning/phases/64-feasibility-verdict/evidence/build_phase64_evidence.py": "3203d9652719e797e9bf4b5e31628c3fbd3a1259487237902455cfc9153a84ce",
+    ".planning/phases/64-feasibility-verdict/evidence/build_phase64_evidence.py": "0b7f00f70c261a6d558a5bf129b94bf3d23e735cac0bafbe28723034198c4d7b",
     "pinn/architecture_spec.py": "3cc1b9c21c6a483b6acfa4be551ea533784aee1872d46b365e66fc50806f5085",
     "pinn/network.py": "af993b79c7ebeab4b28adcd58dfa6febfa75ef9186b57a6aa67487f40a980a81",
     "pinn/verification/diagnostic_architecture.py": "d2c1f450c13779bee3ed4e68445491b5f9c2ceb55d5a304e193b048ac23a6eef",

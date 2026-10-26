@@ -228,8 +228,15 @@ def ordered_sum(values: Any) -> float:
 
 
 def _field(payload: Any, dotted: str) -> Any:
+    """Walk a dotted key path; a numeric part indexes a list (``trace.0.E``)."""
     current = payload
     for part in dotted.split("."):
+        if isinstance(current, (list, tuple)) and part.isdigit():
+            index = int(part)
+            if index >= len(current):
+                fail(f"missing field {dotted}")
+            current = current[index]
+            continue
         if not isinstance(current, Mapping) or part not in current:
             fail(f"missing field {dotted}")
         current = current[part]
@@ -903,32 +910,773 @@ def _load_record(arm_id: str) -> Mapping[str, Any]:
     return record
 
 
-def committed_table() -> dict[str, tuple[str, str]]:
-    """The verifier's own id-to-key table for the entries read from a record.
+SWEEP_ARMS = (
+    "g2s-1632-w060",
+    "g2s-1632-w120",
+    "g2s-1632-w240",
+    "g2s-1632-w480",
+)
+BASELINES_REL = P59_EVIDENCE_REL / "baselines" / "baselines.json"
+SURVEY_REL = P59_EVIDENCE_REL / "survey" / "survey.json"
+PICKS_REL = P59_EVIDENCE_REL / "survey" / "picks.json"
+CENSUS_REL = P59_EVIDENCE_REL / "census" / "census.json"
+GAPS_REL = P59_EVIDENCE_REL.parent / "59-GAPS.md"
+STATUS_REL = Path("runs/stage0-v23g7-seed42/status.json")
+PROJECT_REL = Path(".planning/PROJECT.md")
+AMENDMENTS_REL = Path(
+    "docs/work/designs/cross_cutting/v2.4-milestone-proposal/"
+    "2026-10-11-v2.4-feasibility-amendments.md"
+)
+GAPS_COMMIT = "ec2853b0f445d28ac462afd7cc4d395961934da7"
+PROJECT_COMMIT = "bb323a52a7eab24e401d3bdc903a5e01528fcbc0"
+AMENDMENTS_COMMIT = "e72060daf0de7b31334ccb7fddf8876d8506c27f"
+
+# The illustration sizes the for-scale and example arithmetic re-applies. The
+# cited entries carry the same integers from their pinned documents.
+FORSCALE_STEPS_LOW = 200000
+FORSCALE_STEPS_HIGH = 300000
+EXAMPLE_STEPS = 100000
+
+# Entries that must also agree with the sealed handoff's own per-arm table.
+HANDOFF_AGREEMENTS = {
+    "seconds_per_step": "seconds_per_step",
+    "wall_hours": "wall_hours",
+}
+
+_LOADED: dict[str, Any] = {}
+
+
+def _facts() -> dict[str, Any]:
+    """Every committed file the manifest reads, loaded once per process."""
+    if _LOADED:
+        return _LOADED
+    from pinn.verification.feasibility_scorecard import load_scorecard
+
+    _LOADED.update(
+        {
+            "records": {arm_id: _load_record(arm_id) for arm_id in EXPECTED_ARMS},
+            "handoff": _load_json_rel(HANDOFF_REL.as_posix(), what="handoff"),
+            "card": load_scorecard(),
+            "scorecard_raw": _load_json_rel(
+                SCORECARD_ARTIFACT_REL.as_posix(), what="scorecard artifact"
+            ),
+            "baselines": _load_json_rel(BASELINES_REL.as_posix(), what="baselines"),
+            "survey": _load_json_rel(SURVEY_REL.as_posix(), what="survey"),
+            "picks": _load_json_rel(PICKS_REL.as_posix(), what="picks"),
+            "census": _load_json_rel(CENSUS_REL.as_posix(), what="census"),
+            "status": _load_json_rel(STATUS_REL.as_posix(), what="status"),
+        }
+    )
+    return _LOADED
+
+
+def _tier_position(facts: Mapping[str, Any], tier: int) -> int:
+    levels = facts["card"].section("tiers")["levels"]
+    for position, level in enumerate(levels):
+        if int(level["tier"]) == tier:
+            return position
+    fail(f"the scorecard names no level whose tier is {tier}")
+
+
+def committed_table(
+    facts: Mapping[str, Any],
+) -> dict[str, tuple[str, str, Any]]:
+    """The verifier's own id-to-key table for every entry read from a file.
 
     Written here, independently of the producer: a recorded source that does not
     equal this table's answer fails, so a swapped file or key cannot pass.
     """
-    return {
-        "arm.r1-1632.E": (_record_rel("r1-1632"), "result.E"),
+    table: dict[str, tuple[str, str, Any]] = {}
+    arm_keys = {
+        "tier": "result.tier",
+        "E": "result.E",
+        "eps_h": "result.eps_h",
+        "h_1pct": "result.h.0.1",
+        "h_10pct": "result.h.1.1",
+        "state": "result.state",
+        "first_omega_0": "first_omega_0",
+        "E_formula": "formula.E_formula",
+        "counts": "formula.counts",
+        "seconds_per_step": "timing.seconds_per_step",
+        "timing_wall_seconds": "timing.wall_seconds",
+        "polish_seconds": "wall.polish_seconds",
+        "wall_hours": "wall.hours",
+        "curve.E_step0": "trace.0.E",
+        "curve.E_first_reading": "trace.1.E",
     }
+    for arm_id in EXPECTED_ARMS:
+        for field, key in arm_keys.items():
+            table[f"arm.{arm_id}.{field}"] = (
+                _record_rel(arm_id),
+                key,
+                facts["records"][arm_id],
+            )
+    handoff = facts["handoff"]
+    for entry_id, key in (
+        ("handoff.verdict", "verdict.verdict"),
+        ("handoff.reason", "verdict.reasons.0"),
+        ("handoff.qualifier", "verdict.representation_limit_qualifier"),
+        ("handoff.level3", "level3"),
+        ("handoff.phases_61_63", "phases_61_63"),
+        ("handoff.stop_reason", "stop_reason"),
+    ):
+        table[entry_id] = (HANDOFF_REL.as_posix(), key, handoff)
+    scorecard_path = SCORECARD_ARTIFACT_REL.as_posix()
+    for entry_id, tier, field in (
+        ("tiers.tier1.E_max", 1, "E_max"),
+        ("tiers.tier2.E_max", 2, "E_max"),
+        ("tiers.tier2.eps_h_max", 2, "eps_h_max"),
+        ("tiers.tier3.E_max", 3, "E_max"),
+        ("tiers.tier3.eps_h_max", 3, "eps_h_max"),
+    ):
+        table[entry_id] = (
+            scorecard_path,
+            f"tiers.levels.{_tier_position(facts, tier)}.{field}",
+            facts["scorecard_raw"],
+        )
+    baselines_path = BASELINES_REL.as_posix()
+    for entry_id, key in (
+        ("baseline.formula.median_E.train", "median_E.formula_train"),
+        ("baseline.formula.median_E.validation", "median_E.formula_validation"),
+        ("baseline.copy.median_E.validation", "median_E.copy_validation"),
+        (
+            "baseline.copy.tier1.validation",
+            "nn_copy_reaches_tier1_on_validation",
+        ),
+    ):
+        table[entry_id] = (baselines_path, key, facts["baselines"])
+    survey_path = SURVEY_REL.as_posix()
+    for entry_id, key in (
+        ("survey.stage0.error_growth_median", "per_stage.0.measures.error_growth.median"),
+        ("survey.stage4b.error_growth_median", "per_stage.4b.measures.error_growth.median"),
+        ("survey.stage6.error_growth_median", "per_stage.6.measures.error_growth.median"),
+        ("survey.stage3.count", "stage3.count"),
+    ):
+        table[entry_id] = (survey_path, key, facts["survey"])
+    picks_path = PICKS_REL.as_posix()
+    for entry_id, key in (
+        ("survey.picks.stage4b", "stage4b.record"),
+        ("survey.picks.stage6", "stage6.record"),
+    ):
+        table[entry_id] = (picks_path, key, facts["picks"])
+    table["census.stage0.N_in_median"] = (
+        CENSUS_REL.as_posix(),
+        "distributions.N_in.quantiles.50",
+        facts["census"],
+    )
+    status_path = STATUS_REL.as_posix()
+    for entry_id, key in (
+        ("cost.gen7.seconds_per_step", "s_per_step_ema"),
+        ("cost.gen7.step", "step"),
+    ):
+        table[entry_id] = (status_path, key, facts["status"])
+    return table
 
 
-def formula_hours_total() -> float:
+# --- the verifier's own arithmetic, one function per named formula ----------
+
+
+def _arm_value(facts: Mapping[str, Any], arm_id: str, dotted: str) -> Any:
+    return _field(facts["records"][arm_id], dotted)
+
+
+def _adam_steps(facts: Mapping[str, Any], arm_id: str) -> int:
+    budget = facts["records"][arm_id]["budget"]
+    value = budget["new_budget_steps"] if budget["extended"] else budget["budget_steps"]
+    if isinstance(value, bool) or not isinstance(value, int):
+        fail(f"arm {arm_id} budget names no integer step count: {value!r}")
+    return value
+
+
+def _sustained(facts: Mapping[str, Any], arm_id: str) -> float:
+    return _arm_value(facts, arm_id, "wall.adam_seconds") / _adam_steps(facts, arm_id)
+
+
+def _first_fraction(facts: Mapping[str, Any], arm_id: str) -> float:
+    step = _field(facts["records"][arm_id], "trace.1.step")
+    frozen = _field(facts["records"][arm_id], "budget.frozen_budget_steps")
+    return step / frozen
+
+
+def _range_after_first(facts: Mapping[str, Any], arm_id: str) -> float:
+    tail = [reading["E"] for reading in facts["records"][arm_id]["trace"][1:]]
+    return max(tail) - min(tail)
+
+
+def _hours(facts: Mapping[str, Any], arms: Sequence[str]) -> float:
+    return ordered_sum(_arm_value(facts, arm_id, "wall.hours") for arm_id in arms)
+
+
+def _f_hours_total(facts: Mapping[str, Any]) -> float:
     """The seven wall.hours in handoff order, through 64-01's ordered_sum."""
-    values = [_field(_load_record(arm_id), "wall.hours") for arm_id in EXPECTED_ARMS]
-    return ordered_sum(values)
+    return _hours(facts, EXPECTED_ARMS)
 
 
-ARITHMETIC_TABLE: dict[str, tuple[str, Any]] = {
-    "hours.total": ("hours_total", formula_hours_total),
+def _f_hours_rung1(facts: Mapping[str, Any]) -> float:
+    return _hours(facts, RUNG1_ARMS)
+
+
+def _f_hours_sweep(facts: Mapping[str, Any]) -> float:
+    return _hours(facts, SWEEP_ARMS)
+
+
+def _f_steps_total_adam(facts: Mapping[str, Any]) -> int:
+    total = 0
+    for arm_id in EXPECTED_ARMS:
+        total += _adam_steps(facts, arm_id)
+    return total
+
+
+def _sweep_budgets(facts: Mapping[str, Any]) -> list[int]:
+    """The frozen steps_budget rule re-applied to each sweep arm's timing run."""
+    from pinn.verification import feasibility_scorecard
+
+    cap = float(facts["card"].section("budget_rule")["cap_hours_single_system"])
+    budgets = []
+    for arm_id in SWEEP_ARMS:
+        timing = _field(facts["records"][arm_id], "timing")
+        computed = feasibility_scorecard.steps_budget(
+            cap,
+            timing["wall_seconds"],
+            timing["steps"],
+            scorecard=facts["card"],
+        )
+        recorded = _field(facts["records"][arm_id], "budget.budget_steps")
+        if computed != recorded:
+            fail(
+                f"{arm_id} recorded budget {recorded} != the frozen rule's {computed}"
+            )
+        budgets.append(computed)
+    return budgets
+
+
+def _f_steps_sweep_budget_min(facts: Mapping[str, Any]) -> int:
+    return min(_sweep_budgets(facts))
+
+
+def _f_steps_sweep_budget_max(facts: Mapping[str, Any]) -> int:
+    return max(_sweep_budgets(facts))
+
+
+def _f_timed_sps_min(facts: Mapping[str, Any]) -> float:
+    return min(_arm_value(facts, arm_id, "timing.seconds_per_step") for arm_id in EXPECTED_ARMS)
+
+
+def _f_timed_sps_max(facts: Mapping[str, Any]) -> float:
+    return max(_arm_value(facts, arm_id, "timing.seconds_per_step") for arm_id in EXPECTED_ARMS)
+
+
+def _f_sustained_sps_min(facts: Mapping[str, Any]) -> float:
+    return min(_sustained(facts, arm_id) for arm_id in EXPECTED_ARMS)
+
+
+def _f_sustained_sps_max(facts: Mapping[str, Any]) -> float:
+    return max(_sustained(facts, arm_id) for arm_id in EXPECTED_ARMS)
+
+
+def _f_timing_wall_min(facts: Mapping[str, Any]) -> float:
+    return min(_arm_value(facts, arm_id, "timing.wall_seconds") for arm_id in EXPECTED_ARMS)
+
+
+def _f_timing_wall_max(facts: Mapping[str, Any]) -> float:
+    return max(_arm_value(facts, arm_id, "timing.wall_seconds") for arm_id in EXPECTED_ARMS)
+
+
+def _f_timing_wall_total(facts: Mapping[str, Any]) -> float:
+    return ordered_sum(
+        _arm_value(facts, arm_id, "timing.wall_seconds") for arm_id in EXPECTED_ARMS
+    )
+
+
+def _f_polish_min(facts: Mapping[str, Any]) -> float:
+    return min(_arm_value(facts, arm_id, "wall.polish_seconds") for arm_id in EXPECTED_ARMS)
+
+
+def _f_polish_max(facts: Mapping[str, Any]) -> float:
+    return max(_arm_value(facts, arm_id, "wall.polish_seconds") for arm_id in EXPECTED_ARMS)
+
+
+def _f_unextended_hours_min(facts: Mapping[str, Any]) -> float:
+    return min(
+        _arm_value(facts, arm_id, "wall.hours")
+        for arm_id in EXPECTED_ARMS
+        if not facts["records"][arm_id]["budget"]["extended"]
+    )
+
+
+def _f_unextended_hours_max(facts: Mapping[str, Any]) -> float:
+    return max(
+        _arm_value(facts, arm_id, "wall.hours")
+        for arm_id in EXPECTED_ARMS
+        if not facts["records"][arm_id]["budget"]["extended"]
+    )
+
+
+def _f_extended_hours(facts: Mapping[str, Any]) -> float:
+    extended = [
+        arm_id
+        for arm_id in EXPECTED_ARMS
+        if facts["records"][arm_id]["budget"]["extended"]
+    ]
+    if len(extended) != 1:
+        fail(f"expected exactly one arm with a doubled budget, found {extended!r}")
+    return _arm_value(facts, extended[0], "wall.hours")
+
+
+def _f_best_eps_h_official(facts: Mapping[str, Any]) -> float:
+    return min(_arm_value(facts, arm_id, "result.eps_h") for arm_id in EXPECTED_ARMS)
+
+
+def _f_best_eps_h_official_arms(facts: Mapping[str, Any]) -> str:
+    best = _f_best_eps_h_official(facts)
+    return ", ".join(
+        arm_id
+        for arm_id in EXPECTED_ARMS
+        if _arm_value(facts, arm_id, "result.eps_h") == best
+    )
+
+
+def _f_best_ratio_to_bar(facts: Mapping[str, Any]) -> float:
+    levels = facts["card"].section("tiers")["levels"]
+    bar = float(levels[_tier_position(facts, 3)]["eps_h_max"])
+    return _f_best_eps_h_official(facts) / bar
+
+
+def _state_eps_h(facts: Mapping[str, Any]) -> list[tuple[float, str, str]]:
+    return [
+        (_arm_value(facts, arm_id, f"states.{state}.score_gold.eps_h"), arm_id, state)
+        for arm_id in EXPECTED_ARMS
+        for state in ("adam", "polish")
+    ]
+
+
+def _trace_eps_h(facts: Mapping[str, Any]) -> list[tuple[float, str, int]]:
+    return [
+        (reading["eps_h"], arm_id, reading["step"])
+        for arm_id in EXPECTED_ARMS
+        for reading in facts["records"][arm_id]["trace"]
+    ]
+
+
+def _f_best_lowest_state(facts: Mapping[str, Any]) -> float:
+    return min(value for value, _arm, _state in _state_eps_h(facts))
+
+
+def _f_best_lowest_state_arm(facts: Mapping[str, Any]) -> str:
+    best = _f_best_lowest_state(facts)
+    return next(arm for value, arm, _state in _state_eps_h(facts) if value == best)
+
+
+def _f_best_lowest_state_state(facts: Mapping[str, Any]) -> str:
+    best = _f_best_lowest_state(facts)
+    return next(state for value, _arm, state in _state_eps_h(facts) if value == best)
+
+
+def _f_best_lowest_trace(facts: Mapping[str, Any]) -> float:
+    return min(value for value, _arm, _step in _trace_eps_h(facts))
+
+
+def _f_best_lowest_trace_arm(facts: Mapping[str, Any]) -> str:
+    best = _f_best_lowest_trace(facts)
+    return next(arm for value, arm, _step in _trace_eps_h(facts) if value == best)
+
+
+def _f_best_lowest_trace_step(facts: Mapping[str, Any]) -> int:
+    best = _f_best_lowest_trace(facts)
+    return next(step for value, _arm, step in _trace_eps_h(facts) if value == best)
+
+
+def _rung1_below(facts: Mapping[str, Any]) -> list[str]:
+    return [
+        arm_id
+        for arm_id in RUNG1_ARMS
+        if _arm_value(facts, arm_id, "result.E")
+        < _arm_value(facts, arm_id, "formula.E_formula")
+    ]
+
+
+def _f_rung1_below_formula(facts: Mapping[str, Any]) -> list[int]:
+    return [len(_rung1_below(facts)), len(RUNG1_ARMS)]
+
+
+def _f_rung1_below_formula_systems(facts: Mapping[str, Any]) -> str:
+    return ", ".join(arm_id[len("r1-") :] for arm_id in _rung1_below(facts))
+
+
+def _f_rung1_counts_true(facts: Mapping[str, Any]) -> list[int]:
+    reached = 0
+    for arm_id in RUNG1_ARMS:
+        if _arm_value(facts, arm_id, "formula.counts") is True:
+            reached += 1
+    return [reached, len(RUNG1_ARMS)]
+
+
+def _curve(facts: Mapping[str, Any], key: str) -> list[float]:
+    return [_arm_value(facts, arm_id, key) for arm_id in EXPECTED_ARMS]
+
+
+def _f_curve_e_step0_min(facts: Mapping[str, Any]) -> float:
+    return min(_curve(facts, "trace.0.E"))
+
+
+def _f_curve_e_step0_max(facts: Mapping[str, Any]) -> float:
+    return max(_curve(facts, "trace.0.E"))
+
+
+def _f_curve_first_reading_min(facts: Mapping[str, Any]) -> float:
+    return min(_curve(facts, "trace.1.E"))
+
+
+def _f_curve_first_reading_max(facts: Mapping[str, Any]) -> float:
+    return max(_curve(facts, "trace.1.E"))
+
+
+def _fold_drop(facts: Mapping[str, Any]) -> list[float]:
+    return [
+        _arm_value(facts, arm_id, "trace.0.E") / _arm_value(facts, arm_id, "trace.1.E")
+        for arm_id in EXPECTED_ARMS
+    ]
+
+
+def _f_curve_fold_drop_min(facts: Mapping[str, Any]) -> float:
+    return min(_fold_drop(facts))
+
+
+def _f_curve_fold_drop_max(facts: Mapping[str, Any]) -> float:
+    return max(_fold_drop(facts))
+
+
+def _f_curve_first_fraction_min(facts: Mapping[str, Any]) -> float:
+    return min(_first_fraction(facts, arm_id) for arm_id in EXPECTED_ARMS)
+
+
+def _f_curve_first_fraction_max(facts: Mapping[str, Any]) -> float:
+    return max(_first_fraction(facts, arm_id) for arm_id in EXPECTED_ARMS)
+
+
+def _f_curve_e_final_min(facts: Mapping[str, Any]) -> float:
+    return min(_curve(facts, "result.E"))
+
+
+def _f_curve_e_final_max(facts: Mapping[str, Any]) -> float:
+    return max(_curve(facts, "result.E"))
+
+
+def _tier1_multiple(facts: Mapping[str, Any]) -> list[float]:
+    levels = facts["card"].section("tiers")["levels"]
+    limit = float(levels[_tier_position(facts, 1)]["E_max"])
+    return [_arm_value(facts, arm_id, "result.E") / limit for arm_id in EXPECTED_ARMS]
+
+
+def _f_curve_tier1_multiple_min(facts: Mapping[str, Any]) -> float:
+    return min(_tier1_multiple(facts))
+
+
+def _f_curve_tier1_multiple_max(facts: Mapping[str, Any]) -> float:
+    return max(_tier1_multiple(facts))
+
+
+def _f_curve_range_after_first_min(facts: Mapping[str, Any]) -> float:
+    return min(_range_after_first(facts, arm_id) for arm_id in EXPECTED_ARMS)
+
+
+def _f_curve_range_after_first_max(facts: Mapping[str, Any]) -> float:
+    return max(_range_after_first(facts, arm_id) for arm_id in EXPECTED_ARMS)
+
+
+def _rung_rule(facts: Mapping[str, Any], which: str) -> list[int]:
+    rule = facts["card"].section("decision_rule")
+    return [int(rule[f"{which}_min_count"]), int(rule[f"{which}_panel_size"])]
+
+
+def _f_decision_rung2b(facts: Mapping[str, Any]) -> list[int]:
+    return _rung_rule(facts, "rung2b")
+
+
+def _f_decision_rung3(facts: Mapping[str, Any]) -> list[int]:
+    return _rung_rule(facts, "rung3")
+
+
+def _f_decision_rung3_share(facts: Mapping[str, Any]) -> float:
+    minimum, panel = _rung_rule(facts, "rung3")
+    return minimum / panel
+
+
+def _formula_tier1(facts: Mapping[str, Any], split: str) -> list[int]:
+    counts = facts["baselines"]["formula_tier_counts"][split]
+    total = 0
+    reached = 0
+    for key in ("0", "1", "2", "3", "not_applicable"):
+        total += int(counts[key])
+        if key in {"1", "2", "3"}:
+            reached += int(counts[key])
+    return [reached, total]
+
+
+def _f_formula_tier1_train(facts: Mapping[str, Any]) -> list[int]:
+    return _formula_tier1(facts, "train")
+
+
+def _f_formula_tier1_validation(facts: Mapping[str, Any]) -> list[int]:
+    return _formula_tier1(facts, "validation")
+
+
+def _f_census_one_part_in_0p1(facts: Mapping[str, Any]) -> int:
+    accuracy = facts["census"]["phase_accuracy"]["0.1"]
+    return int(accuracy["one_part_in"])
+
+
+def _gen7_rate(facts: Mapping[str, Any]) -> float:
+    return float(_field(facts["status"], "s_per_step_ema"))
+
+
+def _f_forscale_days_low(facts: Mapping[str, Any]) -> float:
+    return FORSCALE_STEPS_LOW * _gen7_rate(facts) / 86400.0
+
+
+def _f_forscale_days_high(facts: Mapping[str, Any]) -> float:
+    return FORSCALE_STEPS_HIGH * _gen7_rate(facts) / 86400.0
+
+
+def _f_forscale_hours_low(facts: Mapping[str, Any]) -> float:
+    return FORSCALE_STEPS_LOW * _gen7_rate(facts) / 3600.0
+
+
+def _f_example_sps(facts: Mapping[str, Any]) -> float:
+    values = sorted(
+        _arm_value(facts, arm_id, "timing.seconds_per_step") for arm_id in EXPECTED_ARMS
+    )
+    return values[len(values) // 2]
+
+
+def _f_example_hours(facts: Mapping[str, Any]) -> float:
+    return EXAMPLE_STEPS * _f_example_sps(facts) / 3600.0
+
+
+ARITHMETIC_NAMES: dict[str, Any] = {
+    "hours_total": _f_hours_total,
+    "hours_rung1": _f_hours_rung1,
+    "hours_sweep": _f_hours_sweep,
+    "steps_total_adam": _f_steps_total_adam,
+    "steps_sweep_budget_min": _f_steps_sweep_budget_min,
+    "steps_sweep_budget_max": _f_steps_sweep_budget_max,
+    "timed_sps_min": _f_timed_sps_min,
+    "timed_sps_max": _f_timed_sps_max,
+    "sustained_sps_min": _f_sustained_sps_min,
+    "sustained_sps_max": _f_sustained_sps_max,
+    "timing_wall_min": _f_timing_wall_min,
+    "timing_wall_max": _f_timing_wall_max,
+    "timing_wall_total": _f_timing_wall_total,
+    "polish_min": _f_polish_min,
+    "polish_max": _f_polish_max,
+    "unextended_hours_min": _f_unextended_hours_min,
+    "unextended_hours_max": _f_unextended_hours_max,
+    "extended_hours": _f_extended_hours,
+    "best_eps_h_official": _f_best_eps_h_official,
+    "best_eps_h_official_arms": _f_best_eps_h_official_arms,
+    "best_ratio_to_bar": _f_best_ratio_to_bar,
+    "best_lowest_state": _f_best_lowest_state,
+    "best_lowest_state_arm": _f_best_lowest_state_arm,
+    "best_lowest_state_state": _f_best_lowest_state_state,
+    "best_lowest_trace": _f_best_lowest_trace,
+    "best_lowest_trace_arm": _f_best_lowest_trace_arm,
+    "best_lowest_trace_step": _f_best_lowest_trace_step,
+    "rung1_below_formula": _f_rung1_below_formula,
+    "rung1_below_formula_systems": _f_rung1_below_formula_systems,
+    "rung1_counts_true": _f_rung1_counts_true,
+    "curve_e_step0_min": _f_curve_e_step0_min,
+    "curve_e_step0_max": _f_curve_e_step0_max,
+    "curve_first_reading_min": _f_curve_first_reading_min,
+    "curve_first_reading_max": _f_curve_first_reading_max,
+    "curve_fold_drop_min": _f_curve_fold_drop_min,
+    "curve_fold_drop_max": _f_curve_fold_drop_max,
+    "curve_first_fraction_min": _f_curve_first_fraction_min,
+    "curve_first_fraction_max": _f_curve_first_fraction_max,
+    "curve_e_final_min": _f_curve_e_final_min,
+    "curve_e_final_max": _f_curve_e_final_max,
+    "curve_tier1_multiple_min": _f_curve_tier1_multiple_min,
+    "curve_tier1_multiple_max": _f_curve_tier1_multiple_max,
+    "curve_range_after_first_min": _f_curve_range_after_first_min,
+    "curve_range_after_first_max": _f_curve_range_after_first_max,
+    "decision_rung2b": _f_decision_rung2b,
+    "decision_rung3": _f_decision_rung3,
+    "decision_rung3_share": _f_decision_rung3_share,
+    "formula_tier1_train": _f_formula_tier1_train,
+    "formula_tier1_validation": _f_formula_tier1_validation,
+    "census_one_part_in_0p1": _f_census_one_part_in_0p1,
+    "forscale_days_low": _f_forscale_days_low,
+    "forscale_days_high": _f_forscale_days_high,
+    "forscale_hours_low": _f_forscale_hours_low,
+    "example_sps": _f_example_sps,
+    "example_hours": _f_example_hours,
 }
 
+ARM_FORMULAS = {
+    "adam_steps": ("arm_adam_steps", _adam_steps),
+    "sustained_seconds_per_step": ("arm_sustained", _sustained),
+    "curve.first_reading_fraction": ("arm_first_fraction", _first_fraction),
+    "curve.range_after_first": ("arm_range_after_first", _range_after_first),
+}
+
+
+def arithmetic_table(
+    facts: Mapping[str, Any],
+) -> dict[str, tuple[str, Any]]:
+    """Every arithmetic id, with the verifier's own formula bound to ``facts``."""
+    table: dict[str, tuple[str, Any]] = {}
+    for arm_id in EXPECTED_ARMS:
+        for field, (name, formula) in ARM_FORMULAS.items():
+            table[f"arm.{arm_id}.{field}"] = (
+                name,
+                lambda f=formula, a=arm_id: f(facts, a),
+            )
+    ids = {
+        "hours_total": "hours.total",
+        "hours_rung1": "hours.rung1",
+        "hours_sweep": "hours.sweep",
+        "steps_total_adam": "steps.total_adam",
+        "steps_sweep_budget_min": "steps.sweep_budget.min",
+        "steps_sweep_budget_max": "steps.sweep_budget.max",
+        "timed_sps_min": "seconds_per_step.timed.min",
+        "timed_sps_max": "seconds_per_step.timed.max",
+        "sustained_sps_min": "seconds_per_step.sustained.min",
+        "sustained_sps_max": "seconds_per_step.sustained.max",
+        "timing_wall_min": "timing.wall_seconds.min",
+        "timing_wall_max": "timing.wall_seconds.max",
+        "timing_wall_total": "timing.wall_seconds.total",
+        "polish_min": "polish.seconds.min",
+        "polish_max": "polish.seconds.max",
+        "unextended_hours_min": "cost.arm_hours.unextended.min",
+        "unextended_hours_max": "cost.arm_hours.unextended.max",
+        "extended_hours": "cost.arm_hours.extended",
+        "best_eps_h_official": "best.eps_h_official",
+        "best_eps_h_official_arms": "best.eps_h_official_arms",
+        "best_ratio_to_bar": "best.ratio_to_bar",
+        "best_lowest_state": "best.eps_h_lowest_state",
+        "best_lowest_state_arm": "best.eps_h_lowest_state_arm",
+        "best_lowest_state_state": "best.eps_h_lowest_state_state",
+        "best_lowest_trace": "best.eps_h_lowest_trace",
+        "best_lowest_trace_arm": "best.eps_h_lowest_trace_arm",
+        "best_lowest_trace_step": "best.eps_h_lowest_trace_step",
+        "rung1_below_formula": "rung1.below_formula",
+        "rung1_below_formula_systems": "rung1.below_formula_systems",
+        "rung1_counts_true": "rung1.counts_true",
+        "curve_e_step0_min": "curve.E_step0.min",
+        "curve_e_step0_max": "curve.E_step0.max",
+        "curve_first_reading_min": "curve.E_first_reading.min",
+        "curve_first_reading_max": "curve.E_first_reading.max",
+        "curve_fold_drop_min": "curve.fold_drop.min",
+        "curve_fold_drop_max": "curve.fold_drop.max",
+        "curve_first_fraction_min": "curve.first_reading_fraction.min",
+        "curve_first_fraction_max": "curve.first_reading_fraction.max",
+        "curve_e_final_min": "curve.E_final.min",
+        "curve_e_final_max": "curve.E_final.max",
+        "curve_tier1_multiple_min": "curve.tier1_multiple.min",
+        "curve_tier1_multiple_max": "curve.tier1_multiple.max",
+        "curve_range_after_first_min": "curve.range_after_first.min",
+        "curve_range_after_first_max": "curve.range_after_first.max",
+        "decision_rung2b": "decision.rung2b",
+        "decision_rung3": "decision.rung3",
+        "decision_rung3_share": "decision.rung3_share",
+        "formula_tier1_train": "baseline.formula.tier1.train",
+        "formula_tier1_validation": "baseline.formula.tier1.validation",
+        "census_one_part_in_0p1": "census.one_part_in_0p1",
+        "forscale_days_low": "cost.forscale.days_low",
+        "forscale_days_high": "cost.forscale.days_high",
+        "forscale_hours_low": "cost.forscale.hours_low",
+        "example_sps": "cost.example.seconds_per_step",
+        "example_hours": "cost.example.hours",
+    }
+    for name, formula in ARITHMETIC_NAMES.items():
+        table[ids[name]] = (name, lambda f=formula: f(facts))
+    return table
+
+
 CITED_TABLE: dict[str, tuple[str, str, str]] = {
+    "pub.breen.energy_typical": (
+        RESEARCH_REL.as_posix(),
+        RESEARCH_COMMIT,
+        "of order 10\u207b\u00b2",
+    ),
+    "pub.breen.energy_projected": (
+        RESEARCH_REL.as_posix(),
+        RESEARCH_COMMIT,
+        "brings it to order 10\u207b\u2075",
+    ),
     "pub.kollias.energy_range": (
         RESEARCH_REL.as_posix(),
         RESEARCH_COMMIT,
         "to within \u223c 0.02\u20133%",
+    ),
+    "pub.kollias.euler": (
+        RESEARCH_REL.as_posix(),
+        RESEARCH_COMMIT,
+        "Euler 7.74 \u00d7 10\u207b\u2074",
+    ),
+    "pub.kollias.lagrange": (
+        RESEARCH_REL.as_posix(),
+        RESEARCH_COMMIT,
+        "Lagrange 3.23 \u00d7 10\u207b\u00b2",
+    ),
+    "pub.kollias.figure8": (
+        RESEARCH_REL.as_posix(),
+        RESEARCH_COMMIT,
+        "figure-eight 1.64 \u00d7 10\u207b\u2074",
+    ),
+    "pub.kollias.adam_epochs": (
+        RESEARCH_REL.as_posix(),
+        RESEARCH_COMMIT,
+        "2 to 3 \u00d7 10\u2075 Adam epochs",
+    ),
+    "pub.kollias.lbfgs_epochs": (
+        RESEARCH_REL.as_posix(),
+        RESEARCH_COMMIT,
+        "1.5 \u00d7 10\u2074 L-BFGS epochs",
+    ),
+    "gap5908.floor.1632": (
+        GAPS_REL.as_posix(),
+        GAPS_COMMIT,
+        "4.7e-2, 2.1e-1 and 3.8e-1",
+    ),
+    "gap5908.floor.851": (
+        GAPS_REL.as_posix(),
+        GAPS_COMMIT,
+        "4.7e-2, 2.1e-1 and 3.8e-1",
+    ),
+    "gap5908.floor.4658": (
+        GAPS_REL.as_posix(),
+        GAPS_COMMIT,
+        "4.7e-2, 2.1e-1 and 3.8e-1",
+    ),
+    "gap5908.floor_range": (
+        GAPS_REL.as_posix(),
+        GAPS_COMMIT,
+        "5\u201338%",
+    ),
+    "machine.model": (
+        PROJECT_REL.as_posix(),
+        PROJECT_COMMIT,
+        "Apple M5 Pro",
+    ),
+    "machine.memory": (
+        PROJECT_REL.as_posix(),
+        PROJECT_COMMIT,
+        "24 GB",
+    ),
+    "cost.forscale.steps_low": (
+        AMENDMENTS_REL.as_posix(),
+        AMENDMENTS_COMMIT,
+        "200,000",
+    ),
+    "cost.forscale.steps_high": (
+        RESEARCH_REL.as_posix(),
+        RESEARCH_COMMIT,
+        "300,000",
+    ),
+    "cost.example.steps": (
+        RESEARCH_REL.as_posix(),
+        RESEARCH_COMMIT,
+        "10\u2075 steps",
     ),
 }
 
@@ -947,12 +1695,32 @@ def _check_current_file(relative: Any, digest: Any, *, what: str) -> None:
         fail(f"{what} SHA-256 {disk} != recorded {digest}")
 
 
-def _check_record_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) -> None:
+def _check_handoff_agreement(
+    entry_id: str, value: Any, facts: Mapping[str, Any]
+) -> None:
+    """The two per-arm readings the sealed handoff states must agree with it."""
+    match = re.fullmatch(
+        r"arm\.(?P<arm>[^.]+)\.(?P<field>seconds_per_step|wall_hours)", entry_id
+    )
+    if match is None:
+        return
+    rows = {row["arm_id"]: row for row in facts["handoff"]["arms"]}
+    arm_id = match.group("arm")
+    if arm_id not in rows:
+        fail(f"entry {entry_id} names an arm the handoff does not list: {arm_id}")
+    expected = rows[arm_id][HANDOFF_AGREEMENTS[match.group("field")]]
+    if value != expected:
+        fail(f"entry {entry_id} value {value!r} != the handoff's {expected!r}")
+
+
+def _check_record_entry(
+    entry: Mapping[str, Any], source: Mapping[str, Any], facts: Mapping[str, Any]
+) -> None:
     entry_id = entry["id"]
-    table = committed_table()
+    table = committed_table(facts)
     if entry_id not in table:
         fail(f"entry {entry_id} is not in the verifier's committed-record table")
-    expected_path, expected_key = table[entry_id]
+    expected_path, expected_key, payload = table[entry_id]
     if set(source) != {"path", "key"}:
         fail(f"entry {entry_id} source must hold exactly path and key")
     if source["path"] != expected_path or source["key"] != expected_key:
@@ -960,22 +1728,25 @@ def _check_record_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) -> 
             f"entry {entry_id} source {dict(source)!r} != the table's "
             f"({expected_path!r}, {expected_key!r})"
         )
-    record = _load_json_rel(expected_path, what=f"record for {entry_id}")
-    value = _field(record, expected_key)
+    value = _field(payload, expected_key)
     if entry["value"] != value:
         fail(
             f"entry {entry_id} value {entry['value']!r} != "
             f"{expected_path}:{expected_key} {value!r}"
         )
+    _check_handoff_agreement(entry_id, value, facts)
 
 
-def _check_arithmetic_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) -> None:
+def _check_arithmetic_entry(
+    entry: Mapping[str, Any], source: Mapping[str, Any], facts: Mapping[str, Any]
+) -> None:
     entry_id = entry["id"]
     if set(source) != {"formula"}:
         fail(f"entry {entry_id} arithmetic source must hold exactly formula")
-    if entry_id not in ARITHMETIC_TABLE:
+    table = arithmetic_table(facts)
+    if entry_id not in table:
         fail(f"entry {entry_id} is not in the verifier's arithmetic table")
-    name, formula = ARITHMETIC_TABLE[entry_id]
+    name, formula = table[entry_id]
     if source["formula"] != name:
         fail(f"entry {entry_id} formula {source['formula']!r} != the table's {name!r}")
     value = formula()
@@ -1047,7 +1818,7 @@ def _check_rederived_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) 
         )
 
 
-def _check_entry(entry: Mapping[str, Any]) -> None:
+def _check_entry(entry: Mapping[str, Any], facts: Mapping[str, Any]) -> None:
     entry_id = entry["id"]
     missing = ENTRY_KEYS - set(entry)
     extra = set(entry) - ENTRY_KEYS
@@ -1079,17 +1850,25 @@ def _check_entry(entry: Mapping[str, Any]) -> None:
     if not isinstance(source, Mapping):
         fail(f"entry {entry_id} source is not an object")
     if label in {"official-mps-float32", "committed-record"}:
-        _check_record_entry(entry, source)
+        _check_record_entry(entry, source, facts)
     elif label == "arithmetic":
-        _check_arithmetic_entry(entry, source)
+        _check_arithmetic_entry(entry, source, facts)
     elif label == "cited":
         _check_cited_entry(entry, source)
     else:
         _check_rederived_entry(entry, source)
 
 
-def check_numbers(payload: Any) -> None:
-    """Re-derive every entry of the manifest with the verifier's own tables."""
+def check_numbers(
+    payload: Any, *, facts: Optional[Mapping[str, Any]] = None
+) -> None:
+    """Re-derive every entry of the manifest with the verifier's own tables.
+
+    ``facts`` exists so a test can inject a mutated in-memory copy of the
+    committed files without touching the repository; the mode always passes
+    nothing and reads the real files.
+    """
+    loaded = _facts() if facts is None else facts
     if not isinstance(payload, Mapping):
         fail("numbers.json is not an object")
     if payload.get("schema") != NUMBERS_SCHEMA:
@@ -1156,7 +1935,7 @@ def check_numbers(payload: Any) -> None:
     if len(set(ids)) != len(ids):
         fail("numbers.json holds a duplicate entry id")
     for entry in entries:
-        _check_entry(entry)
+        _check_entry(entry, loaded)
 
 
 def cmd_numbers(_args: argparse.Namespace) -> None:

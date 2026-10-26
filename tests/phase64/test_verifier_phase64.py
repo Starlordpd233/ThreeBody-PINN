@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import ast
 import contextlib
+import copy
 import hashlib
 import importlib.util
 import io
@@ -29,6 +30,7 @@ EVIDENCE = f"{PHASE}/evidence"
 P60 = ".planning/phases/60-single-system-learnability/evidence"
 P59 = ".planning/phases/59-read-only-baseline-scorecard/evidence"
 VERIFIER_PATH = ROOT / EVIDENCE / "verify_phase64_verdict.py"
+PRODUCER_PATH = ROOT / EVIDENCE / "build_phase64_evidence.py"
 
 G2_FILES = (
     f"{P60}/g2/stop-handoff.json",
@@ -40,6 +42,16 @@ G2_FILES = (
 
 def load_verifier():
     spec = importlib.util.spec_from_file_location("verify_phase64_verdict", VERIFIER_PATH)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_producer():
+    spec = importlib.util.spec_from_file_location(
+        "build_phase64_evidence", PRODUCER_PATH
+    )
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -772,8 +784,8 @@ class TraceabilityPureTests(unittest.TestCase):
         self.assertIn("exactly once", error)
 
 
-class NumbersTracerTests(unittest.TestCase):
-    """The tracer path: one entry of each kind, from its committed source and back.
+class ManifestCase(unittest.TestCase):
+    """Shared fixture: the real manifest, mutated in memory for negative controls.
 
     The real manifest is read once and every negative control mutates a deep copy
     of it in memory. ``cmd_numbers`` loads nothing but ``numbers.json``, so
@@ -813,16 +825,21 @@ class NumbersTracerTests(unittest.TestCase):
         self.assertIn(needle, stderr)
         return stderr
 
-    def test_manifest_holds_exactly_the_four_tracer_entries(self):
+
+class NumbersTracerTests(ManifestCase):
+    """The tracer path: one entry of each kind, from its committed source and back."""
+
+    def test_manifest_keeps_the_four_tracer_entries(self):
         self.assertEqual(self.payload["schema"], "phase64-numbers/v1")
-        self.assertEqual(
-            [entry["id"] for entry in self.payload["entries"]],
-            [
+        ids = {entry["id"] for entry in self.payload["entries"]}
+        self.assertTrue(
+            {
                 "arm.r1-1632.E",
                 "cpu.r1-1632.polish.E",
                 "hours.total",
                 "pub.kollias.energy_range",
-            ],
+            }
+            <= ids
         )
 
     def test_labels_and_renders(self):
@@ -954,7 +971,7 @@ class NumbersTracerTests(unittest.TestCase):
                 "to within \u223c 0.08\u20133%",
             )
         }
-        with mock.patch.dict(self.module.CITED_TABLE, superseded, clear=True):
+        with mock.patch.dict(self.module.CITED_TABLE, superseded):
             self.assert_rejected(payload, "does not occur verbatim")
 
     def test_bad_render_string_fails(self):
@@ -976,6 +993,216 @@ class NumbersTracerTests(unittest.TestCase):
         payload = self.mutated()
         payload["entries"].reverse()
         self.assert_rejected(payload, "entries are not sorted by id")
+
+
+class ManifestContentTests(ManifestCase):
+    """Every committed, arithmetic and cited number, and the complete check."""
+
+    ARM_IDS = (
+        "r1-1632",
+        "r1-851",
+        "r1-4658",
+        "g2s-1632-w060",
+        "g2s-1632-w120",
+        "g2s-1632-w240",
+        "g2s-1632-w480",
+    )
+
+    def entries(self) -> dict[str, dict]:
+        return {entry["id"]: entry for entry in self.payload["entries"]}
+
+    def test_every_entry_group_is_present(self):
+        ids = self.entries()
+        for prefix in (
+            "arm.",
+            "hours.",
+            "steps.",
+            "seconds_per_step.",
+            "timing.",
+            "polish.",
+            "cost.",
+            "best.",
+            "rung1.",
+            "curve.",
+            "handoff.",
+            "tiers.",
+            "decision.",
+            "baseline.",
+            "survey.",
+            "census.",
+            "pub.",
+            "gap5908.",
+            "machine.",
+            "cpu.",
+        ):
+            self.assertTrue(
+                any(entry_id.startswith(prefix) for entry_id in ids), prefix
+            )
+
+    def test_each_arm_holds_its_nineteen_numbers(self):
+        ids = self.entries()
+        for arm_id in self.ARM_IDS:
+            prefix = f"arm.{arm_id}."
+            self.assertEqual(
+                len([entry_id for entry_id in ids if entry_id.startswith(prefix)]),
+                19,
+                arm_id,
+            )
+
+    def test_acceptance_renders(self):
+        entries = self.entries()
+        expected = {
+            "arm.r1-1632.E": "1.1574",
+            "arm.r1-851.E": "1.2375",
+            "arm.r1-4658.E": "1.1432",
+            "arm.r1-4658.eps_h": "13,127.5",
+            "hours.total": "22.378",
+            "hours.rung1": "11.108",
+            "hours.sweep": "11.270",
+            "steps.total_adam": "7,437,225",
+            "steps.sweep_budget.min": "842,770",
+            "steps.sweep_budget.max": "994,807",
+            "best.eps_h_official": "123.62",
+            "best.ratio_to_bar": "1.24 \u00d7 10\u2077",
+            "rung1.below_formula": "1 of 3",
+            "baseline.copy.median_E.validation": "2.135",
+            "census.one_part_in_0p1": "1,169",
+            "cost.forscale.days_low": "28.5",
+            "cost.forscale.days_high": "42.8",
+        }
+        for entry_id, render in expected.items():
+            self.assertEqual(entries[entry_id]["render"], render, entry_id)
+
+    def test_totals_are_the_ordered_sums_of_the_records(self):
+        handoff = json.loads(
+            (ROOT / f"{P60}/g2/stop-handoff.json").read_text(encoding="utf-8")
+        )
+        arms = [row["arm_id"] for row in handoff["arms"]]
+        records = {
+            arm_id: json.loads(
+                (ROOT / f"{P60}/arms/{arm_id}/record.json").read_text(encoding="utf-8")
+            )
+            for arm_id in arms
+        }
+        hours = [records[arm_id]["wall"]["hours"] for arm_id in arms]
+        entries = self.entries()
+        self.assertEqual(entries["hours.total"]["value"], self.module.ordered_sum(hours))
+        self.assertEqual(entries["hours.total"]["value"], handoff["total_wall_hours"])
+        self.assertEqual(
+            entries["hours.rung1"]["value"], self.module.ordered_sum(hours[:3])
+        )
+        self.assertEqual(
+            entries["hours.sweep"]["value"], self.module.ordered_sum(hours[3:])
+        )
+        steps = 0
+        for arm_id in arms:
+            budget = records[arm_id]["budget"]
+            steps += (
+                budget["new_budget_steps"]
+                if budget["extended"]
+                else budget["budget_steps"]
+            )
+        self.assertEqual(entries["steps.total_adam"]["value"], steps)
+
+    def test_the_best_and_rung1_readings(self):
+        entries = self.entries()
+        self.assertEqual(entries["best.eps_h_official_arms"]["render"], "g2s-1632-w240")
+        self.assertEqual(entries["best.eps_h_lowest_state"]["render"], "30.29")
+        self.assertEqual(entries["best.eps_h_lowest_state_arm"]["render"], "r1-1632")
+        self.assertEqual(entries["best.eps_h_lowest_state_state"]["render"], "adam")
+        self.assertEqual(entries["best.eps_h_lowest_trace"]["render"], "0.9999")
+        self.assertEqual(entries["best.eps_h_lowest_trace_arm"]["render"], "r1-4658")
+        self.assertEqual(entries["best.eps_h_lowest_trace_step"]["render"], "1,863,178")
+        self.assertEqual(entries["rung1.below_formula_systems"]["render"], "4658")
+        self.assertEqual(entries["rung1.counts_true"]["render"], "0 of 3")
+
+    def test_no_entry_is_a_gpu_figure(self):
+        for entry in self.payload["entries"]:
+            self.assertNotIn("gpu", entry["id"].lower())
+            self.assertNotIn("gpu", entry["derivation"].lower())
+
+    def test_every_required_in_is_a_subset(self):
+        for entry in self.payload["entries"]:
+            self.assertTrue(set(entry["required_in"]) <= {"verdict", "charter"})
+
+    def test_producer_ordered_sum_cancels_to_zero(self):
+        producer = load_producer()
+        values = [1e16, 1.0, -1e16]
+        self.assertEqual(producer.ordered_sum(values), 0.0)
+        self.assertEqual(self.module.ordered_sum(values), 0.0)
+        # An exactly rounded sum would keep the 1.0; the ordered loop cannot.
+        self.assertEqual(math.fsum(values), 1.0)
+
+    def test_changed_arithmetic_total_fails(self):
+        payload = self.mutated()
+        entry = self.entry(payload, "hours.total")
+        entry["value"] = 22.37828873402779
+        self.assert_rejected(payload, "entry hours.total value")
+
+    def test_recorded_key_that_differs_from_the_table_fails(self):
+        payload = self.mutated()
+        entry = self.entry(payload, "arm.r1-851.E")
+        entry["source"]["key"] = "result.eps_h"
+        self.assert_rejected(payload, "entry arm.r1-851.E source")
+
+    def test_cited_token_absent_at_its_commit_fails(self):
+        payload = self.mutated()
+        entry = self.entry(payload, "pub.breen.energy_typical")
+        entry["source"]["token"] = "of order 10\u207b\u00b3"
+        superseded = {
+            "pub.breen.energy_typical": (
+                self.module.CITED_TABLE["pub.breen.energy_typical"][0],
+                self.module.CITED_TABLE["pub.breen.energy_typical"][1],
+                "of order 10\u207b\u00b3",
+            )
+        }
+        with mock.patch.dict(self.module.CITED_TABLE, superseded):
+            self.assert_rejected(payload, "does not occur verbatim")
+
+    def test_stale_inputs_sha256_fails(self):
+        payload = self.mutated()
+        payload["inputs"][0]["sha256"] = "0" * 64
+        self.assert_rejected(payload, "SHA-256")
+
+    def test_stale_producer_sha256_fails(self):
+        payload = self.mutated()
+        payload["producer_sha256"][self.module.PRODUCER_REL] = "0" * 64
+        self.assert_rejected(payload, "producer module")
+
+    def test_a_tie_is_listed_in_handoff_order(self):
+        facts = dict(self.module._facts())
+        facts["records"] = copy.deepcopy(facts["records"])
+        winner = "g2s-1632-w240"
+        loser = "r1-1632"
+        tied = facts["records"][winner]["result"]["eps_h"]
+        facts["records"][loser]["result"]["eps_h"] = tied
+        payload = self.mutated()
+        for arm_id in (loser, winner):
+            entry = self.entry(payload, f"arm.{arm_id}.eps_h")
+            entry["value"] = tied
+            entry["render"] = self.module.render_number(tied, entry["render_rule"])
+        arms = self.entry(payload, "best.eps_h_official_arms")
+        arms["value"] = f"{loser}, {winner}"
+        arms["render"] = arms["value"]
+        # The tied pair passes, in handoff order.
+        self.module.check_numbers(payload, facts=facts)
+        arms["value"] = f"{winner}, {loser}"
+        arms["render"] = arms["value"]
+        with self.assertRaises(self.module.VerifyError) as caught:
+            self.module.check_numbers(payload, facts=facts)
+        self.assertIn("best.eps_h_official_arms", str(caught.exception))
+
+    def test_a_steps_budget_one_step_more_fails(self):
+        from pinn.verification import feasibility_scorecard
+
+        original = feasibility_scorecard.steps_budget
+
+        def one_more(cap, wall, steps, *, scorecard):
+            return original(cap, wall, steps, scorecard=scorecard) + 1
+
+        payload = self.mutated()
+        with mock.patch.object(feasibility_scorecard, "steps_budget", one_more):
+            self.assert_rejected(payload, "recorded budget")
 
 
 class OrderedSumTests(unittest.TestCase):
