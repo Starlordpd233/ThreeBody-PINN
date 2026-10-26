@@ -505,9 +505,237 @@ def cmd_inputs(_args: argparse.Namespace) -> None:
     print("INPUTS-OK")
 
 
+REQUIREMENTS_REL = Path(".planning/REQUIREMENTS.md")
+ROADMAP_REL = Path(".planning/ROADMAP.md")
+PROJECT_REL = Path(".planning/PROJECT.md")
+TRACEABLE_PHASES = (59, 60, 61, 62, 63, 64)
+REQUIREMENT_ID = re.compile(r"[A-Z]+-\d+")
+DEFINITION_LINE = re.compile(r"^- \[[ xX]\] \*\*([A-Z]+-\d+)\*\*", re.M)
+TABLE_ROW = re.compile(r"^\| ([A-Z]+-\d+) \| Phase (\d+) \| (.+?) \|$", re.M)
+PHASE_HEADING = re.compile(r"^### Phase (\d+):", re.M)
+REQUIREMENTS_LINE = re.compile(r"^\*\*Requirements\*\*:[ \t]*(.*)$", re.M)
+
+
+def _read_text(relative: Path, *, what: str) -> str:
+    path = repo_path(relative, what=what)
+    if not path.is_file():
+        fail(f"{what} is missing: {relative.as_posix()}")
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as exc:
+        fail(f"{what} is unreadable: {path}: {exc}")
+
+
+def _one_count(pattern: str, text: str, *, what: str) -> int:
+    matches = re.findall(pattern, text, re.M)
+    if len(matches) != 1:
+        fail(f"{what} must appear exactly once, found {len(matches)}")
+    return int(matches[0])
+
+
+def _one_ratio(pattern: str, text: str, *, what: str) -> tuple[int, int]:
+    matches = re.findall(pattern, text, re.M)
+    if len(matches) != 1:
+        fail(f"{what} must appear exactly once, found {len(matches)}")
+    left, right = matches[0]
+    return int(left), int(right)
+
+
+def _slice_between(text: str, start_pattern: str, end_pattern: str, *, what: str) -> str:
+    starts = list(re.finditer(start_pattern, text, re.M))
+    if len(starts) != 1:
+        fail(f"{what} must appear exactly once, found {len(starts)}")
+    ends = list(re.finditer(end_pattern, text, re.M))
+    if len(ends) != 1:
+        fail(f"{what} end must appear exactly once, found {len(ends)}")
+    if ends[0].start() <= starts[0].start():
+        fail(f"{what} end appears before its start")
+    return text[starts[0].start() : ends[0].start()]
+
+
+def traceability_report(
+    requirements_text: str, roadmap_text: str, project_text: str
+) -> dict[str, Any]:
+    """Recount VER-22 from the current registry text: 24 IDs, one phase each.
+
+    Every count is an exact integer parsed from digits and compared with ``==``.
+    IDs are whole words compared as exact strings (FEAS-01 and FEAS-10 differ),
+    and the creation-time "20/20" history lines match no pattern here, so they
+    are never read as the current count.
+    """
+    requirements_block = _slice_between(
+        requirements_text,
+        r"^## v2\.4 Requirements$",
+        r"^## Scope Boundaries",
+        what="REQUIREMENTS.md v2.4 Requirements section",
+    )
+    defined = DEFINITION_LINE.findall(requirements_block)
+    if not defined:
+        fail("REQUIREMENTS.md defines no requirement")
+    duplicates = sorted({entry for entry in defined if defined.count(entry) > 1})
+    if duplicates:
+        fail(f"REQUIREMENTS.md defines a requirement twice: {duplicates!r}")
+
+    table_block = _slice_between(
+        requirements_text,
+        r"^## Traceability$",
+        r"^---$",
+        what="REQUIREMENTS.md Traceability section",
+    )
+    rows = TABLE_ROW.findall(table_block)
+    if not rows:
+        fail("REQUIREMENTS.md Traceability table has no row")
+    table_phase: dict[str, int] = {}
+    statuses: dict[str, int] = {}
+    for requirement, phase_text, status in rows:
+        if requirement in table_phase:
+            fail(f"REQUIREMENTS.md Traceability table holds {requirement} twice")
+        phase = int(phase_text)
+        if phase not in TRACEABLE_PHASES:
+            fail(f"{requirement} is mapped to Phase {phase}, outside 59 to 64")
+        table_phase[requirement] = phase
+        statuses[status] = statuses.get(status, 0) + 1
+
+    headings = list(PHASE_HEADING.finditer(roadmap_text))
+    sections: dict[int, str] = {}
+    for index, heading in enumerate(headings):
+        phase = int(heading.group(1))
+        end = headings[index + 1].start() if index + 1 < len(headings) else len(roadmap_text)
+        if phase in sections:
+            fail(f"ROADMAP.md holds two '### Phase {phase}' sections")
+        sections[phase] = roadmap_text[heading.start() : end]
+
+    roadmap_phase: dict[str, int] = {}
+    per_phase: dict[int, list[str]] = {}
+    for phase in TRACEABLE_PHASES:
+        if phase not in sections:
+            fail(f"ROADMAP.md has no '### Phase {phase}' section")
+        matches = REQUIREMENTS_LINE.findall(sections[phase])
+        if len(matches) != 1:
+            fail(
+                f"ROADMAP.md Phase {phase} must hold exactly one **Requirements**: line, "
+                f"found {len(matches)}"
+            )
+        identifiers = REQUIREMENT_ID.findall(matches[0])
+        if not identifiers:
+            fail(f"ROADMAP.md Phase {phase} **Requirements**: line lists no requirement ID")
+        per_phase[phase] = sorted(identifiers)
+        for requirement in identifiers:
+            if requirement in roadmap_phase:
+                fail(
+                    f"ROADMAP.md maps {requirement} to Phase {roadmap_phase[requirement]} "
+                    f"and Phase {phase}"
+                )
+            roadmap_phase[requirement] = phase
+
+    defined_set = set(defined)
+    if defined_set != set(table_phase):
+        missing = sorted(defined_set - set(table_phase))
+        extra = sorted(set(table_phase) - defined_set)
+        fail(
+            "REQUIREMENTS.md definitions and Traceability table disagree: "
+            f"missing from table {missing!r}, not defined {extra!r}"
+        )
+    if defined_set != set(roadmap_phase):
+        missing = sorted(defined_set - set(roadmap_phase))
+        extra = sorted(set(roadmap_phase) - defined_set)
+        fail(
+            "REQUIREMENTS.md definitions and ROADMAP.md Requirements lines disagree: "
+            f"missing from roadmap {missing!r}, not defined {extra!r}"
+        )
+    for requirement in sorted(defined_set):
+        if table_phase[requirement] != roadmap_phase[requirement]:
+            fail(
+                f"{requirement} table phase {table_phase[requirement]} != "
+                f"roadmap phase {roadmap_phase[requirement]}"
+            )
+
+    count = len(defined)
+    stated = {
+        "REQUIREMENTS.md **Total:**": _one_count(
+            r"^\*\*Total:\*\* (\d+) requirements",
+            requirements_text,
+            what="REQUIREMENTS.md **Total:** line",
+        ),
+        "REQUIREMENTS.md v2.4 requirements": _one_count(
+            r"^- v2\.4 requirements: (\d+) total$",
+            requirements_text,
+            what="REQUIREMENTS.md v2.4 requirements line",
+        ),
+        "REQUIREMENTS.md Mapped to phases": _one_count(
+            r"^- Mapped to phases: (\d+)$",
+            requirements_text,
+            what="REQUIREMENTS.md Mapped to phases line",
+        ),
+        "ROADMAP.md requirements (FEAS-01..10": _one_count(
+            r"(\d+) requirements \(FEAS-01\.\.10",
+            roadmap_text,
+            what="ROADMAP.md requirements (FEAS-01..10 line",
+        ),
+        "ROADMAP.md 6 phases": _one_count(
+            r"6 phases, (\d+) requirements",
+            roadmap_text,
+            what="ROADMAP.md 6 phases line",
+        ),
+        "PROJECT.md requirements": _one_count(
+            r"^- \*\*(\d+) requirements\.\*\*$",
+            project_text,
+            what="PROJECT.md requirements line",
+        ),
+    }
+    for what, value in stated.items():
+        if value != count:
+            fail(f"{what} states {value} != {count} defined")
+    unmapped = _one_count(
+        r"^- Unmapped: (\d+)",
+        requirements_text,
+        what="REQUIREMENTS.md Unmapped line",
+    )
+    if unmapped != 0:
+        fail(f"REQUIREMENTS.md Unmapped states {unmapped} != 0")
+    for what, pattern in (
+        (
+            "ROADMAP.md N/N after the 2026-10-11 amendment",
+            r"(\d+)/(\d+) after the 2026-10-11 amendment",
+        ),
+        ("ROADMAP.md N/N mapped.", r"(\d+)/(\d+) mapped\."),
+    ):
+        left, right = _one_ratio(pattern, roadmap_text, what=what)
+        if left != count or right != count:
+            fail(f"{what} states {left}/{right} != {count}/{count}")
+
+    return {
+        "defined": sorted(defined),
+        "table": sorted(table_phase),
+        "roadmap": sorted(roadmap_phase),
+        "per_phase": {phase: per_phase[phase] for phase in TRACEABLE_PHASES},
+        "statuses": statuses,
+    }
+
+
+def cmd_traceability(_args: argparse.Namespace) -> None:
+    """VER-22: definitions, table and roadmap agree on 24 IDs, one phase each."""
+    report = traceability_report(
+        _read_text(REQUIREMENTS_REL, what="REQUIREMENTS.md"),
+        _read_text(ROADMAP_REL, what="ROADMAP.md"),
+        _read_text(PROJECT_REL, what="PROJECT.md"),
+    )
+    print(f"defined {len(report['defined'])}")
+    print(f"table {len(report['table'])}")
+    print(f"roadmap {len(report['roadmap'])}")
+    counts = " ".join(
+        f"{phase}:{len(report['per_phase'][phase])}" for phase in TRACEABLE_PHASES
+    )
+    print(f"per-phase {counts}")
+    for label in sorted(report["statuses"]):
+        print(f"status {label} {report['statuses'][label]}")
+    print("TRACEABILITY-OK")
+
+
 COMMANDS = {
     "inputs": cmd_inputs,
     "frozen": cmd_frozen,
+    "traceability": cmd_traceability,
 }
 
 

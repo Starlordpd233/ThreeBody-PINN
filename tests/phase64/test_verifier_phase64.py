@@ -107,9 +107,13 @@ class VerifierModuleTests(unittest.TestCase):
     def test_commands_and_parser(self):
         self.assertIn("inputs", self.module.COMMANDS)
         self.assertIn("frozen", self.module.COMMANDS)
+        self.assertIn("traceability", self.module.COMMANDS)
         parser = self.module.build_parser()
         self.assertEqual(parser.parse_args(["inputs"]).command, "inputs")
         self.assertEqual(parser.parse_args(["frozen"]).command, "frozen")
+        self.assertEqual(
+            parser.parse_args(["traceability"]).command, "traceability"
+        )
 
     def test_frozen_constants(self):
         self.assertEqual(
@@ -554,6 +558,217 @@ class FrozenArgvTests(unittest.TestCase):
         with self.assertRaises(self.module.VerifyError) as raised:
             self.module.frozen_pathspecs(self.protocol["module_sha256"])
         self.assertIn("duplicates", str(raised.exception))
+
+
+class TraceabilityRealTests(unittest.TestCase):
+    """The mode on the real committed registries."""
+
+    EXPECTED = [
+        "defined 24",
+        "table 24",
+        "roadmap 24",
+        "per-phase 59:5 60:4 61:8 62:2 63:2 64:3",
+        "status Complete 7",
+        "status Complete (recorded as skipped: no rescue) 2",
+        "status Pending 15",
+        "TRACEABILITY-OK",
+    ]
+
+    def setUp(self):
+        self.module = load_verifier()
+
+    def test_real_worktree_prints_traceability_ok(self):
+        code, out, err = run_main(self.module, ["traceability"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), self.EXPECTED)
+        self.assertNotIn("FAIL-CLOSED", err)
+
+    def test_two_runs_are_byte_identical(self):
+        first = run_main(self.module, ["traceability"])
+        second = run_main(self.module, ["traceability"])
+        self.assertEqual(first[0], 0, first[2])
+        self.assertEqual(first[1], second[1])
+
+
+def replace_once(text: str, old: str, new: str) -> str:
+    if text.count(old) != 1:
+        raise AssertionError(f"fixture anchor appears {text.count(old)} times: {old!r}")
+    return text.replace(old, new)
+
+
+class TraceabilityPureTests(unittest.TestCase):
+    """String fixtures built from the real registries, one edit each."""
+
+    def setUp(self):
+        self.module = load_verifier()
+        self.requirements = (ROOT / ".planning/REQUIREMENTS.md").read_text(
+            encoding="utf-8"
+        )
+        self.roadmap = (ROOT / ".planning/ROADMAP.md").read_text(encoding="utf-8")
+        self.project = (ROOT / ".planning/PROJECT.md").read_text(encoding="utf-8")
+
+    def report(
+        self,
+        requirements: str | None = None,
+        roadmap: str | None = None,
+        project: str | None = None,
+    ) -> dict:
+        return self.module.traceability_report(
+            self.requirements if requirements is None else requirements,
+            self.roadmap if roadmap is None else roadmap,
+            self.project if project is None else project,
+        )
+
+    def assert_fails(
+        self,
+        requirements: str | None = None,
+        roadmap: str | None = None,
+        project: str | None = None,
+    ) -> str:
+        with self.assertRaises(self.module.VerifyError) as raised:
+            self.report(requirements, roadmap, project)
+        return str(raised.exception)
+
+    # -- the passing case ------------------------------------------------
+
+    def test_real_files_report_24(self):
+        report = self.report()
+        self.assertEqual(len(report["defined"]), 24)
+        self.assertEqual(len(report["table"]), 24)
+        self.assertEqual(len(report["roadmap"]), 24)
+        self.assertEqual(
+            {phase: len(ids) for phase, ids in report["per_phase"].items()},
+            {59: 5, 60: 4, 61: 8, 62: 2, 63: 2, 64: 3},
+        )
+        self.assertEqual(
+            report["statuses"],
+            {
+                "Complete": 7,
+                "Complete (recorded as skipped: no rescue)": 2,
+                "Pending": 15,
+            },
+        )
+
+    def test_creation_time_history_lines_do_not_count(self):
+        self.assertIn("20/20 mapped at roadmap creation", self.roadmap)
+        self.assertIn("20/20 requirements mapped at creation", self.roadmap)
+        self.assertEqual(len(self.report()["defined"]), 24)
+
+    def test_feas_1_and_feas_10_are_two_ids(self):
+        # Exact-string comparison: FEAS-1 is not a prefix of FEAS-01 collapsed
+        # onto it, and FEAS-10 is a different ID from FEAS-1.
+        requirements = self.requirements.replace("FEAS-10", "FEAS-1")
+        roadmap = self.roadmap.replace("FEAS-10", "FEAS-1")
+        project = self.project.replace("FEAS-10", "FEAS-1")
+        report = self.report(requirements, roadmap, project)
+        self.assertIn("FEAS-01", report["defined"])
+        self.assertIn("FEAS-1", report["defined"])
+        self.assertEqual(len(report["defined"]), 24)
+
+    # -- one edit each, every one must fail ------------------------------
+
+    def test_dropped_table_row_fails(self):
+        requirements = replace_once(
+            self.requirements, "| DIAG-08 | Phase 63 | Pending |\n", ""
+        )
+        error = self.assert_fails(requirements=requirements)
+        self.assertIn("disagree", error)
+        self.assertIn("DIAG-08", error)
+
+    def test_extra_definition_fails(self):
+        requirements = replace_once(
+            self.requirements,
+            "## v2.4 Requirements\n",
+            "## v2.4 Requirements\n\n- [ ] **FEAS-99**: a synthetic 25th requirement.\n",
+        )
+        error = self.assert_fails(requirements=requirements)
+        self.assertIn("FEAS-99", error)
+
+    def test_duplicate_table_row_fails(self):
+        requirements = replace_once(
+            self.requirements,
+            "| FEAS-01 | Phase 59 | Complete |\n",
+            "| FEAS-01 | Phase 59 | Complete |\n| FEAS-01 | Phase 59 | Complete |\n",
+        )
+        error = self.assert_fails(requirements=requirements)
+        self.assertIn("holds FEAS-01 twice", error)
+
+    def test_total_count_changed_fails(self):
+        requirements = replace_once(
+            self.requirements,
+            "**Total:** 24 requirements",
+            "**Total:** 25 requirements",
+        )
+        error = self.assert_fails(requirements=requirements)
+        self.assertIn("**Total:**", error)
+        self.assertIn("25 != 24", error)
+
+    def test_duplicated_id_on_second_phase_fails(self):
+        roadmap = replace_once(
+            self.roadmap,
+            "**Requirements**: RUN-06, DIAG-08",
+            "**Requirements**: RUN-06, DIAG-08, GATE-05",
+        )
+        error = self.assert_fails(roadmap=roadmap)
+        self.assertIn("GATE-05", error)
+        self.assertIn("Phase 62", error)
+
+    def test_deleted_phase_requirements_line_fails(self):
+        roadmap = replace_once(
+            self.roadmap,
+            "**Requirements**: GATE-05, FEAS-05\n",
+            "",
+        )
+        error = self.assert_fails(roadmap=roadmap)
+        self.assertIn("Phase 62", error)
+        self.assertIn("exactly one", error)
+
+    def test_empty_requirements_line_fails(self):
+        roadmap = replace_once(
+            self.roadmap,
+            "**Requirements**: GATE-05, FEAS-05",
+            "**Requirements**:",
+        )
+        error = self.assert_fails(roadmap=roadmap)
+        self.assertIn("Phase 62", error)
+        self.assertIn("lists no requirement ID", error)
+
+    def test_missing_phase_section_fails(self):
+        start = self.roadmap.index("### Phase 62:")
+        end = self.roadmap.index("### Phase 63:")
+        roadmap = self.roadmap[:start] + self.roadmap[end:]
+        error = self.assert_fails(roadmap=roadmap)
+        self.assertIn("no '### Phase 62' section", error)
+
+    def test_phase_outside_range_fails(self):
+        requirements = replace_once(
+            self.requirements,
+            "| FEAS-06 | Phase 64 | Pending |",
+            "| FEAS-06 | Phase 65 | Pending |",
+        )
+        roadmap = replace_once(
+            self.roadmap,
+            "**Requirements**: FEAS-06, FEAS-10, VER-22",
+            "**Requirements**: FEAS-10, VER-22",
+        )
+        roadmap = roadmap + "\n### Phase 65: Synthetic\n\n**Requirements**: FEAS-06\n"
+        error = self.assert_fails(requirements=requirements, roadmap=roadmap)
+        self.assertIn("FEAS-06", error)
+        self.assertIn("outside 59 to 64", error)
+
+    def test_table_phase_differs_from_roadmap_phase_fails(self):
+        requirements = replace_once(
+            self.requirements,
+            "| GATE-05 | Phase 62 | Pending |",
+            "| GATE-05 | Phase 63 | Pending |",
+        )
+        error = self.assert_fails(requirements=requirements)
+        self.assertIn("GATE-05", error)
+        self.assertIn("table phase 63 != roadmap phase 62", error)
+
+    def test_empty_inputs_fail(self):
+        error = self.assert_fails(requirements="", roadmap="", project="")
+        self.assertIn("exactly once", error)
 
 
 class OrderedSumTests(unittest.TestCase):
