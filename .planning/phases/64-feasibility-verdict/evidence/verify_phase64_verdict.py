@@ -772,6 +772,9 @@ REQUIREMENTS_REL = Path(".planning/milestones/v2.4-REQUIREMENTS.md")
 ROADMAP_REL = Path(".planning/milestones/v2.4-ROADMAP.md")
 REQUIREMENTS_LIVE_REL = Path(".planning/REQUIREMENTS.md")
 PROJECT_REL = Path(".planning/PROJECT.md")
+# The v2.5 start (2026-10-27) rewrites the live PROJECT.md; this archive holds
+# it byte-identical as it stood at the v2.4 close. The live path keeps its history.
+PROJECT_CLOSE_REL = Path(".planning/milestones/v2.4-PROJECT.md")
 TRACEABLE_PHASES = (59, 60, 61, 62, 63, 64)
 REQUIREMENT_ID = re.compile(r"[A-Z]+-\d+")
 DEFINITION_LINE = re.compile(r"^- \[[ xX]\] \*\*([A-Z]+-\d+)\*\*", re.M)
@@ -982,7 +985,7 @@ def cmd_traceability(_args: argparse.Namespace) -> None:
     report = traceability_report(
         _read_text(REQUIREMENTS_REL, what="REQUIREMENTS.md"),
         _read_text(ROADMAP_REL, what="ROADMAP.md"),
-        _read_text(PROJECT_REL, what="PROJECT.md"),
+        _read_text(PROJECT_CLOSE_REL, what="PROJECT.md"),
     )
     print(f"defined {len(report['defined'])}")
     print(f"table {len(report['table'])}")
@@ -4359,7 +4362,7 @@ def _check_ruling_applied(
     if values["ruling_sha256"] != "pending" and values["ruling_sha256"] != ruling_digest:
         fail("the verdict's ruling_sha256 is not the ruling's SHA-256")
 
-    head = _git("show", f"HEAD:{PROJECT_REL.as_posix()}")
+    head = _git("show", f"HEAD:{PROJECT_CLOSE_REL.as_posix()}")
     base = _git("show", f"{PHASE_BASE}:{PROJECT_REL.as_posix()}")
     if head.returncode != 0:
         fail(f"PROJECT.md at HEAD is unreadable: {head.stderr.strip()}")
@@ -4460,6 +4463,7 @@ def _check_ruling_commit_order() -> None:
         f"{PHASE_BASE}..HEAD",
         "--",
         PROJECT_REL.as_posix(),
+        PROJECT_CLOSE_REL.as_posix(),
         REQUIREMENTS_REL.as_posix(),
         REQUIREMENTS_LIVE_REL.as_posix(),
     )
@@ -4584,7 +4588,7 @@ def _check_verdict_signed(
 
 def _check_project_applied(answers: Mapping[str, str]) -> None:
     """Every approved PROJECT.md rewrite applied; no unapproved one present."""
-    head_segments = project_segments(_head_text(PROJECT_REL))
+    head_segments = project_segments(_head_text(PROJECT_CLOSE_REL))
     base = _git("show", f"{PHASE_BASE}:{PROJECT_REL.as_posix()}")
     if base.returncode != 0:
         fail(f"PROJECT.md at the phase base is unreadable: {base.stderr.strip()}")

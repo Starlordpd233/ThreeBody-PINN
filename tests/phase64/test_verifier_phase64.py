@@ -34,6 +34,9 @@ EVIDENCE = f"{PHASE}/evidence"
 P60 = ".planning/phases/60-single-system-learnability/evidence"
 P59 = ".planning/phases/59-read-only-baseline-scorecard/evidence"
 # The v2.4 close archived the live requirements and roadmap; the verifier reads these.
+# The v2.5 start archived PROJECT.md as it stood at the v2.4 close; the verifier
+# reads that archive, and the phase base's copy at the live path.
+PROJECT_CLOSE_REL = ".planning/milestones/v2.4-PROJECT.md"
 REQUIREMENTS_REL = ".planning/milestones/v2.4-REQUIREMENTS.md"
 ROADMAP_REL = ".planning/milestones/v2.4-ROADMAP.md"
 VERIFIER_PATH = ROOT / EVIDENCE / "verify_phase64_verdict.py"
@@ -649,7 +652,7 @@ class TraceabilityPureTests(unittest.TestCase):
         self.module = load_verifier()
         self.requirements = (ROOT / REQUIREMENTS_REL).read_text(encoding="utf-8")
         self.roadmap = (ROOT / ROADMAP_REL).read_text(encoding="utf-8")
-        self.project = (ROOT / ".planning/PROJECT.md").read_text(encoding="utf-8")
+        self.project = (ROOT / PROJECT_CLOSE_REL).read_text(encoding="utf-8")
 
     def report(
         self,
@@ -3208,7 +3211,7 @@ class CharterContentTests(CharterContentCase):
 RULING_FIXTURE_RELS = (
     CHARTER_REL,
     VERDICT_REL,
-    ".planning/PROJECT.md",
+    PROJECT_CLOSE_REL,
     REQUIREMENTS_REL,
 )
 
@@ -3260,7 +3263,7 @@ class RulingRealTreeTests(unittest.TestCase):
         report = self.module.traceability_report(
             (ROOT / REQUIREMENTS_REL).read_text(encoding="utf-8"),
             (ROOT / ROADMAP_REL).read_text(encoding="utf-8"),
-            (ROOT / ".planning/PROJECT.md").read_text(encoding="utf-8"),
+            (ROOT / PROJECT_CLOSE_REL).read_text(encoding="utf-8"),
         )
         expected = sorted(
             report["per_phase"][61]
@@ -3285,6 +3288,11 @@ class RulingCase(CharterCase):
         for relative in RULING_FIXTURE_RELS:
             if not (self.root / relative).exists():
                 copy_bytes(self.root, relative)
+        # The base also holds the v2.4-close PROJECT.md at its live path, which
+        # is where the verifier reads the phase base's copy.
+        (self.root / ".planning/PROJECT.md").write_bytes(
+            (ROOT / PROJECT_CLOSE_REL).read_bytes()
+        )
         (self.root / CHARTER_REL).write_text(self.charter, encoding="utf-8")
         (self.root / VERDICT_REL).write_text(
             pre_ruling_verdict((ROOT / VERDICT_REL).read_text(encoding="utf-8")),
@@ -3396,7 +3404,7 @@ class RulingCase(CharterCase):
         path.write_text(text, encoding="utf-8")
 
     def apply_project(self, *, what_this_is: str | None = None) -> None:
-        path = self.root / ".planning/PROJECT.md"
+        path = self.root / PROJECT_CLOSE_REL
         lines = path.read_text(encoding="utf-8").splitlines()
         lines[0] = self.draft("project-draft-title")
 
@@ -3683,7 +3691,6 @@ FINAL_FIXTURE_RELS = (
     CHARTER_REL,
     VERDICT_REL,
     RULING_REL,
-    ".planning/PROJECT.md",
     REQUIREMENTS_REL,
 )
 
@@ -3747,7 +3754,7 @@ class FinalCompletenessTests(unittest.TestCase):
         (self.root / ".planning/PROJECT.md").write_text(base_project, encoding="utf-8")
         init_repo(self.root)
         self.base = commit_all(self.root, "the phase base")
-        copy_bytes(self.root, ".planning/PROJECT.md")
+        copy_bytes(self.root, PROJECT_CLOSE_REL)
         self.commit("the current tree")
 
     def commit(self, message: str) -> None:
