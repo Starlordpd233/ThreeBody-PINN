@@ -1,12 +1,12 @@
-# Three-Body Physics-Informed LLM
+# Three-Body Physics-Informed Neural Network (CTL-PINN)
 
 ## What This Is
 
-A research project that generates high-precision three-body gravitational simulation data using the Brutus N-body integrator, and uses that data to fine-tune a language model (Qwen 3.5 2B) that can predict three-body trajectories numerically given initial conditions. The project spans the full pipeline from simulation data generation through to LLM training.
+A learning project and a proof of concept by one student on one MacBook. It trains a curriculum-trained physics-informed neural network on high-precision Brutus three-body data to predict motion from starting conditions, stage by stage, and measures each stage against fixed comparison points. All computation runs on this Mac.
 
 ## Core Value
 
-The simulation dataset and data pipeline must be clean, well-validated, and correctly processed — everything downstream (PINN or LLM training) depends on data integrity.
+An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
 
 ## Requirements
 
@@ -61,7 +61,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 <!-- Current scope. Building toward these. -->
 
-- **Next (not yet initialized, 2026-10-26):** v2.5, committed only to its name and its first phase, the `trainex-r5` research round (open-book, diagnosis first), routed by the owner's v2.4 `change-course` decision. It runs no new long training until it explains why every trained network learned only each body's average position. The v2.4 verdict lists eight unranked candidate fixes for that round (`.planning/phases/64-feasibility-verdict/64-VERDICT.md`). Carried forward undecided: charter rows C-1..C-14 (`64-CHARTER.md`), including whether the twelve requirements of the skipped Phases 61–63 carry forward (C-14, GAP-64-01) and the `10⁻⁵` bar with GAP-59-08 (C-6, C-7). The held-out evaluation stays preserved unspent. v2.4 scope and outcomes: `.planning/milestones/v2.4-ROADMAP.md` and `.planning/milestones/v2.4-REQUIREMENTS.md`.
+- **v2.5 Root-Cause Confirmation (started 2026-10-27):** find out, with cheap pre-registered experiments on this Mac, why every v2.4 network learned only each body's average position, so that v2.6 redesigns against a confirmed cause. Requirements and phases: `.planning/REQUIREMENTS.md` and `.planning/ROADMAP.md` (Phases 65 onward). Phases after the first experiments are provisional; results may add, drop or re-aim them (see Current Milestone). The held-out evaluation stays preserved unspent. v2.4 scope and outcomes: `.planning/milestones/v2.4-ROADMAP.md` and `.planning/milestones/v2.4-REQUIREMENTS.md`.
 
 ### Deferred
 
@@ -90,7 +90,9 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 **Closed on a pre-registered exit (Gate G2):** v2.4 Stage-0 Feasibility Checkpoint on 2026-10-26 (verdict **`RETHINK-REPRESENTATION`**; owner decision **`change-course`**, 2026-10-26).
 
-**Active:** none. The next milestone is v2.5, opening with the `trainex-r5` research round (not yet initialized).
+**Active:** v2.5 Root-Cause Confirmation, started 2026-10-27 on `milestone/v2.5` (phases from 65).
+
+**v2.5 initialization (2026-10-27):** started via `/gsd-new-milestone` on the owner's direction to confirm the cause of the v2.4 time-constant failure first and leave the redesign to v2.6. Branch `milestone/v2.5` was created from `milestone/v2.4` at `dac9d9c1`. Before this file was rewritten, the Phase 64 verifier and its tests were repointed at a byte-identical copy of the v2.4 close text, `milestones/v2.4-PROJECT.md` (`dbc96887`). At the start the owner decided three rows of the v2.4 charter (`.planning/phases/64-feasibility-verdict/64-CHARTER.md`): C-12 A and C-13 A, so the title, What This Is, Core Value and Model constraint are now the charter's drafts word for word; and C-14 B, so the twelve skipped v2.4 requirements are not carried forward (v2.6 writes fresh ones). `phases.clear` was not run: phase folders 53–60 and 64 stay in `.planning/phases/`, because code and tests hardcode their paths.
 
 **v2.4 (closed 2026-10-26):** Phases 59, 60 and 64 complete and verified; Phases 61–63 skipped at Gate G2 (no rescue), not failed. Phase 59 froze the scorecard, the comparison points, the Stage-0 census and the whole-dataset survey read-only, and recorded Gate G1 as proceed (generation 7's physics term supplied 7.19e-07 of the Adam-preconditioned update). Phase 60 built the INST-05 learnability harness, sealed its run protocol, and ran Rung 1 on systems 1632, 851 and 4658 plus the `first_omega_0` sweep 60/120/240/480: every arm ended at Tier 0, so G2 fired with no rescue and Rung 2 and the probes were recorded as skipped. Its independent verification found every trained network to be a time-constant predictor. Phase 64 wrote the verdict, `RETHINK-REPRESENTATION` (the frozen rule's label, unamended, with the time-constant evidence beside it; Level 1 on the readiness ladder; 22.378 machine hours on this Mac), and the one-page charter. At checkpoint ① the owner replied "let's change course": V-1 `change-course`, every charter row open. 12/24 requirements Complete; the milestone audit is `gaps_found` only for the twelve skipped-phase requirements; override closeout. Archived under `milestones/v2.4-*`, with phase folders 59, 60 and 64 left in `phases/` because 18 code and test files hardcode their paths (owner decision, 2026-10-26).
 
@@ -275,68 +277,47 @@ v1.5 closed 36/36 requirements across eight verified phases (23–29, including 
 **v1.0 Codebase Cleanup** (shipped 2026-03-20)
 - Phases 1-4: Code rewrites, documentation, data deletion, stale references
 
-## Current Milestone: v2.4 Stage-0 Feasibility Checkpoint
+## Current Milestone: v2.5 Root-Cause Confirmation
 
-**Goal:** Find out whether the CTL-PINN approach can learn three-body motion at all, using the cheapest experiments that can settle it, in this order:
+**Goal:** Find out why every v2.4 network learned only each body's average position, using cheap pre-registered experiments on this Mac, so that v2.6 redesigns against a confirmed cause.
 
-1. one Stage-0 system with the answer shown;
-2. the same system learned from the physics;
-3. a 16-system family;
-4. the full Stage-0 control.
+**Why it exists:** v2.4 closed on its frozen rule's `RETHINK-REPRESENTATION` verdict, and the owner chose to change course (2026-10-26). Its records cannot separate a representation limit from an outcome of the fixed recipe, because the G2 sweep varied only `first_omega_0`. Rung 1 trained on data alone, so the known defects in the physics term cannot explain it. The owner suspects three causes: the network is too small, the metrics are too harsh or cannot be met, or the training pipeline is wrong. An informal read-only probe of the seven committed Phase 60 arms (2026-10-27) found:
 
-The milestone ends with an evidence-backed go / pivot-training / rethink-representation verdict, on which the owner decides whether the project continues.
+- after training, the network's hidden states at times 0.01 apart are uncorrelated from layer 2–3 on (cosine |·| ≤ 0.018), against ≥ 0.92 at initialization with `first_omega_0 = 30`;
+- the output moves 0.30–0.34% of the orbit's own variation;
+- about 0.8M parameters face about 9,000 target numbers per orbit, so size is an unlikely limit.
 
-**Why it exists:** After v2.0–v2.3, no run has executed the specified recipe. The v2.0 pilot diverged from the specs in five ways, and generation 7 evaluated the physics on one trajectory per step. The only accuracy measured in physical units for any trained network is the energy-error gate, and only on non-conformant runs:
-
-- v2.0 held-out `ε_H = 237.2`;
-- generation 7's worst-case validation `ε_H`: 15.65 at step 100, then 50.63 at step 900, while its validation loss fell.
-
-The bar is 10⁻⁵. The `trainex-r4` ruling (`c4bea18a`) designed a corrected control. That control shows whether the causal front advances at scale. It does not show whether the network can reach useful accuracy, or where it breaks. The owner's 2026-10-09 instruction asks for that answer: *"I have not yet obtained any kinds of assurance as to is this actually doable"*.
+Separately, Phase 59 found that the production energy check fails even Brutus's exact answer, which scores 5–38% against the 10⁻⁵ bar (GAP-59-08). The probe is unregistered; v2.5 re-runs it on the record before citing it.
 
 **Target features:**
 
-- **Read-only baseline and scorecard (FEAS-01, FEAS-02, FEAS-07, FEAS-08, DIAG-07).**
-  - A scorecard in physical units, frozen with its decision rule before any rung runs, and tested against known errors. It measures position error (including the inner pair's separation), the valid-horizon fraction and the gate's own `ε_H`, on tiers 0–3; Tier 3 is the locked 10⁻⁵ bar. A system counts only if it also beats a two-Kepler formula.
-  - A Stage-0 difficulty census from Brutus data, and the panels selected from it.
-  - Comparison points: the two-Kepler formula on every panel, and a nearest-neighbour copy on the validation panel.
-  - A read-only survey of every stage, with its predictability envelope.
-  - The ruling's read-only checkpoint experiments.
-- **Single-system learnability (INST-05, FEAS-03, FEAS-04, FEAS-09).**
-  - A diagnostic harness built on the trainer's own loss functions, with Adam, then the spec's L-BFGS polish.
-  - Rung 1: data only, which measures the representation ceiling. If it fails, a small settings sweep runs before any RETHINK-REPRESENTATION.
-  - Rung 2: physics + IC only, and the full ratified loss.
-  - Both rungs run on three systems that span the census.
-  - If Rung 1 passes, two probes run on a Stage-4b and a Stage-6 system.
-- **Conformance and instrumentation (CONF-10, CONF-11, INST-06, INST-07, SPEC-07..10).**
-  - The ruling's per-slot physics, monitor and validation.
-  - The IC term as a mean over slots.
-  - Full telemetry.
-  - Observe-only diagnostic modes.
-  - Four clarifying amendments, including the inherited GAP-56-02.
-- **Gates and the small-family rung (GATE-05, FEAS-05).**
-  - Re-measure `R_ref`, re-run GATE-04, run the `OQ-1` check, and run `JX-1`'s conformant half.
-  - Rung 3: the corrected trainer on 16 systems.
-- **The corrected control (RUN-06, DIAG-08).** Seeds 42, 41 and 43, 1,000 Adam steps each, with the pre-registered readout (a)–(d).
-- **The feasibility verdict and project charter (FEAS-06, FEAS-10, VER-22).** It covers:
-  - the level reached on a readiness ladder (levels 0–9);
-  - every result beside the comparison points;
-  - the cost so far, and to the next level and the finish.
-
-  It also drafts a one-page charter: purpose, definition of done, per-stage pass bars with a position and an energy criterion, budget and stop rule.
+- **The probe on the record:** the 2026-10-27 probe, re-run read-only as a committed step.
+- **A minute-scale test harness:** it trains one listed network variant on one Stage-0 training orbit, scores it with the frozen v2.4 scorecard, and logs, layer by layer, how alike the network's internal state is at neighbouring times.
+- **Five cause-confirmation experiments, each with its predictions committed before it runs:**
+  - small-network control: a shallow network fits orbit 1632 from time alone (tests "too small");
+  - depth ladder: the same layer types at 2, 4, 6, 8 and 12 layers;
+  - learning-rate ladder: 10⁻³ down to 10⁻⁵ on the locked network;
+  - time-input design: time features matched to how fast the orbit moves, instead of time sharing the first layer with 13 constant inputs;
+  - window length: windows of 1, 2, 5 and 10 inner orbits.
+- **The yardstick:**
+  - every scored metric passes Brutus's exact answer and fails the flat-line predictor;
+  - the owner decides GAP-59-08 (charter row C-7, how energy error is measured);
+  - the owner sets C-2 (definition of done) and C-4 to C-6 (the Stage-0 position and energy bars, and the 10⁻⁵ bar).
+- **Findings and decision:** one page marks each suspected cause confirmed, refuted or open, with numbers. The owner then picks the v2.6 redesign direction and decides whether to commission `trainex-r5` for it.
 
 **Governance:**
 
-- **24 requirements.**
-- **Scope boundaries SCOPE-39..44:**
-  - Stage-0 only, except the read-only survey of every stage and the two hard-stage probes;
-  - every run diagnostic, with no graded run, no held-out evaluation and no test split;
-  - pre-registration before every rung;
-  - locked values move only by amendment;
-  - compute budgets fixed before launch.
-- **Four owner checkpoints:** the verdict and charter; a veto on each amendment; any result outside a pre-registered branch; a G2 sweep rescue that would move a locked setting.
-- **Every exit path ends at the verdict.** An early stop goes straight to Phase 64.
+- **Order A (owner, 2026-10-27):** in-house tests first. `trainex-r5` is re-aimed at the redesign question; if the lead is refuted, it runs on the diagnosis instead.
+- **The plan may pivot (owner, 2026-10-27):** test results may shift what this milestone set out to do. When a result changes the picture, the agent proposes the change (a new phase numbered like 66.1, a dropped phase, or re-aimed later phases) and the owner decides. Phases after the first experiments are provisional.
+- **Scope:**
+  - Stage 0 only, on training records; no held-out evaluation and no test split;
+  - no framework-spec edits (amendments belong to v2.6);
+  - experiments vary settings only inside the test harness, so no locked value moves;
+  - all computing on this Mac; any run over an hour uses the governed pause/resume tooling.
+- **Pre-registration:** one committed prediction page per experiment, not the full sealed v2.4 protocol.
+- **Charter rows:** C-12 A, C-13 A and C-14 B decided at the start; C-2 and C-4 to C-7 set inside v2.5; C-8, C-9 (budget), C-10 (stop rule) and C-11 open; C-1 (purpose) and C-3 (current level) are recorded rows.
 
-Source: `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`, ratified under owner delegation on 2026-10-09 (commit `0b400dfa`), as amended by `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md` (owner-approved 2026-10-11).
+Source: the owner's direction in the 2026-10-27 `/gsd-new-milestone` session, building on `.planning/phases/64-feasibility-verdict/64-VERDICT.md` and `64-CHARTER.md`. The v2.4 milestone section is preserved in `milestones/v2.4-PROJECT.md`.
 
 ## Context
 
@@ -355,7 +336,7 @@ Source: `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4
 ## Constraints
 
 - **Hardware**: Apple M5 Pro (24 GB unified memory, 15-core: 5P+10E), single-machine training — verified 2026-07 (R-3 CLOSED); no cloud/distributed. (Earlier M2 constraint superseded.) Reaffirmed by the owner 2026-10-25: all training and computation run on this Mac, and plans do not cost, propose or ask about rented or cloud GPU routes.
-- **Model**: Qwen 3.5 2B 4-bit — chosen for local training feasibility on M2
+- **Model**: the CTL-PINN network locked in pinn_architecture.md (SQR-SkipResNet-SIREN; input [τ, IC₁₃]; output the three bodies' positions through the mass-weighted centre-of-mass projection head), trained on this Mac
 - **Data format**: Brutus outputs are high-precision text files, not natively LLM-friendly
 - **Dependencies**: No `requirements.txt` exists — environment management needed
 - **One-to-one injection** (historical v1.3 policy; superseded 2026-06-09): During v1.3, markdown was required to match LaTeX source exactly with one-to-one injection fidelity, and non-architecture inter-document inconsistencies remained preserved. Under the current v1.4+ policy, markdown framework specs (`pinn_instruction/markdown_conversion/framework-specs/*.md`) are the authoritative framework design documents during active revision, implementation, training, and research-result iteration; LaTeX sources are publication/archive derivatives refreshed only at the final publication/archive stage.
@@ -414,8 +395,9 @@ Source: `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4
 | `trainex-r4` decision sheet ruled under owner delegation (2026-10-07) | The owner handed the ruling to the in-repo agent ("I shouldn't be ruling on anything"; recorded verbatim in `trainex-r4-ruling.md`). Both reports agree on the diagnosis, and their disputes reduce to what the next run is for. The ruling makes it the corrected control: the ratified recipe executed as specified (per-slot physics, the IC term averaged over the selected slots, a 256-identity monitor, conformant validation, then `R_ref` and GATE-04 redone). It is Adam-only for 1,000 steps on seeds 42, 41 and 43. The guard and the plateau handoff only record what they would have done: a run with an active guard is the same run cut short, so nothing is lost. Telemetry is complete, and read-only checkpoint measurements come first. No locked value moves; three clarifying amendments are queued (the IC batch rule, "epoch" as one optimizer step, the `pinn_architecture.md:452` cross-reference). | — Active; governs the next milestone (`trainex-r4-ruling.md`, "Order of work"). Readout branches are pre-registered: the front advances → stage 2 (budget from the measured rate, L-BFGS, the guard statistic, tolerances); it stalls with physics a passenger → adaptive `λ_IC`; it stalls as the learning rate decays → a constant-rate arm; otherwise discriminate first. Not graded; the held-out evaluation stays unspent; Stage-1+ stays blocked. |
 | v2.4 opens as a Stage-0 feasibility checkpoint with a learnability ladder (2026-10-09) | The owner asked whether the project can be achieved at all ("I have not yet obtained any kinds of assurance as to is this actually doable"; verbatim in the v2.4 proposal) and re-confirmed the delegation. The ruling's control shows whether the causal front advances at full scale. It does not show whether the network can reach useful accuracy, or where it breaks. The record holds only a wiring check (the Phase-38 loss ratio, with IC13 set to zero) and energy gates on non-conformant runs. The cheaper rungs therefore run first: one system with data only (the ceiling), the same from physics, a 16-system family, then the control. All are scored in physical units against a scorecard frozen before any rung runs. The ruling's picks and readout are kept; its order of work gains the ladder. The v2.3 phase folders stay in `.planning/phases/`, because moving them would break the Phase-57 verifier and its tests. | — Active; governs v2.4. Verdict rule: rethink-representation if the data-only ceiling fails on 2 of 3 systems; go if the full recipe learns 2 of 3 single systems and 12 of 16 in the family, and the control readout is branch (a); otherwise pivot-training. The owner decides at the verdict, including whether the 10⁻⁵ held-out bar stays the success criterion. |
 | v2.4 amended after a re-examination (owner-approved 2026-10-11) | The owner asked what else v2.4 should achieve and what is needed to judge where the project stands; the owner leans toward a looser pass bar, decided later with evidence. The re-examination found four ways the ladder could mislead: a locked setting read as "can't be done"; a "go" no better than a textbook formula; arms failed for want of the spec's L-BFGS polish; and no look past Stage 0. It also found missing comparison points, capability map, cost estimate and stop rule. Added FEAS-07..10: comparison points, a read-only survey of every stage, two hard-stage probes, and a project charter. A system now counts only if it is at Tier ≥ 1 and beats the formula. G2 runs a settings sweep before RETHINK-REPRESENTATION. Single-system arms get the L-BFGS polish. The verdict places the project on a readiness ladder with costs. | — Active; governs v2.4. The bar is set in the charter, from purpose and comparison points, with a position and an energy criterion, before any held-out exam. A G2 sweep rescue is owner checkpoint ④. |
-| v2.4 verdict: the frozen rule's `RETHINK-REPRESENTATION`, stated unamended with the time-constant evidence beside it (2026-10-26) | Gate G2 fired on Rung 1 (Tier 0 on all three panel systems) and the pre-registered `first_omega_0` sweep rescued nothing, so the frozen rule returns `RETHINK-REPRESENTATION`. Phase 60's independent verification found that every trained network learned only each body's average position. The records cannot separate a representation limit from an outcome of the fixed recipe, because the sweep varied only `first_omega_0`. The label is pre-registered and was not re-set after the result; the observation qualifies how to read it. | — Active; governs v2.5's first round: `trainex-r5` explains the time-constant output before any new long training. |
-| v2.4 owner decision `change-course`; every charter row left open (2026-10-26) | At checkpoint ① the owner replied "let's change course". That decides V-1 and addresses none of the fourteen charter rows, so each is recorded open under the page's own rule. PROJECT.md's What This Is, Core Value, title and Model constraint (C-12, C-13), the `10⁻⁵` bar and GAP-59-08 (C-6, C-7), and the label of the twelve skipped-phase requirements (C-14) all stay undecided. | — Pending; the charter rows carry forward to v2.5 (`64-CHARTER.md`). |
+| v2.4 verdict: the frozen rule's `RETHINK-REPRESENTATION`, stated unamended with the time-constant evidence beside it (2026-10-26) | Gate G2 fired on Rung 1 (Tier 0 on all three panel systems) and the pre-registered `first_omega_0` sweep rescued nothing, so the frozen rule returns `RETHINK-REPRESENTATION`. Phase 60's independent verification found that every trained network learned only each body's average position. The records cannot separate a representation limit from an outcome of the fixed recipe, because the sweep varied only `first_omega_0`. The label is pre-registered and was not re-set after the result; the observation qualifies how to read it. | — Active; governs v2.5, which tests the time-constant output in-house before any redesign (order A, 2026-10-27); `trainex-r5` is re-aimed at the redesign question. |
+| v2.4 owner decision `change-course`; every charter row left open (2026-10-26) | At checkpoint ① the owner replied "let's change course". That decides V-1 and addresses none of the fourteen charter rows, so each is recorded open under the page's own rule. PROJECT.md's What This Is, Core Value, title and Model constraint (C-12, C-13), the `10⁻⁵` bar and GAP-59-08 (C-6, C-7), and the label of the twelve skipped-phase requirements (C-14) all stay undecided. | ✓ Carried into v2.5 (2026-10-27): C-12 A, C-13 A and C-14 B decided at its start; C-2 and C-4 to C-7 are set inside v2.5; C-8 to C-11 stay open (`64-CHARTER.md`). |
+| v2.5 confirms the cause before any redesign, and its plan may pivot on results (2026-10-27) | The owner suspects three causes: the network is too small, the metrics are too harsh or cannot be met, or the training pipeline is wrong. The v2.4 records cannot separate them, and a redesign aimed at the wrong cause would cost a milestone. An informal read-only probe gave a lead: after training, the network's hidden states are uncorrelated between neighbouring times from layer 2–3 on, and about 0.8M parameters face about 9,000 target numbers, so size is an unlikely limit. Cheap pre-registered experiments on this Mac test each cause, and the yardstick is checked against known answers. Order A: in-house tests first, then `trainex-r5`, re-aimed at the redesign. The owner expects results to reshape the plan, so phases after the first experiments are provisional; the agent proposes changes and the owner decides. | — Active; governs v2.5. The redesign, spec amendments and the rebuild belong to v2.6. |
 
 ## Evolution
 
@@ -435,4 +417,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-26 after the v2.4 milestone close (`/gsd-complete-milestone`): verdict `RETHINK-REPRESENTATION`, owner decision `change-course`, 12/24 requirements Complete (the twelve skipped-phase requirements Pending, C-14 open), archived under `milestones/v2.4-*` with phase folders left in place, next milestone v2.5 opening with `trainex-r5`. What This Is, Core Value, the title and the Model constraint are unchanged because charter rows C-12 and C-13 are open. Before that: 2026-10-11, folding in the owner-approved v2.4 feasibility amendment (24 requirements; FEAS-07..10 added). Before that: 2026-10-09 at the v2.4 start (`/gsd-new-milestone`): Stage-0 Feasibility Checkpoint, Phases 59–64, 20 requirements, from the proposal ratified under owner delegation (`0b400dfa`). Before that: 2026-10-04, after the v2.3 milestone close (verdict `rethink`, archived under `milestones/v2.3-*`). Earlier detailed updates remain in Git history.*
+*Last updated: 2026-10-27 at the v2.5 start (`/gsd-new-milestone`): Root-Cause Confirmation, phases from 65 on `milestone/v2.5`. The title, What This Is, Core Value and Model constraint were rewritten to the charter's drafts (C-12 A, C-13 A), C-14 B was recorded, and the v2.4 milestone section was replaced (its text is preserved in `milestones/v2.4-PROJECT.md`). Before that: 2026-10-26 after the v2.4 milestone close (`/gsd-complete-milestone`): verdict `RETHINK-REPRESENTATION`, owner decision `change-course`, 12/24 requirements Complete (the twelve skipped-phase requirements Pending, C-14 open), archived under `milestones/v2.4-*` with phase folders left in place. Before that: 2026-10-11, folding in the owner-approved v2.4 feasibility amendment (24 requirements; FEAS-07..10 added). Before that: 2026-10-09 at the v2.4 start (`/gsd-new-milestone`): Stage-0 Feasibility Checkpoint, Phases 59–64, 20 requirements, from the proposal ratified under owner delegation (`0b400dfa`). Before that: 2026-10-04, after the v2.3 milestone close (verdict `rethink`, archived under `milestones/v2.3-*`). Earlier detailed updates remain in Git history.*

@@ -1,39 +1,53 @@
 ---
 gsd_state_version: "1.0"
-milestone: v2.4
-milestone_name: Stage-0 Feasibility Checkpoint
-current_phase: 64
-current_phase_name: Feasibility Verdict
-status: milestone-closed
-stopped_at: "v2.4 archived 2026-10-26 (verdict RETHINK-REPRESENTATION, owner decision change-course); next milestone v2.5 (trainex-r5 research round) not yet started. Any merge of milestone/v2.4 into master, any push and the GitHub backup remain the owner's"
-last_updated: "2026-10-26T22:35:00Z"
-last_activity: 2026-10-26
-last_activity_desc: v2.4 milestone closed and archived (override closeout). The milestone audit is gaps_found for the twelve skipped-phase requirements only; learnings were extracted for Phases 59, 60 and 64; roadmap, requirements and audit are archived under milestones/v2.4-*; phase folders 59, 60 and 64 stay in place by owner decision; charter rows C-1..C-14 stay open; the 18 inherited open-artifact items are recorded below. The next milestone is v2.5, opening with the trainex-r5 research round
-state_head: 38a3ed5eb29d260d827b073a13afc861b5766795
+milestone: v2.5
+milestone_name: Root-Cause Confirmation
+status: planning
+stopped_at: "milestone v2.5 started 2026-10-27 (confirm the cause of the v2.4 time-constant failure; the redesign is v2.6); defining requirements and roadmap"
+last_updated: "2026-10-28T01:08:19Z"
+last_activity: 2026-10-27
+last_activity_desc: milestone v2.5 Root-Cause Confirmation started on branch milestone/v2.5 (from milestone/v2.4 at dac9d9c1). The Phase 64 verifier and its tests were first repointed at milestones/v2.4-PROJECT.md (dbc96887); PROJECT.md was then rewritten to the charter's C-12 and C-13 drafts, with C-14 B recorded. Order A - in-house tests first, trainex-r5 re-aimed at the redesign. Phases after the first experiments are provisional (owner, 2026-10-27).
+state_head: dbc96887ef6a9c6a22d402a9b4494aea129dd8a1
 progress:
-  total_phases: 6
-  completed_phases: 3
-  total_plans: 40
-  completed_plans: 40
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-26)
+See: .planning/PROJECT.md (updated 2026-10-27)
 
-**Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** the next milestone, v2.5, opening with the `trainex-r5` research round (v2.4 closed 2026-10-26). All computation is on this Mac.
+**Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
+**Current focus:** Milestone v2.5 started — defining requirements and roadmap (Phases 65 onward). All computation is on this Mac.
 
 ## Current Position
 
-**v2.4 CLOSED 2026-10-26 on its pre-registered exit at Gate G2 (verdict `RETHINK-REPRESENTATION`; owner decision `change-course`).**
-Phases 59, 60 and 64 complete and verified; Phases 61–63 skipped at G2 (no rescue), not failed. 12/24 requirements Complete; the twelve skipped-phase requirements stay Pending, and their label is charter row C-14 (open). The milestone audit (`milestones/v2.4-MILESTONE-AUDIT.md`) is `gaps_found` for those twelve only; integration 0 blockers; the owner chose an override closeout. Learnings: `59-`, `60-`, `64-LEARNINGS.md`. Archived under `milestones/v2.4-*` (roadmap, requirements, audit). Phase folders 59, 60 and 64 stay in `.planning/phases/` because 18 code and test files hardcode their paths (owner decision, 2026-10-26).
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-10-27 — Milestone v2.5 started
 
-Last activity: 2026-10-26 — v2.4 archived via `/gsd-complete-milestone` (override closeout; see Deferred Items).
-**Next:** initialize v2.5 (`/gsd-new-milestone`), whose first phase is the `trainex-r5` research round (open-book, diagnosis first). No new long training until it explains the time-constant output. The held-out evaluation stays preserved unspent.
+v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
+v2.4 time-constant failure before any redesign (the redesign is v2.6), on
+branch `milestone/v2.5`, created from `milestone/v2.4` at `dac9d9c1`. Before
+it: v2.4 closed 2026-10-26 at Gate G2 (verdict `RETHINK-REPRESENTATION`;
+owner decision `change-course`; archived under `milestones/v2.4-*`, local tag
+`v2.4`). The Phase 64 verifier and its tests now read
+`milestones/v2.4-PROJECT.md` (`dbc96887`), so PROJECT.md could be rewritten
+to the charter's C-12 and C-13 drafts. Phase folders 53–60 and 64 stay in
+`.planning/phases/`, because code and tests hardcode their paths. The plan
+may pivot on test results (owner, 2026-10-27): phases after the first
+experiments are provisional, the agent proposes changes, and the owner
+decides. The held-out evaluation stays preserved unspent.
+
+**This file is maintained by hand in this checkout.** The `gsd-tools`
+mutating verbs have corrupted it before (the full note is in this file at
+commit `b8632832`). The v2.5 start was written by hand and its diff reviewed.
 
 Phase 64 record (kept for reference): Phase 64 complete 2026-10-26; planned 2026-10-25 and executed in 7 waves. The verdict is RETHINK-REPRESENTATION; at owner checkpoint ① the owner decided `change-course` (ruling `64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`), and every charter row C-1 to C-14 was recorded `open`, so PROJECT.md and the twelve skipped-phase requirement statuses are unchanged. FEAS-06, FEAS-10 and VER-22 are complete, and VER-22 was re-verified at close on the final text: 24 defined, 24 in the traceability table, 24 in the roadmap. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`); Phases 61–63 skipped at G2.
 
@@ -958,11 +972,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/reports/MILESTONE_SUMMARY-v2.4.md (the v2.4 onboarding summary; its section 7 says where the next work starts)
+**Resume file:** .planning/PROJECT.md (the v2.5 Current Milestone section: goal, target features, order A, the pivot rule and scope)
 
-Last session: 2026-10-26
-Stopped at: Milestone v2.4 summary generated 2026-10-26 (`7b83e8a0`), after the audit (`5c1a05f6`), the learnings (`38a3ed5e`) and the close (`8bce08f2`, `dcf86c0b`, `5c38a76f`; local tag `v2.4`).
-Next action: initialize v2.5 (`/gsd-new-milestone` from .worktrees/trainex), whose first phase is the `trainex-r5` research round. Charter rows C-1..C-14 are open for the owner. Any merge to master and any tag push are the owner's. All computation is on this Mac.
+Last session: 2026-10-27
+Stopped at: Milestone v2.5 started 2026-10-27, after the Phase 64 verifier repoint (`dbc96887`); defining requirements and roadmap.
+Next action: finish `/gsd-new-milestone` (requirements, then the roadmap from Phase 65), then `/gsd-discuss-phase 65`. Any merge to master and any tag push are the owner's. All computation is on this Mac.
 
 ## Operator Next Steps
 
@@ -976,16 +990,16 @@ Next action: initialize v2.5 (`/gsd-new-milestone` from .worktrees/trainex), who
 - ~~Discuss Phase 64~~ — done 2026-10-25 (`64-CONTEXT.md`, `d3fb9816`).
 - ~~Plan and execute Phase 64~~ — done 2026-10-26: verdict `RETHINK-REPRESENTATION`; at checkpoint ① the owner decided `change-course` and left every charter row open; `64-VERIFICATION.md` PASS-WITH-OBSERVATIONS.
 - ~~v2.4 milestone close~~ — archived 2026-10-26: audit `gaps_found` for the twelve skipped-phase requirements only, learnings extracted for Phases 59, 60 and 64, override closeout, local annotated tag `v2.4`.
-- **Start v2.5** (`/gsd-new-milestone`): its first phase is the `trainex-r5` research round (open-book, diagnosis first), which explains why every trained network learned only each body's average position before any new long training. The eight unranked candidate fixes are in `64-VERDICT.md`.
+- ~~Start v2.5~~ — started 2026-10-27 (`/gsd-new-milestone`): confirm the cause of the time-constant output in-house first, with the redesign in v2.6; `trainex-r5` is re-aimed at the redesign question (order A). The eight unranked candidate fixes are in `64-VERDICT.md`.
 - **Owner decision, open: GAP-59-08** (`.planning/phases/59-read-only-baseline-scorecard/59-GAPS.md`).
   - **The finding.** The validation gate and the held-out evaluator compute energy error from finite-difference velocities on the 0.08 data grid. That grid gives 5–38% error even on Brutus's exact answers, so the `1e-5` exam cannot be passed as implemented.
   - **Recommendation.** Option A: autograd velocities, written in by a formal clarifying amendment.
-  - **Scope.** It blocks any held-out spend, not v2.4. Phase 64 puts it on checkpoint ① beside the pass bars (`64-CONTEXT.md` D-10).
-- **Owner decisions carried forward, open** (FEAS-10 charter rows C-1..C-14 in `64-CHARTER.md`; checkpoint ① on 2026-10-26 left every row open):
+  - **Scope.** It blocks any held-out spend, not v2.4. Phase 64 puts it on checkpoint ① beside the pass bars (`64-CONTEXT.md` D-10). v2.5 puts it to the owner in its yardstick work (charter row C-7).
+- **Owner decisions carried forward** (FEAS-10 charter rows C-1..C-14 in `64-CHARTER.md`; checkpoint ① on 2026-10-26 left every row open; the v2.5 start decided C-12, C-13 and C-14):
   - ~~the project's purpose~~ — answered 2026-10-25: learning plus a proof of concept (verbatim in `64-CONTEXT.md` D-07);
   - the budget: how many months of computing on this Mac (rented or cloud GPU time is not an option; standing owner rule, `PROJECT.md` Constraints);
-  - the pass bar per stage;
-  - approval to rewrite `PROJECT.md`'s "What This Is", which still describes the LLM project.
+  - the pass bar per stage — the Stage-0 rows (C-2, C-4 to C-7) are set inside v2.5;
+  - ~~approval to rewrite `PROJECT.md`'s "What This Is"~~ — approved 2026-10-27 (C-12 A, C-13 A) and applied at the v2.5 start; C-14 B (the twelve skipped v2.4 requirements are not carried forward).
 - ~~Hand off `trainex-r4`~~ — done; two engagements recorded with Rule-20 pins in the delivery note.
 - ~~Owner decision still open: where the v2.3 phase folders should live~~ — decided in the v2.4 proposal under owner delegation: they stay in `.planning/phases/` through v2.4; revisit at the v2.4 close.
 - **Phase-folder placement after the v2.4 close.** The owner decided on 2026-10-26 that the v2.4 folders 59, 60 and 64 stay in `.planning/phases/`, because 18 code and test files hardcode their paths. The close ran with `--no-archive-phases`, so the v2.3 folders 53–58 also stayed in place; their placement was not separately revisited and remains open.
