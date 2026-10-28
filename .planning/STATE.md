@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v2.5
 milestone_name: Root-Cause Confirmation
 status: planning
-stopped_at: "milestone v2.5 started 2026-10-27 (confirm the cause of the v2.4 time-constant failure; the redesign is v2.6); defining requirements and roadmap"
+stopped_at: "v2.5 roadmap created 2026-10-27 (5 phases 65-69, 13/13 requirements mapped); Phase 65 ready to plan"
 last_updated: "2026-10-28T01:08:19Z"
 last_activity: 2026-10-27
-last_activity_desc: milestone v2.5 Root-Cause Confirmation started on branch milestone/v2.5 (from milestone/v2.4 at dac9d9c1). The Phase 64 verifier and its tests were first repointed at milestones/v2.4-PROJECT.md (dbc96887); PROJECT.md was then rewritten to the charter's C-12 and C-13 drafts, with C-14 B recorded. Order A - in-house tests first, trainex-r5 re-aimed at the redesign. Phases after the first experiments are provisional (owner, 2026-10-27).
+last_activity_desc: milestone v2.5 Root-Cause Confirmation started on branch milestone/v2.5 (from milestone/v2.4 at dac9d9c1). The Phase 64 verifier and its tests were first repointed at milestones/v2.4-PROJECT.md (dbc96887); PROJECT.md was then rewritten to the charter's C-12 and C-13 drafts, with C-14 B recorded. Order A - in-house tests first, trainex-r5 re-aimed at the redesign. Phases after the first experiments are provisional (owner, 2026-10-27). Requirements defined (13; 85c1a930) and roadmap created (Phases 65–69, 13/13 mapped).
 state_head: dbc96887ef6a9c6a22d402a9b4494aea129dd8a1
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Milestone v2.5 started — defining requirements and roadmap (Phases 65 onward). All computation is on this Mac.
+**Current focus:** Milestone v2.5 — Phase 65 (Probe on the Record & Fit Harness) ready to plan. All computation is on this Mac.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 65 of 65–69 (Probe on the Record & Fit Harness)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-10-27 — Milestone v2.5 started
+Status: Ready to plan
+Last activity: 2026-10-27 — v2.5 started; requirements defined (13) and roadmap created (5 phases, 13/13 mapped)
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
 v2.4 time-constant failure before any redesign (the redesign is v2.6), on
@@ -757,6 +757,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 - v2.0: CTL-PINN Training Viability Slice (Phases 37–43) — roadmap created 2026-07-06. The project's first **build** milestone, opening the trainex track. 42 requirements mapped; standard granularity; 7 phases continuing from v1.6's Phase 36 (no reset). Dependency-ordered, no external gate: 37 ENV (dev env + D1-p probe) → 38 NET (`pinn/` rebuild, FUT-01) → 39 DATA (in-memory adapter + Stage-0 scan) → 40 TRAIN (Adam→L-BFGS Stage-0 loop, FUT-04) → 41 CTRL (config/checkpoint/guards/determinism) → 42 OPS (operator runbook + monitoring) → 43 ACC (verify + Stage-0 pilot + go/adjust/rethink verdict). Grounded in the ratified trainex-r1a decision set (2026-07-05); `pinn/` ban lifted; owner-carved decisions built as seams. Planning on `master`; build in `.worktrees/trainex`.
 - v2.1: Physics-Gate Investigation & trainex-r2 Research Package (Phases 44-45) — roadmap created 2026-07-23; both phases complete 2026-07-24, 7/7 requirements delivered; close PENDING five open gaps. Small granularity, 2 phases, no external gate inside the milestone (the gate opens at close). Phase 44 (DIAG-01..04) read-only forensics from retained v2.0 artifacts → `44-DIAGNOSIS.md`; Phase 45 (PKG-09..11) the trainex-r2 ERW package, delivered and audited PASS. SCOPE-22..26 held throughout: no evaluation, no training, no spec edits, no remedy chosen. **Post-delivery:** the returned report (Route B / open-book) established that the v2.0 Stage-0 pilot diverged from the locked specs in five verified respects, qualifying Phase 44's DIAG-04 rankings (`44-ERRATUM.md`) and opening GAP-44-02 + GAP-45-01..04. Branch `milestone/v2.1` in `.worktrees/trainex`.
 - v2.4: Stage-0 Feasibility Checkpoint (Phases 59–64) — roadmap created 2026-10-09, inline from the proposal ratified under owner delegation (`0b400dfa`). 20 requirements; standard granularity; 6 phases continuing from v2.3's Phase 58. A learnability ladder in front of the `trainex-r4` corrected control: 59 read-only baseline and scorecard (G1) → 60 single-system rungs, data only then physics (G2 can exit to the verdict) → 61 conformance and instrumentation → 62 gates and the 16-system rung (G3) → 63 the corrected control and its readout → 64 the feasibility verdict (owner decides). SCOPE-39..44: Stage-0 only, every run diagnostic, no graded run or held-out evaluation, pre-registration, amendment discipline, compute budgets. Branch `milestone/v2.4` in `.worktrees/trainex`. Amended 2026-10-11 with owner approval: FEAS-07..10 added (24 requirements, 24/24 mapped: FEAS-07/08→59, FEAS-09→60, FEAS-10→64), SCOPE-39/41/44 widened, owner checkpoint ④ added. (v2.2 and v2.3 bullets were never added here; their records are in `MILESTONES.md`.)
+- v2.5: Root-Cause Confirmation (Phases 65–69) — roadmap created 2026-10-27, inline from the owner-approved milestone text (`633f8eb4`) and requirements (`85c1a930`). 13 requirements; standard granularity; 5 phases continuing from v2.4's Phase 64: 65 the probe on the record and the fit harness (DIAG-09, INST-08) → 66 the small-network control (EXP-01; owner checkpoint ① reviews the plan) → 67 the depth, learning-rate, time-input and window ladders (EXP-02..05; provisional) → 69 findings and the owner's redesign decision (VERD-01/02, VER-23); 68 the yardstick (YARD-01..03; owner checkpoint ②) is independent of the experiments. SCOPE-45..49: Stage-0 training records only, no spec edits, one prediction page per experiment, this Mac only, and the pivot rule (results may add, drop or re-aim phases; the owner decides). Branch `milestone/v2.5` in `.worktrees/trainex`.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15); completed execution 2026-06-07.
 
@@ -975,8 +976,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** .planning/PROJECT.md (the v2.5 Current Milestone section: goal, target features, order A, the pivot rule and scope)
 
 Last session: 2026-10-27
-Stopped at: Milestone v2.5 started 2026-10-27, after the Phase 64 verifier repoint (`dbc96887`); defining requirements and roadmap.
-Next action: finish `/gsd-new-milestone` (requirements, then the roadmap from Phase 65), then `/gsd-discuss-phase 65`. Any merge to master and any tag push are the owner's. All computation is on this Mac.
+Stopped at: v2.5 initialized: verifier repoint `dbc96887`, milestone start `633f8eb4`, requirements `85c1a930`, roadmap created (5 phases, 65–69; 13/13 requirements mapped); branch milestone/v2.5 from milestone/v2.4 at dac9d9c1
+Next action: plan Phase 65 (DIAG-09, the probe on the record; INST-08, the diagnostic fit harness) via `/gsd-discuss-phase 65` or `/gsd-plan-phase 65`. The 2026-10-27 probe scripts are preserved outside the repo for Phase 65 to register. Any merge to master and any tag push are the owner's. All computation is on this Mac.
 
 ## Operator Next Steps
 

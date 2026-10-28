@@ -239,25 +239,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DIAG-09 | — | Pending |
-| INST-08 | — | Pending |
-| EXP-01 | — | Pending |
-| EXP-02 | — | Pending |
-| EXP-03 | — | Pending |
-| EXP-04 | — | Pending |
-| EXP-05 | — | Pending |
-| YARD-01 | — | Pending |
-| YARD-02 | — | Pending |
-| YARD-03 | — | Pending |
-| VERD-01 | — | Pending |
-| VERD-02 | — | Pending |
-| VER-23 | — | Pending |
+| DIAG-09 | Phase 65 | Pending |
+| INST-08 | Phase 65 | Pending |
+| EXP-01 | Phase 66 | Pending |
+| EXP-02 | Phase 67 | Pending |
+| EXP-03 | Phase 67 | Pending |
+| EXP-04 | Phase 67 | Pending |
+| EXP-05 | Phase 67 | Pending |
+| YARD-01 | Phase 68 | Pending |
+| YARD-02 | Phase 68 | Pending |
+| YARD-03 | Phase 68 | Pending |
+| VERD-01 | Phase 69 | Pending |
+| VERD-02 | Phase 69 | Pending |
+| VER-23 | Phase 69 | Pending |
 
 **Coverage:**
 - v2.5 requirements: 13 total
-- Mapped to phases: 0 (filled by the roadmap)
-- Unmapped: 13
+- Mapped to phases: 13
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-10-27*
-*Last updated: 2026-10-27 at the v2.5 start (`/gsd-new-milestone`)*
+*Last updated: 2026-10-27 at the v2.5 roadmap creation: traceability filled for Phases 65–69*
