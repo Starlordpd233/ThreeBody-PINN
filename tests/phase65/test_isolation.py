@@ -636,5 +636,150 @@ class CommittedArmBoundaryTests(unittest.TestCase):
             self.assertEqual(spy.call_count, 0)
 
 
+# ---------------------------------------------------------------------------
+# Plan 65-03 (D-09 / INST-08 d): diagnostic artifacts refused at the ACTUAL
+# production entry points, not merely inside the diagnostic readers.
+# ---------------------------------------------------------------------------
+
+
+def _snapshot_tree(root):
+    """Sorted relative paths under ``root`` — for unchanged-directory proofs."""
+    return sorted(str(path.relative_to(root)) for path in Path(root).rglob("*"))
+
+
+@contextmanager
+def _corpus_open_refused(corpus_root):
+    """Fail the test if any file under the corpus root is opened while active.
+
+    A targeted seam (unlike ``_no_open``): the diagnostic content guard itself
+    legitimately reads the checkpoint file, so only corpus-root paths refuse.
+    """
+    import builtins
+
+    real_open = builtins.open
+    root = Path(corpus_root).resolve()
+
+    def guarded(file, *args, **kwargs):
+        try:
+            resolved = Path(file).resolve()
+        except (TypeError, ValueError, OSError):
+            resolved = None
+        if resolved is not None and (resolved == root or resolved.is_relative_to(root)):
+            raise AssertionError(f"corpus file opened: {file}")
+        return real_open(file, *args, **kwargs)
+
+    with mock.patch("builtins.open", side_effect=guarded):
+        yield
+
+
+class EvaluateEntryIsolationTests(unittest.TestCase):
+    """65-03-01: evaluate_run refuses INST-08 artifacts beside valid provenance.
+
+    Each negative case places the diagnostic artifact INSIDE a real, fully
+    valid run layout (frozen ``config.yaml`` + persisted ``splits.json`` with a
+    NONEMPTY test split), so a missing config, an empty split or an ownership
+    error can never be the reason the refusal fires — only the artifact's
+    intrinsic diagnostic content. The evaluator's zero-effect contract is
+    asserted with spies on the claim, the manifest, the data adapter, the stage
+    index and the corpus open seam, plus an unchanged-directory snapshot.
+    """
+
+    def setUp(self):
+        stack = ExitStack()
+        self.addCleanup(stack.close)
+        from tests.phase43.test_evaluate_gate import _build_run
+
+        corpus = stack.enter_context(TinyCorpus())
+        tmp = stack.enter_context(TemporaryDirectory(prefix="phase65-entry-"))
+        ratios = SplitRatios(train=0.0, validation=0.0, test=1.0)
+        self.runs_root, self.run_dir, self.production_ckpt = _build_run(
+            tmp, corpus, ratios=ratios
+        )
+        self.corpus_root = Path(corpus.data_root)
+        # The layout is genuinely evaluable: a nonempty test split exists.
+        from pinn.data.splits import SplitManifest
+
+        self.manifest = SplitManifest.from_path(self.run_dir / "splits.json")
+        self.assertGreater(len(self.manifest.fixed_order("test")), 0)
+
+    def _relocated(self, name, *, payload=None, json_record=False):
+        directory = self.run_dir / "checkpoints"
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / name
+        if json_record:
+            path.write_bytes(
+                evidence_io.canonical_json_bytes(_diagnostic_record_payload())
+            )
+        else:
+            atomic_write_torch(path, payload or _diagnostic_weights_payload())
+        return path
+
+    def _assert_refused_as_diagnostic_before_any_effect(self, path):
+        from pinn import evaluate as evaluate_module
+
+        before = _snapshot_tree(self.runs_root)
+        with mock.patch.object(
+            evaluate_module, "_claim_evaluation_attempt",
+            side_effect=AssertionError("evaluation claim"),
+        ) as claim, mock.patch.object(
+            evaluate_module, "AdmittedSetAdapter",
+            side_effect=AssertionError("data adapter"),
+        ) as adapter, mock.patch.object(
+            evaluate_module, "SplitManifest",
+        ) as manifest_cls, mock.patch.object(
+            evaluate_module, "StageIndex",
+        ) as stage_cls, _corpus_open_refused(self.corpus_root):
+            manifest_cls.from_path.side_effect = AssertionError(
+                "held-out manifest materialized"
+            )
+            stage_cls.from_split.side_effect = AssertionError("stage index built")
+            with self.assertRaises(evaluate_module.CheckpointOwnershipError) as caught:
+                evaluate_module.evaluate_run(
+                    checkpoint_path=path,
+                    output_dir=self.run_dir / "evaluation",
+                    runs_root=self.runs_root,
+                )
+        message = str(caught.exception)
+        self.assertIn("diagnostic", message)
+        self.assertIn(path.name, message)
+        self.assertEqual(claim.call_count, 0)
+        self.assertEqual(adapter.call_count, 0)
+        self.assertEqual(manifest_cls.from_path.call_count, 0)
+        self.assertEqual(stage_cls.from_split.call_count, 0)
+        self.assertEqual(_snapshot_tree(self.runs_root), before)
+
+    def test_native_relocated_weights_are_refused_before_any_effect(self):
+        path = self._relocated("model.weights")
+        self._assert_refused_as_diagnostic_before_any_effect(path)
+
+    def test_a_renamed_json_record_is_refused_before_any_effect(self):
+        path = self._relocated("final-result.pt", json_record=True)
+        self._assert_refused_as_diagnostic_before_any_effect(path)
+
+    def test_a_marked_envelope_with_every_ctx53_key_is_refused(self):
+        # All seven CTX-53 required keys present AND schema_version matches, so
+        # key absence cannot supply the refusal — only the intrinsic marker.
+        payload = _production_payload(with_marker=True)
+        self.assertEqual(payload["schema_version"], CHECKPOINT_SCHEMA_VERSION)
+        path = self._relocated("step-000002.pt", payload=payload)
+        self._assert_refused_as_diagnostic_before_any_effect(path)
+
+    def test_an_ordinary_production_checkpoint_clears_the_guard_and_evaluates(self):
+        from pinn import evaluate as evaluate_module
+
+        self.assertIsNone(guard.require_not_diagnostic(self.production_ckpt))
+        outcome = evaluate_module.evaluate_run(
+            checkpoint_path=self.production_ckpt,
+            output_dir=self.run_dir / "evaluation",
+            runs_root=self.runs_root,
+        )
+        # The control really claimed and evaluated: the layout is valid, so the
+        # negative refusals above can only come from the diagnostic content.
+        self.assertIn(outcome.verdict, ("PASS", "FAIL"))
+        self.assertGreater(outcome.n_test_trajectories, 0)
+        self.assertTrue((self.run_dir / "evaluation" / "evaluation-receipt.json").is_file())
+        self.assertTrue((self.run_dir / "evaluation" / "evaluation-attempt.json").is_file())
+
+
 if __name__ == "__main__":
     unittest.main()
