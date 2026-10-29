@@ -44,7 +44,11 @@ from pinn.verification import diagnostic_guard as guard
 from pinn.verification import evidence_io
 from pinn.verification.feasibility_scorecard import load_scorecard
 from pinn.verification.learnability_arms import arm_spec, fixture_arm
-from pinn.verification.learnability_data import fixture_context, load_arm_data
+from pinn.verification.learnability_data import (
+    EXPECTED_STATS_SHA256,
+    fixture_context,
+    load_arm_data,
+)
 from pinn.verification.split_allowlist import (
     GENERATION7_SPLITS_REL,
     AllowlistedCorpusReader,
@@ -387,10 +391,38 @@ class StageBoundaryModuleTests(unittest.TestCase):
         for name in (
             "Stage0TrainingReader", "Stage0TrainingRefused", "require_stage0_training",
             "load_diagnostic_data", "one_orbit_spec",
+            "DiagnosticDataRefused", "DiagnosticContext", "open_diagnostic_context",
+            "load_recorded_stats", "validate_window", "physical_window",
         ):
             self.assertTrue(
                 hasattr(module, name), f"diagnostic_data.{name} is missing"
             )
+
+
+class AttestationIntegrationTests(unittest.TestCase):
+    """The process open attestation is the second, independent test-split check."""
+
+    def test_construction_needs_metadata_only_and_a_withheld_read_is_refused(self):
+        data = _diagnostic_data(self)
+        context = data.open_diagnostic_context()
+        self.assertEqual(context.run_kind, "diagnostic")
+        self.assertIsInstance(context.reader, data.Stage0TrainingReader)
+        self.assertIsInstance(context.reader, AllowlistedCorpusReader)
+        self.assertEqual(context.stats_sha256, EXPECTED_STATS_SHA256)
+        summary = context.attestation.summary()
+        self.assertEqual(summary["opened"]["train"], 0)
+        self.assertEqual(summary["opened"]["validation"], 0)
+        self.assertEqual(summary["test_split_opened"], 0)
+        # The independent check: a withheld test key raises at admission and
+        # the attestation records the refusal with no test-split open.
+        withheld = next(iter(context.allowlist.withheld))
+        key = RecordKey(withheld.variant, "base", withheld.id)
+        with self.assertRaises(SplitRefused):
+            context.reader.read(key)
+        summary = context.attestation.summary()
+        self.assertEqual(summary["test_split_opened"], 0)
+        self.assertGreaterEqual(summary["refused_before_open"], 1)
+        self.assertEqual(context.reader.access_summary()["actual_opens"], 0)
 
 
 class Stage0AdmissionTests(unittest.TestCase):

@@ -21,6 +21,7 @@ from contextlib import ExitStack
 from pathlib import Path
 from unittest import mock
 
+import numpy as np
 import torch
 
 from pinn.architecture_spec import ArchitectureSpec
@@ -38,9 +39,12 @@ from pinn.verification.feasibility_scorer import score_network
 from pinn.verification.learnability_arms import SEED
 from pinn.verification.learnability_data import fixture_context, load_arm_data
 from pinn.verification.learnability_protocol import PINNED_MODULES, load_protocol
+from pinn.verification.split_allowlist import AllowlistedCorpusReader
 from tests.phase60._fixtures import gold_corpus_fixture
 from tests.phase65.test_fit_short import _loaded
+from tests.phase65.test_isolation import _no_open, stage_boundary_fixture
 
+ROOT = Path(__file__).resolve().parents[2]
 CPU = torch.device("cpu")
 
 
@@ -328,6 +332,327 @@ class FitRecordContractTests(unittest.TestCase):
         self.assertEqual(
             self.record["source_sha256"], dict(protocol.payload["module_sha256"])
         )
+
+
+# ---------------------------------------------------------------------------
+# Plan 65-02 (D-08/D-09): recorded normalizer hydration and physical windows.
+# ---------------------------------------------------------------------------
+
+_EVIDENCE_REL = Path(
+    ".planning/phases/59-read-only-baseline-scorecard/evidence"
+)
+
+
+def _data_module(case):
+    try:
+        return importlib.import_module("pinn.verification.diagnostic_data")
+    except ImportError as exc:
+        case.fail(f"pinn.verification.diagnostic_data is missing: {exc}")
+
+
+def _copy_evidence(tmp):
+    """A temp evidence root holding byte-copies of the committed Phase 59 files."""
+    import shutil
+
+    audit = tmp / _EVIDENCE_REL / "audit"
+    audit.mkdir(parents=True)
+    source = ROOT / _EVIDENCE_REL
+    shutil.copyfile(source / "manifest.json", tmp / _EVIDENCE_REL / "manifest.json")
+    shutil.copyfile(source / "audit" / "reader_acceptance.json", audit / "reader_acceptance.json")
+    return tmp
+
+
+def _rewrite_evidence(tmp, mutate):
+    """Rewrite the temp reader-acceptance payload, keeping the manifest digest true."""
+    import hashlib
+
+    path = tmp / _EVIDENCE_REL / "audit" / "reader_acceptance.json"
+    payload = json.loads(path.read_bytes().decode("utf-8"))
+    mutate(payload)
+    raw = json.dumps(payload, indent=2).encode("utf-8")
+    path.write_bytes(raw)
+    manifest_path = tmp / _EVIDENCE_REL / "manifest.json"
+    manifest = json.loads(manifest_path.read_bytes().decode("utf-8"))
+    manifest["files"]["audit/reader_acceptance.json"] = {
+        "sha256": hashlib.sha256(raw).hexdigest(),
+        "size_bytes": len(raw),
+    }
+    manifest_path.write_bytes(json.dumps(manifest, indent=2).encode("utf-8"))
+    return path
+
+
+class RecordedNormalizerTests(unittest.TestCase):
+    """The retained IC13 statistics hydrate exactly, with no recovery or refit."""
+
+    def test_the_recorded_stats_reproduce_the_expected_digest(self):
+        data = _data_module(self)
+        from pinn.verification.learnability_data import EXPECTED_STATS_SHA256
+
+        recorded = data.load_recorded_stats(ROOT)
+        self.assertEqual(recorded.stats_sha256, EXPECTED_STATS_SHA256)
+        self.assertEqual(recorded.evidence_path, _EVIDENCE_REL.as_posix() + "/audit/reader_acceptance.json")
+        # The committed evidence digest matches the Phase 59 manifest entry.
+        import hashlib
+
+        raw = (ROOT / _EVIDENCE_REL / "audit" / "reader_acceptance.json").read_bytes()
+        self.assertEqual(recorded.evidence_sha256, hashlib.sha256(raw).hexdigest())
+
+    def test_hydration_needs_no_record_read_and_invokes_no_recovery_or_refit(self):
+        data = _data_module(self)
+        from pinn.verification import learnability_data, production_reference
+
+        with mock.patch.object(
+            data.Stage0TrainingReader, "read", side_effect=AssertionError("guarded read")
+        ) as guarded_read, mock.patch.object(
+            data.Stage0TrainingReader, "exists", side_effect=AssertionError("guarded exists")
+        ) as guarded_exists, mock.patch.object(
+            learnability_data, "open_real_context", side_effect=AssertionError("open_real_context")
+        ), mock.patch.object(
+            production_reference, "recover_normalizer_from_checkpoint",
+            side_effect=AssertionError("monitor recovery"),
+        ), mock.patch.object(
+            production_reference, "fallback_normalizer_from_allowlist",
+            side_effect=AssertionError("allowlist fallback"),
+        ), mock.patch.object(
+            production_reference, "compute_normalization_stats",
+            side_effect=AssertionError("normalizer refit"),
+        ):
+            recorded = data.load_recorded_stats(ROOT)
+        self.assertEqual(guarded_read.call_count, 0)
+        self.assertEqual(guarded_exists.call_count, 0)
+        self.assertEqual(recorded.stats_sha256, "77526e53c394bbac4d4a0e8fdd5a7688f0bda108d41c56277b55ad426a7a79f6")
+
+    def test_context_construction_needs_metadata_only(self):
+        data = _data_module(self)
+        from pinn.verification import learnability_data, production_reference
+        from pinn.verification.learnability_data import EXPECTED_STATS_SHA256
+
+        with mock.patch.object(
+            learnability_data, "open_real_context", side_effect=AssertionError("open_real_context")
+        ), mock.patch.object(
+            production_reference, "recover_normalizer_from_checkpoint",
+            side_effect=AssertionError("monitor recovery"),
+        ), mock.patch.object(
+            production_reference, "fallback_normalizer_from_allowlist",
+            side_effect=AssertionError("allowlist fallback"),
+        ), mock.patch.object(
+            production_reference, "compute_normalization_stats",
+            side_effect=AssertionError("normalizer refit"),
+        ), mock.patch.object(
+            data.Stage0TrainingReader, "read", side_effect=AssertionError("guarded read")
+        ):
+            context = data.open_diagnostic_context()
+        self.assertEqual(context.stats_sha256, EXPECTED_STATS_SHA256)
+        self.assertEqual(context.run_kind, "diagnostic")
+        self.assertIn("reader_acceptance", context.normalizer_source)
+        self.assertEqual(context.splits_sha256, context.allowlist.manifest_sha256)
+        summary = context.attestation.summary()
+        self.assertEqual(summary["opened"]["train"], 0)
+        self.assertEqual(summary["opened"]["validation"], 0)
+        self.assertEqual(summary["test_split_opened"], 0)
+
+    def test_a_changed_evidence_file_halts_on_the_committed_digest(self):
+        data = _data_module(self)
+        with tempfile.TemporaryDirectory(prefix="phase65-tamper-") as raw:
+            tmp = _copy_evidence(Path(raw))
+            path = tmp / _EVIDENCE_REL / "audit" / "reader_acceptance.json"
+            path.write_bytes(path.read_bytes() + b"\n")  # digest changed, manifest not
+            with self.assertRaises(data.DiagnosticDataRefused) as caught:
+                data.load_recorded_stats(tmp)
+            self.assertIn("committed", str(caught.exception))
+
+    def test_tampered_statistics_zero_stds_and_substituted_subsets_halt(self):
+        data = _data_module(self)
+
+        def bump_means(payload):
+            payload["normalizer"]["slot_means"][0] += 1.0
+
+        def zero_std(payload):
+            payload["normalizer"]["slot_stds"][3] = 0.0
+
+        def short_means(payload):
+            payload["normalizer"]["slot_means"] = payload["normalizer"]["slot_means"][:11]
+
+        def string_std(payload):
+            payload["normalizer"]["slot_stds"][7] = "0.2"
+
+        def wrong_recorded_digest(payload):
+            payload["normalizer"]["stats_sha256"] = "0" * 64
+
+        def drop_block(payload):
+            del payload["normalizer"]
+
+        for label, mutate in (
+            ("changed means", bump_means),
+            ("zero std", zero_std),
+            ("substituted subset", short_means),
+            ("non-numeric std", string_std),
+            ("wrong recorded digest", wrong_recorded_digest),
+            ("missing block", drop_block),
+        ):
+            with self.subTest(label=label):
+                with tempfile.TemporaryDirectory(prefix="phase65-tamper-") as raw:
+                    tmp = _copy_evidence(Path(raw))
+                    _rewrite_evidence(tmp, mutate)  # manifest digest stays true
+                    with self.assertRaises(data.DiagnosticDataRefused):
+                        data.load_recorded_stats(tmp)
+
+    def test_a_missing_evidence_file_or_manifest_entry_halts(self):
+        data = _data_module(self)
+        with tempfile.TemporaryDirectory(prefix="phase65-tamper-") as raw:
+            tmp = _copy_evidence(Path(raw))
+            (tmp / _EVIDENCE_REL / "audit" / "reader_acceptance.json").unlink()
+            with self.assertRaises(data.DiagnosticDataRefused):
+                data.load_recorded_stats(tmp)
+            tmp2 = _copy_evidence(Path(raw) / "second")
+            manifest_path = tmp2 / _EVIDENCE_REL / "manifest.json"
+            manifest = json.loads(manifest_path.read_bytes().decode("utf-8"))
+            del manifest["files"]["audit/reader_acceptance.json"]
+            manifest_path.write_bytes(json.dumps(manifest).encode("utf-8"))
+            with self.assertRaises(data.DiagnosticDataRefused):
+                data.load_recorded_stats(tmp2)
+
+
+class WindowBoundaryTests(unittest.TestCase):
+    """E-INST: exact physical windows, strict grids and locked-T tau."""
+
+    def setUp(self):
+        stack = ExitStack()
+        self.addCleanup(stack.close)
+        self.fixture = stack.enter_context(stage_boundary_fixture())
+        self.data = _data_module(self)
+        self.reader = self.data.Stage0TrainingReader(
+            allowlist=self.fixture.allowlist,
+            data_root=self.fixture.data_root,
+            data_root_source=self.fixture.data_root_source,
+            blacklist_path=self.fixture.blacklist_path,
+        )
+        self.context = fixture_context(
+            allowlist=self.fixture.allowlist, reader=self.reader, stats=self.fixture.stats
+        )
+        self.spec = self.data.one_orbit_spec(self.fixture.valid_gold)
+        self.scorecard = load_scorecard()  # loaded before any spy is armed
+
+    def _load(self, window_length=None, **kwargs):
+        call = dict(
+            spec=self.spec, context=self.context, scorecard=self.scorecard,
+            dtype=torch.float64, device=CPU,
+        )
+        if window_length is not None:
+            call["window_length"] = window_length
+        call.update(kwargs)
+        return self.data.load_diagnostic_data(**call)
+
+    def _gold_times(self):
+        from pinn.verification.production_reference import load_reference
+
+        reference = load_reference(self.reader, self.fixture.valid_gold)
+        return np.asarray(reference.times, dtype=np.float64).reshape(-1)
+
+    def test_windows_outside_the_domain_refuse_before_any_read(self):
+        for bad in (0.0, -1.0, 10.0000001, float("nan"), float("inf"), float("-inf"), "10", True, None):
+            with self.subTest(bad=bad):
+                stack, spies = _no_open()
+                with stack:
+                    with self.assertRaises(self.data.DiagnosticDataRefused):
+                        self._load(bad)
+                for spy in spies:
+                    self.assertEqual(spy.call_count, 0)
+                self.assertEqual(self.reader.access_summary()["actual_opens"], 0)
+
+    def test_endpoint_membership_is_exact(self):
+        times = self._gold_times()
+        endpoint = float(times[5])
+        self.assertTrue((endpoint > 0.0) and (endpoint < 10.0))
+        exact = self.data.physical_window(times, endpoint)
+        below = self.data.physical_window(times, np.nextafter(endpoint, -np.inf))
+        above = self.data.physical_window(times, np.nextafter(endpoint, np.inf))
+        # The endpoint itself is included exactly once; anything above is not.
+        self.assertTrue(exact[5])
+        self.assertEqual(int(exact.sum()), 6)
+        self.assertFalse(below[5])
+        self.assertEqual(int(below.sum()), 5)
+        self.assertTrue(above[5])
+        self.assertEqual(int(above.sum()), 6)
+        self.assertFalse(exact[6])
+        self.assertFalse(above[6])
+        self.assertFalse(below[6])
+
+    def test_duplicate_or_unsorted_times_refuse(self):
+        times = np.asarray([0.0, 0.5, 0.5, 1.0])
+        with self.assertRaises(self.data.DiagnosticDataRefused):
+            self.data.physical_window(times, 10.0)
+        with self.assertRaises(self.data.DiagnosticDataRefused):
+            self.data.physical_window(np.asarray([1.0, 0.5]), 10.0)
+        with self.assertRaises(self.data.DiagnosticDataRefused):
+            self.data.physical_window(np.asarray([0.0, np.nan, 1.0]), 10.0)
+
+    def test_a_window_with_fewer_than_two_samples_refuses(self):
+        times = self._gold_times()
+        first_step = float(times[1])
+        stack, spies = _no_open()
+        with stack:
+            with self.assertRaises(self.data.DiagnosticDataRefused) as caught:
+                self._load(first_step / 2.0)
+        self.assertIn("two", str(caught.exception))
+
+    def test_tau_uses_the_locked_characteristic_time_not_the_window(self):
+        from pinn.constants import T_CHARACTERISTIC_TIME
+
+        window = 2.0
+        loaded = self._load(window)
+        times = np.asarray(loaded.records["train"]["times_physical"], dtype=np.float64)
+        tau = np.asarray(loaded.records["train"]["tau"], dtype=np.float64)
+        self.assertEqual(times[0], 0.0)
+        self.assertLess(float(times[-1]), window)  # the grid need not touch the endpoint
+        expected = 2.0 * (torch.as_tensor(times) / T_CHARACTERISTIC_TIME) - 1.0
+        self.assertTrue(torch.equal(torch.as_tensor(tau), expected))
+        # Locked T, not rescaled to the shorter window: tau stays inside [-1, -0.6].
+        self.assertEqual(float(tau[0]), -1.0)
+        self.assertGreater(float(tau[-1]), -1.0)
+        self.assertLess(float(tau[-1]), 2.0 * (window / T_CHARACTERISTIC_TIME) - 1.0 + 1e-12)
+        self.assertLess(float(tau[-1]), 0.0)  # a rescaled [-1, 1] window would end at 0
+        # Physical adjacency is preserved separately from tau.
+        np.testing.assert_array_equal(np.diff(times), np.diff(times))
+
+    def test_target_scores_and_comparisons_share_one_ordered_time_grid(self):
+        loaded = self._load(5.0)
+        times = np.asarray(loaded.records["train"]["times_physical"], dtype=np.float64)
+        self.assertEqual(loaded.score.times.shape, loaded.data_points.tau_ic13.shape[:1])
+        np.testing.assert_array_equal(loaded.score.times, times)
+        self.assertTrue(np.all(np.diff(times) > 0.0))
+        self.assertEqual(loaded.data_points.targets.shape[0], times.shape[0])
+
+    def test_the_train_summary_records_the_window_and_retained_indices(self):
+        window = 5.0
+        loaded = self._load(window)
+        times = self._gold_times()
+        expected_indices = [int(i) for i in np.flatnonzero((times >= 0.0) & (times <= window))]
+        entry = loaded.records["train"]
+        self.assertEqual(entry["requested_window"], [0.0, window])
+        self.assertEqual(entry["retained_indices"], expected_indices)
+        self.assertEqual(entry["n_within_window"], len(expected_indices))
+        self.assertEqual(entry["split"], "train")
+
+    def test_the_full_window_matches_the_existing_scored_horizon(self):
+        loaded = self._load(10.0)
+        plain = load_arm_data(
+            self.spec,
+            fixture_context(
+                allowlist=self.fixture.allowlist,
+                reader=AllowlistedCorpusReader(
+                    allowlist=self.fixture.allowlist,
+                    data_root=self.fixture.data_root,
+                    data_root_source=self.fixture.data_root_source,
+                    blacklist_path=self.fixture.blacklist_path,
+                ),
+                stats=self.fixture.stats,
+            ),
+            scorecard=self.scorecard, dtype=torch.float64, device=CPU,
+        )
+        self.assertTrue(torch.equal(loaded.data_points.tau_ic13, plain.data_points.tau_ic13))
+        np.testing.assert_array_equal(loaded.score.times, plain.score.times)
+        np.testing.assert_array_equal(loaded.score.positions, plain.score.positions)
 
 
 if __name__ == "__main__":
