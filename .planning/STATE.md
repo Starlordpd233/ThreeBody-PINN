@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 65
 current_phase_name: Probe on the Record & Fit Harness
 status: executing
-stopped_at: "Completed 65-02-PLAN.md (Stage-0 data boundary)"
-last_updated: "2026-10-29T04:10:00Z"
+stopped_at: "Completed 65-03-PLAN.md (production-entry isolation)"
+last_updated: "2026-10-29T17:56:00Z"
 last_activity: 2026-10-29
-last_activity_desc: Plan 65-02 executed (Wave 2)
-state_head: 13588cd9bfec6cde44b3c11728067191c5f0224c
+last_activity_desc: Plan 65-03 executed (Wave 3)
+state_head: 039d78ab6b965152c23f2098853862a76be8921c
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
-  percent: 33
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 65 (Probe on the Record & Fit Harness) — EXECUTING
-Plan: 3 of 6
-Status: Executing Phase 65 (Wave 2 complete)
-Last activity: 2026-10-29 — Plan 65-02 executed (Wave 2)
+Plan: 4 of 6
+Status: Executing Phase 65 (Wave 3 complete)
+Last activity: 2026-10-29 — Plan 65-03 executed (Wave 3)
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
 v2.4 time-constant failure before any redesign (the redesign is v2.6), on
@@ -52,6 +52,12 @@ mutating verbs have corrupted it before (the full note is in this file at
 commit `b8632832`). The v2.5 start was written by hand and its diff reviewed.
 
 Phase 64 record (kept for reference): Phase 64 complete 2026-10-26; planned 2026-10-25 and executed in 7 waves. The verdict is RETHINK-REPRESENTATION; at owner checkpoint ① the owner decided `change-course` (ruling `64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`), and every charter row C-1 to C-14 was recorded `open`, so PROJECT.md and the twelve skipped-phase requirement statuses are unchanged. FEAS-06, FEAS-10 and VER-22 are complete, and VER-22 was re-verified at close on the final text: 24 defined, 24 in the traceability table, 24 in the roadmap. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`); Phases 61–63 skipped at G2.
+
+### Decisions from 65-03 (2026-10-29)
+
+- Diagnostic isolation now holds at the actual production entry points (INST-08 d / D-09): `evaluate_run` calls `require_not_diagnostic` after the canonical-frame precondition and the prior-attempt check and before the config/manifest load, the exclusive claim or any adapter construction, translating the typed refusal into its existing public `CheckpointOwnershipError` convention; `train.main` runs the new read-only `require_resume_not_diagnostic` admission (explicit file / directory / literal latest, mirroring `load_resume_target`'s routing over the run's own checkpoints directory) before `run_dir.mkdir`, never constructing a checkpoint store. A marked newest candidate refuses instead of falling through to an older ordinary file; ordinary production resumes keep their exact routing and ordering. Four RED/GREEN commits (`e887ac24`, `14529e8a`, `bcbf762c`, `6449a2ec`), each RED machine-verified `RED_EVIDENCE_OK`; SUMMARY `039d78ab`.
+- Payload-level refusals make every return path diagnostic-proof: `DiagnosticCheckpointRefused` (a `NoValidCheckpointError` subclass, so existing callers, Phase 60's `assertRaises(NoValidCheckpointError)` tests and the CLI nonzero convention keep working) is raised on `load_latest` (outside the corrupt-file handler), `fallback_scan`, `load_checkpoint` (marker before the structural test, so CTX-53 key absence cannot supply the refusal) and `load_resume_target`'s returned-payload boundary; `_is_structurally_valid` also refuses marked payloads. checkpoint.py owns the single selection implementation (`fallback_candidates`/`peek_latest_selection`, store methods delegate) and imports the marker predicate from diagnostic_guard at module level; diagnostic_guard reaches the selection seam via a deferred in-function import, so no import cycle exists.
+- Verification: the 77-test verify command and the 108-test full phase65 suite pass; regression suites for every touched seam (phase41 checkpoint+resume 78 OK, train entrypoint 26 OK, phase60 refusals + phase57 gate 32 OK, phase43 evaluate 28 OK, phase40 checkpoint + phase41 controllers_ext OK); `load_protocol()` revalidates all 33 pinned digests; `git diff --check` clean; no pinned file touched; no real corpus record opened; no `runs/` tree; the held-out evaluation remains unspent. Negative cases sit beside fully valid provenance with a nonempty test split and a completing ordinary control, so no refusal rides on missing config, empty split or ownership. INST-08 and DIAG-09 stay open (later plans own them).
 
 ### Decisions from 65-02 (2026-10-29)
 
