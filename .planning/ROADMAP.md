@@ -45,6 +45,7 @@
 The lead is the 2026-10-27 probe. After training, the network's hidden states at neighbouring times are unrelated from layer 2–3 onward, so it can only predict the average.
 
 **What this milestone deliberately does not do:**
+
 - redesign or rebuild the network, or edit a framework spec (v2.6);
 - fix the physics-term defects (carried into v2.6 by name);
 - spend a graded run or the preserved held-out evaluation;
@@ -53,6 +54,7 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 **Granularity:** standard. 5 phases, 13 requirements: DIAG-09, INST-08, EXP-01..05, YARD-01..03, VERD-01..02, VER-23.
 **Coverage:** 13/13 v2.5 requirements mapped at roadmap creation. VER-23's binding check is at the close, against the final requirement count, including anything added under SCOPE-49.
 **Branch:** work continues in `.worktrees/trainex` on `milestone/v2.5`, created 2026-10-27 from `milestone/v2.4` at `dac9d9c1`.
+
 - Its first commits repoint the Phase 64 verifier at the v2.4 project archive (`dbc96887`), start the milestone (`633f8eb4`) and define the requirements (`85c1a930`).
 - Commits are per-plan and atomic, via `scripts/agent-commit` with `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS` set.
 - No push to protected branches. `master` stays governance-only, and integration is user-controlled.
@@ -111,6 +113,7 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 **Requirements**: DIAG-09, INST-08
 **Gate**: if the probe does not reproduce, the lead is withdrawn. The agent proposes re-aiming Phases 66–67 (owner checkpoint ①), and under order A `trainex-r5` would run on the diagnosis.
 **Success Criteria** (what must be TRUE):
+
   1. The probe script and the 2026-10-27 figures, as predictions with a reproduction tolerance, are committed before it runs. Each figure is recorded as reproduced or not on all seven arms, at initialization and after training, with every weight file checked by SHA-256 before loading.
   2. The harness's tests pass:
      - its 12-layer locked variant gives the production network's forward pass at the same seed and weights;
@@ -119,7 +122,31 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
      - test-split paths are refused, and the graded-run and evaluator paths refuse its records.
   3. A short run on orbit 1632 completes and is scored. Its measured seconds per step is recorded, and sets the budgets for Phases 66–67.
   4. No training step ran in the probe, and no test-split file was opened. The tooling asserts this.
+
 **Plans**: TBD
+**Wave 1**
+
+- [ ] 65-01-PLAN.md
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 65-02-PLAN.md
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 65-03-PLAN.md
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 65-04-PLAN.md
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 65-05-PLAN.md
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 65-06-PLAN.md
 
 ### Phase 66: Small-Network Control
 
@@ -127,13 +154,17 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 **Depends on**: Phase 65 (the harness and its measured rate).
 **Requirements**: EXP-01
 **Gate (owner checkpoint ①)**: the result is reviewed against the plan before Phase 67 starts. These branches are pre-registered (`REQUIREMENTS.md`, "How the first results can reshape the plan"):
+
 - **Tier 1 on 1632:** "too small" is refuted for one orbit, and Phase 67 runs as planned to find which part of the locked design fails.
 - **Near the constant predictor's `E`:** the lead does not explain the failure on its own. The agent proposes an inserted phase that checks the path from the data to the scorer first.
 - **Anything else:** it goes to the owner.
+
 **Success Criteria** (what must be TRUE):
+
   1. A prediction page is committed before the first run. It gives the network's architecture and parameter count (fewer layers and parameters than the locked network), what each suspect predicts, the budget from the measured rate, and the reading rule.
   2. The result on orbit 1632 is scored: tier, `E` against the constant predictor and the two-Kepler formula, and the neighbour-similarity trace. A confirming result is repeated on a second panel system and a second seed.
   3. The review is recorded: the branch taken, the plain-language reading, and any plan change proposed under SCOPE-49 with the owner's answer.
+
 **Plans**: TBD
 
 ### Phase 67: Design & Settings Ladders
@@ -142,10 +173,12 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 **Depends on**: Phase 66 and its review. The phase is provisional: the review may re-aim, reorder or drop its experiments.
 **Requirements**: EXP-02, EXP-03, EXP-04, EXP-05
 **Success Criteria** (what must be TRUE):
+
   1. Each experiment has its prediction page committed before its first run.
   2. The depth ladder records `E`, tier and per-layer neighbour similarity at 2, 4, 6, 8 and 12 layers. The learning-rate ladder records the same, with the similarity trace through training, at each rate.
   3. The time-input design and the window-length experiments each record `E`, tier and similarity for every variant, on the locked depth and, for time input, on the Phase 66 network.
   4. Every confirming result is repeated on a second panel system and a second seed, and every result is reviewed against the plan under SCOPE-49.
+
 **Plans**: TBD
 
 ### Phase 68: Yardstick
@@ -154,11 +187,13 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 **Depends on**: Nothing in v2.5's experiments. It uses only the frozen scorer, the gates and Brutus data, and may run at any point before Phase 69.
 **Requirements**: YARD-01, YARD-02, YARD-03
 **Success Criteria** (what must be TRUE):
+
   1. A committed, re-derivable table shows, for every metric and gate, the result for Brutus's exact answer and for the constant predictor on the three panel systems. Every metric that the constant predictor passes is named.
   2. The finite-difference `ε_H` floor at the 0.01 gold cadence on the Stage-0 training panel is measured, as the evidence for C-7 option B.
   3. The owner's C-7 choice is recorded verbatim, and GAP-59-08 is closed with it.
   4. The owner's C-2, C-4, C-5 and C-6 choices are recorded verbatim, with any row left open recorded as open. Every amendment they call for is routed to v2.6.
   5. No test-split file was opened and no held-out evaluation was spent.
+
 **Plans**: TBD
 
 ### Phase 69: Findings & Redesign Decision
@@ -167,17 +202,19 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 **Depends on**: Phases 67 and 68, or an earlier exit the owner approves under SCOPE-49.
 **Requirements**: VERD-01, VERD-02, VER-23
 **Success Criteria** (what must be TRUE):
+
   1. The findings page leads in plain language. It marks each suspect, and the probe's lead, as confirmed, refuted or open, with the numbers beside each committed prediction. The pipeline suspect is reported in two halves, the physics half carried into v2.6 by name unless an experiment speaks to it.
   2. Every claim cites a committed run record or table. The page lists the machine hours spent on this Mac and every plan change made under SCOPE-49.
   3. The owner's decision is recorded verbatim: the v2.6 redesign direction, and whether to commission `trainex-r5`, and on which question.
   4. Every v2.5 requirement maps to exactly one phase. This is re-verified against the final requirement count, including anything added under SCOPE-49.
+
 **Plans**: TBD
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 65. Probe on the Record & Fit Harness | 0/TBD | Not started | - |
+| 65. Probe on the Record & Fit Harness | 0/6 | Planned    |  |
 | 66. Small-Network Control | 0/TBD | Not started | - |
 | 67. Design & Settings Ladders | 0/TBD | Not started | - |
 | 68. Yardstick | 0/TBD | Not started | - |
@@ -185,6 +222,7 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 
 ---
 *v2.5 created 2026-10-27 (`/gsd-new-milestone`). The roadmap was generated inline from the owner-approved milestone text and requirements.*
+
 - No GSD domain-research spawn; the owner skipped it (2026-10-27).
 - 5 phases (65–69), continuing from v2.4's Phase 64.
 - 13/13 requirements mapped: DIAG-09, INST-08→65; EXP-01→66; EXP-02..05→67; YARD-01..03→68; VERD-01, VERD-02, VER-23→69.

@@ -4,16 +4,16 @@ milestone: v2.5
 milestone_name: Root-Cause Confirmation
 current_phase: 65
 current_phase_name: Probe on the Record & Fit Harness
-status: planning
-stopped_at: Phase 65 context gathered; agent-led technical discussion delegation recorded; ready for planning
-last_updated: "2026-10-29T00:56:30.417Z"
+status: executing
+stopped_at: "Phase 65 planning complete: six plans in six waves, 15 tasks; independent plan check passed"
+last_updated: "2026-10-29T02:10:10.129Z"
 last_activity: 2026-10-27
 last_activity_desc: milestone v2.5 Root-Cause Confirmation started on branch milestone/v2.5 (from milestone/v2.4 at dac9d9c1). The Phase 64 verifier and its tests were first repointed at milestones/v2.4-PROJECT.md (dbc96887); PROJECT.md was then rewritten to the charter's C-12 and C-13 drafts, with C-14 B recorded. Order A - in-house tests first, trainex-r5 re-aimed at the redesign. Phases after the first experiments are provisional (owner, 2026-10-27). Requirements defined (13; 85c1a930) and roadmap created (Phases 65–69, 13/13 mapped).
-state_head: 4e7633eb1e8977ec9ebac25f629afc8bff6b28e0
+state_head: be7c2af837155d0bc5dd49c8401224086b4dc26a
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
+  total_plans: 6
   completed_plans: 0
   percent: 0
 ---
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 
 ## Current Position
 
-Phase: 65 of 65–69 (Probe on the Record & Fit Harness)
+Phase: 65 (Probe on the Record & Fit Harness) — READY TO EXECUTE
 Plan: —
-Status: Ready to plan
+Status: Ready to execute
 Last activity: 2026-10-27 — v2.5 started; requirements defined (13) and roadmap created (5 phases, 13/13 mapped)
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
@@ -975,11 +975,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/65-probe-on-the-record-fit-harness/65-CONTEXT.md
+**Resume file:** .planning/phases/65-probe-on-the-record-fit-harness/65-01-PLAN.md
 
-Last session: 2026-10-29T00:56:30.399Z
-Stopped at: Phase 65 context gathered; agent-led technical discussion delegation recorded; ready for planning
-Next action: plan Phase 65 (DIAG-09, the probe on the record; INST-08, the diagnostic fit harness) via `/gsd-discuss-phase 65` or `/gsd-plan-phase 65`. The 2026-10-27 probe scripts are preserved outside the repo for Phase 65 to register. Any merge to master and any tag push are the owner's. All computation is on this Mac.
+Last session: 2026-10-29T02:09:10.856Z
+Stopped at: Phase 65 planning complete: six plans in six waves, 15 tasks; independent plan check passed
+Next action: Execute Phase 65 via $gsd-execute-phase 65, starting with 65-01-PLAN.md. Six plans and 15 tasks passed independent planning verification. Probe and smoke execution remain gated on their committed registrations; no run has started. Any roadmap pivot, merge to master or protected push remains owner-controlled. All computation is on this Mac.
 
 ## Operator Next Steps
 
