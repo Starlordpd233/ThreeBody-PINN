@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 65
 current_phase_name: Probe on the Record & Fit Harness
 status: executing
-stopped_at: "Completed 65-04-PLAN.md (probe registration and gates)"
-last_updated: "2026-10-29T19:58:00Z"
+stopped_at: "Completed 65-05-PLAN.md (the registered probe run and result)"
+last_updated: "2026-10-29T20:32:00Z"
 last_activity: 2026-10-29
-last_activity_desc: Plan 65-04 executed (Wave 4)
-state_head: d2cbc1d39f95df1eaa03dc63d62563e416e082fa
+last_activity_desc: Plan 65-05 executed (Wave 5)
+state_head: ffb12522
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
-  percent: 67
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 65 (Probe on the Record & Fit Harness) — EXECUTING
-Plan: 5 of 6
-Status: Executing Phase 65 (Wave 4 complete)
-Last activity: 2026-10-29 — Plan 65-04 executed (Wave 4)
+Plan: 6 of 6
+Status: Executing Phase 65 (Wave 5 complete)
+Last activity: 2026-10-29 — Plan 65-05 executed (Wave 5)
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
 v2.4 time-constant failure before any redesign (the redesign is v2.6), on
@@ -52,6 +52,14 @@ mutating verbs have corrupted it before (the full note is in this file at
 commit `b8632832`). The v2.5 start was written by hand and its diff reviewed.
 
 Phase 64 record (kept for reference): Phase 64 complete 2026-10-26; planned 2026-10-25 and executed in 7 waves. The verdict is RETHINK-REPRESENTATION; at owner checkpoint ① the owner decided `change-course` (ruling `64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`), and every charter row C-1 to C-14 was recorded `open`, so PROJECT.md and the twelve skipped-phase requirement statuses are unchanged. FEAS-06, FEAS-10 and VER-22 are complete, and VER-22 was re-verified at close on the final text: 24 defined, 24 in the traceability table, 24 in the roadmap. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`); Phases 61–63 skipped at G2.
+
+### Decisions from 65-05 (2026-10-29)
+
+- The registered seven-arm reproduction ran once, read-only, under the committed gate (run commit `22cee7d2`, registration `f469e003`): the runner re-checked committed-clean admission before any access, verified every weight SHA-256 before `torch.load`, and read only the seven arms' Stage-0 training orbits through the guarded seam (`hierarchical/gold/1632`, `/4658`, `/851`; split `train`; orbit stage 0; 1,001 samples; window [0, 10]). **Reading-rule verdict: `retained` — all 144 required historical fields reproduced under exact formatter equality, 0 not_reproduced, 0 provenance limitations**, 64 preserved-only fields (moving/spike/skip-siren) reported verbatim, 130 raw per-layer new-measurement entries with range deltas. Zero optimizer steps (interlock), 15/15 parameter digest pairs matched, no test-split open, held-out evaluation unspent, historical scripts never executed. Commits `7a943da5` + `484ea30c` (evidence(65)), SUMMARY `ffb12522`; result page `65-PROBE-RESULT.md`.
+- Logger parity (INST-08c): the run's actual `diagnostic_fit.log_similarity` call on r1-1632 polish (same gates, same weights/coordinates, CPU64, no updates) is materialized as `evidence/probe/logger-parity.json` and `verify-result` printed `VERIFY-RESULT-OK` (exit 0) — recomputed reading rule matches, registration bytes unchanged, five code dependencies verified at the run commit, parity entry exactly equal. The plan's named standalone `logger-parity` subcommand does not exist in the shipped runner; the receipt uses the runner's inline parity call in its own test-pinned file shape.
+- No SCOPE-49 pivot: the retained branch asks nothing of the owner for the roadmap. The exploratory association stays on record as a reproduction of already-seen results — association only, no causal claim (D-02/D-07); the D-04 reconstruction label and the D-05 labelled gold-finite-difference-in-tau comparator travel with the numbers.
+- Routed to the orchestrator/owner (not repaired here; `diagnostic_probe.py` is digest-pinned by the committed registration): (1) the runner's `_render_stdout` crashed with `KeyError: 'measured'` on `preserved_only` verdicts *after* publishing the complete result — `reproduction.stdout.txt` was regenerated from the committed result bytes with the preserved-only branch corrected and a provenance header (no re-run, no retry); (2) `reading_rule.new_measurements` is empty by construction (the 130 entries live at the result's top level); (3) the missing standalone `logger-parity` subcommand and the stdout-rendering suite gap. Any runner edit changes what the probe registration admits — the registration-digest decision belongs to the owner.
+- Verification: `verify-result` exit 0; phase65 suite 168 tests OK; `git diff --check` clean; `load_protocol()` revalidated all 33 pinned digests. DIAG-09's acceptance evidence is complete on disk and INST-08(c) is proven; requirement flips stay with the phase verification act (65-06 also declares both IDs and owns the fit work).
 
 ### Decisions from 65-04 (2026-10-29)
 

@@ -142,7 +142,7 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 65-05-PLAN.md
+- [x] 65-05-PLAN.md
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
@@ -214,7 +214,7 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 65. Probe on the Record & Fit Harness | 4/6 | In Progress|  |
+| 65. Probe on the Record & Fit Harness | 5/6 | In Progress|  |
 | 66. Small-Network Control | 0/TBD | Not started | - |
 | 67. Design & Settings Ladders | 0/TBD | Not started | - |
 | 68. Yardstick | 0/TBD | Not started | - |
