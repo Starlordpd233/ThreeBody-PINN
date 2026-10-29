@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 65
 current_phase_name: Probe on the Record & Fit Harness
 status: executing
-stopped_at: "Completed 65-01-PLAN.md (Wave 0 synthetic fit harness)"
-last_updated: "2026-10-29T03:21:01Z"
+stopped_at: "Completed 65-02-PLAN.md (Stage-0 data boundary)"
+last_updated: "2026-10-29T04:10:00Z"
 last_activity: 2026-10-29
-last_activity_desc: Plan 65-01 executed (Wave 0)
-state_head: d60652964ce11366e1e4ac7ea948d62ecdc3c689
+last_activity_desc: Plan 65-02 executed (Wave 2)
+state_head: 13588cd9bfec6cde44b3c11728067191c5f0224c
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
-  completed_plans: 1
-  percent: 17
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 65 (Probe on the Record & Fit Harness) — EXECUTING
-Plan: 2 of 6
-Status: Executing Phase 65 (Wave 0 complete)
-Last activity: 2026-10-29 — Plan 65-01 executed (Wave 0)
+Plan: 3 of 6
+Status: Executing Phase 65 (Wave 2 complete)
+Last activity: 2026-10-29 — Plan 65-02 executed (Wave 2)
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
 v2.4 time-constant failure before any redesign (the redesign is v2.6), on
@@ -52,6 +52,13 @@ mutating verbs have corrupted it before (the full note is in this file at
 commit `b8632832`). The v2.5 start was written by hand and its diff reviewed.
 
 Phase 64 record (kept for reference): Phase 64 complete 2026-10-26; planned 2026-10-25 and executed in 7 waves. The verdict is RETHINK-REPRESENTATION; at owner checkpoint ① the owner decided `change-course` (ruling `64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`), and every charter row C-1 to C-14 was recorded `open`, so PROJECT.md and the twelve skipped-phase requirement statuses are unchanged. FEAS-06, FEAS-10 and VER-22 are complete, and VER-22 was re-verified at close on the final text: 24 defined, 24 in the traceability table, 24 in the roadmap. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`); Phases 61–63 skipped at G2.
+
+### Decisions from 65-02 (2026-10-29)
+
+- The guarded Stage-0 data seam landed in `pinn/verification/diagnostic_data.py`: `Stage0TrainingReader`/`require_stage0_training` admit only train-split orbits whose manifest stage (the group signature's `base_stage`; a gold record's own label is `UNASSIGNED` by schema, and both readings are recorded) is 0, before any read, exists or path call; `load_diagnostic_data` validates train/score/beside as a set before the first read, so an invalid ancillary key blocks a valid target with zero opens. The reader stays an `AllowlistedCorpusReader`, so `production_reference` and the preprocessing chain are unchanged and admitted records are bitwise the `load_arm_data` output. Four RED/GREEN commits (`56bac6e6`, `b64f4ba0`, `dadb523b`, `22768976`), each RED machine-verified `RED_EVIDENCE_OK`; SUMMARY `e51ab3cd` (hash correction `13588cd9`).
+- `open_diagnostic_context` builds the context from committed metadata only (hash-checked generation-7 manifest, the process open attestation as the independent second test-split check, the Stage-0 reader, the recorded normalizer). `load_recorded_stats` hashes the Phase 59 `reader_acceptance.json` against the committed manifest digest before parsing and requires `stats_digest` == recorded `stats_sha256` == `EXPECTED_STATS_SHA256` (`77526e53…`); zero stds, non-finite entries and substituted subsets halt. Spies prove `open_real_context`, `recover_normalizer_from_checkpoint`, `fallback_normalizer_from_allowlist` and `compute_normalization_stats` are never called — research A3 resolved without the 256-monitor recovery (16 Stage-1 identities are outside this phase's read authority).
+- Windows are exact float64 masks `0 <= t <= window_length` (endpoint in, above out, nextafter-pinned), times finite/distinct/strictly increasing, at least two samples; out-of-domain windows (NaN, infinities, non-numbers, an explicit `None`) refuse before any read. Omitting `window_length` keeps the scored horizon (Task-1 call sites unchanged; the full window is bitwise the scored horizon); `tau` uses the locked `T_CHARACTERISTIC_TIME`, never rescaled; the recorded `times_physical`/`tau` come from the exact record grid shared with the score views while `tau_ic13` keeps the resident float32 times for seam parity.
+- Process: the plan was interrupted mid-GREEN of Task 2 and resumed by a fresh executor; the partial uncommitted draft was inspected, kept where correct and completed (three implementation defects and three test bugs fixed — the plan's one deviation). Verification: the 52-test verify command and the 83-test full Phase 65 suite pass (33 pinned digests unchanged; `split_allowlist.py`/`learnability_data.py` untouched), `git diff --check` clean, no real corpus record opened, no `runs/` tree. DIAG-09 and INST-08 stay open (later plans own them).
 
 ### Decisions from 65-01 (2026-10-29)
 

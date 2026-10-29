@@ -184,3 +184,7 @@ None — every delivered path is real; no placeholder, TODO or unwired data sour
 ---
 *Phase: 65-probe-on-the-record-fit-harness*
 *Completed: 2026-10-29*
+
+## Self-Check: PASSED
+
+All three key files exist on disk; all five plan commits (`56bac6e6`, `b64f4ba0`, `dadb523b`, `22768976`, `e51ab3cd`, plus the SUMMARY hash correction `13588cd9`) are in history with `b64f4ba0` verified an ancestor of HEAD via `git merge-base --is-ancestor`; the RED/GREEN gate sequence is present for both tasks; the plan's verify command (52 tests) and the full Phase 65 suite (83 tests) exit 0 at the final tree.
