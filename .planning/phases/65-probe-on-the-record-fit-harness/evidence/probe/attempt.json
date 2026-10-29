@@ -1,0 +1,12 @@
+{
+  "schema": "phase65-probe-attempt/v1",
+  "status": "incomplete",
+  "registration": {
+    "path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/probe/expectations.json",
+    "sha256": "4f8cd0858c08a46717c49785082f9928bc804e3a2c29d18f4431eaa53949a2cb"
+  },
+  "run_commit": "22cee7d241f10286594c3c5cc1a2a6817663d4a7",
+  "result_path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/probe/reproduction.json",
+  "no_automatic_retry": true,
+  "note": "a claim, not an outcome; the outcome is reproduction.json"
+}
