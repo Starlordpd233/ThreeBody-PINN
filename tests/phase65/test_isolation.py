@@ -548,8 +548,9 @@ class Stage0LoadTests(unittest.TestCase):
             spec, self.context, scorecard=self.scorecard, dtype=torch.float64, device=CPU
         )
         summary = self.reader.access_summary()
+        # load_arm_data reads each distinct key once, so the three roles share one actual open.
         self.assertEqual(summary["actual_opens"], 1)
-        self.assertEqual(len(summary["requested"]), 3)
+        self.assertEqual(len(summary["requested"]), 1)
         self.assertEqual({entry["record_key"] for entry in summary["requested"]}, {"hierarchical/gold/7"})
         self.assertEqual(sorted(loaded.records), ["beside", "score", "train"])
 
