@@ -74,23 +74,25 @@ class Wave0ModuleTests(unittest.TestCase):
             _symbol(self, guard, name)
 
 
+def _loaded(fixture):
+    """The fixture data seam: an arm spec, context, scorecard and loaded data."""
+    spec = fixture_arm(
+        train_key=fixture.gold_key,
+        score_key=fixture.gold_key,
+        beside_key=fixture.base_key,
+    )
+    context = fixture_context(
+        allowlist=fixture.allowlist, reader=fixture.reader, stats=fixture.stats
+    )
+    scorecard = load_scorecard()
+    data = load_arm_data(
+        spec, context, scorecard=scorecard, dtype=torch.float64, device=CPU
+    )
+    return spec, context, scorecard, data
+
+
 class _FitCase(unittest.TestCase):
     """Base: the tiny synthetic corpus, the fixture data seam and a temp evidence root."""
-
-    @classmethod
-    def _load_data(cls):
-        cls.spec = fixture_arm(
-            train_key=cls.fixture.gold_key,
-            score_key=cls.fixture.gold_key,
-            beside_key=cls.fixture.base_key,
-        )
-        cls.context = fixture_context(
-            allowlist=cls.fixture.allowlist, reader=cls.fixture.reader, stats=cls.fixture.stats
-        )
-        cls.scorecard = load_scorecard()
-        cls.data = load_arm_data(
-            cls.spec, cls.context, scorecard=cls.scorecard, dtype=torch.float64, device=CPU
-        )
 
 
 class ShortFitTests(_FitCase):
@@ -102,7 +104,7 @@ class ShortFitTests(_FitCase):
         cls.addClassCleanup(stack.close)
         cls.fixture = stack.enter_context(gold_corpus_fixture())
         cls.root = Path(stack.enter_context(tempfile.TemporaryDirectory(prefix="phase65-fit-")))
-        cls._load_data()
+        cls.spec, cls.context, cls.scorecard, cls.data = _loaded(cls.fixture)
         cls.fit = _module(cls, "diagnostic_fit")
         cls.variants = _module(cls, "diagnostic_variants")
         cls.guard = _module(cls, "diagnostic_guard")
@@ -271,7 +273,16 @@ class ShortFitTests(_FitCase):
             predicted, predicted_v = two_kepler_prediction(r0, v0, masses, inner_pair, elapsed)
         except NotApplicable as exc:
             self.assertIs(rows["two_kepler"].get("applicable"), False)
+            self.assertEqual(rows["two_kepler"]["failure"], "not_applicable")
             self.assertEqual(rows["two_kepler"]["reason"], exc.reason)
+            self.assertNotIn("score", rows["two_kepler"])
+        except RuntimeError as exc:
+            # The frozen formula's Newton solver can fail to converge on the
+            # synthetic fixture's near-radial geometry; that failure carries its
+            # own reason and never becomes a successful score either.
+            self.assertIs(rows["two_kepler"].get("applicable"), False)
+            self.assertEqual(rows["two_kepler"]["failure"], "solver_did_not_converge")
+            self.assertEqual(rows["two_kepler"]["reason"], str(exc))
             self.assertNotIn("score", rows["two_kepler"])
         else:
             self.assertIs(rows["two_kepler"].get("applicable"), True)
@@ -356,7 +367,7 @@ class RefusalTests(_FitCase):
         self.addCleanup(stack.close)
         self.fixture = stack.enter_context(gold_corpus_fixture())
         self.root = Path(stack.enter_context(tempfile.TemporaryDirectory(prefix="phase65-refuse-")))
-        self._load_data()
+        self.spec, self.context, self.scorecard, self.data = _loaded(self.fixture)
         self.fit = _module(self, "diagnostic_fit")
         self.variants = _module(self, "diagnostic_variants")
         self.similarity = _module(self, "diagnostic_similarity")
