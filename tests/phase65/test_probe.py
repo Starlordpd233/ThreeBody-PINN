@@ -15,8 +15,11 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import torch
 import torch.nn.functional as F
@@ -425,6 +428,870 @@ class HistoricalSourceTests(unittest.TestCase):
             self.assertEqual(entry["sha256"], sha)
         for entry in manifest["messages"]:
             self.assertEqual(entry["sha256"], _HISTORICAL_MESSAGE_SHA256[entry["tool_use_id"]])
+
+
+def _probe_symbol(name):
+    """Import the probe module and fetch ``name``, failing assertively when absent.
+
+    Every planned-behavior test goes through this helper so a RED run reports
+    assertion failures (the planned behavior is missing), never import or
+    attribute errors, which the TDD gate classifies as invalid RED.
+    """
+    try:
+        import pinn.verification.diagnostic_probe as module
+    except ImportError as exc:
+        raise AssertionError(
+            f"pinn.verification.diagnostic_probe must exist: {exc}"
+        ) from exc
+    if not hasattr(module, name):
+        raise AssertionError(f"diagnostic_probe.{name} is missing")
+    return getattr(module, name)
+
+
+def _guard_function(name):
+    try:
+        from pinn.verification import diagnostic_guard
+    except ImportError as exc:
+        raise AssertionError(
+            f"pinn.verification.diagnostic_guard must import: {exc}"
+        ) from exc
+    if not hasattr(diagnostic_guard, name):
+        raise AssertionError(f"diagnostic_guard.{name} is missing")
+    return getattr(diagnostic_guard, name)
+
+
+class FormatterCellTests(unittest.TestCase):
+    """Exact rounding cells: endpoints, inclusion, neighbours, no widened acceptance."""
+
+    def test_cell_endpoints_are_exact_representable_values(self):
+        derive_cell = _probe_symbol("derive_cell")
+        render = _probe_symbol("render")
+        cell = derive_cell(".3f", "1.000")
+        lo, hi = cell["lo"], cell["hi"]
+        self.assertEqual(render(lo, ".3f"), "1.000")
+        self.assertEqual(render(hi, ".3f"), "1.000")
+        self.assertNotEqual(render(math.nextafter(lo, -math.inf), ".3f"), "1.000")
+        self.assertNotEqual(render(math.nextafter(hi, math.inf), ".3f"), "1.000")
+        # Everything strictly between the endpoints renders to the token too.
+        self.assertEqual(render(math.nextafter(lo, math.inf), ".3f"), "1.000")
+        self.assertEqual(render(math.nextafter(hi, -math.inf), ".3f"), "1.000")
+        self.assertTrue(cell["lo_included"] and cell["hi_included"])
+
+    def test_signed_zero_cells_do_not_span_the_sign(self):
+        derive_cell = _probe_symbol("derive_cell")
+        render = _probe_symbol("render")
+        negative = derive_cell(".3f", "-0.000")
+        self.assertEqual(math.copysign(1.0, negative["hi"]), -1.0)
+        self.assertEqual(math.copysign(1.0, negative["lo"]), -1.0)
+        self.assertEqual(render(math.nextafter(negative["hi"], math.inf), ".3f"), "0.000")
+        positive = derive_cell(".4f", "0.0000")
+        self.assertEqual(math.copysign(1.0, positive["lo"]), 1.0)
+        self.assertEqual(
+            render(math.nextafter(positive["lo"], -math.inf), ".4f"), "-0.0000"
+        )
+
+    def test_ties_do_not_widen_a_cell(self):
+        derive_cell = _probe_symbol("derive_cell")
+        render = _probe_symbol("render")
+        # Python rounds a decimal-midpoint tie to even, so an exact midpoint
+        # belongs to the lower cell and is that cell's inclusive upper endpoint.
+        self.assertEqual(render(0.125, ".2f"), "0.12")
+        cell = derive_cell(".2f", "0.12")
+        self.assertEqual(cell["hi"], 0.125)
+        self.assertEqual(render(math.nextafter(cell["hi"], math.inf), ".2f"), "0.13")
+
+    def test_exponent_changes_sit_inside_one_cell(self):
+        derive_cell = _probe_symbol("derive_cell")
+        render = _probe_symbol("render")
+        cell = derive_cell(".3g", "1e+03")
+        self.assertEqual(render(999.5, ".3g"), "1e+03")
+        self.assertLessEqual(cell["lo"], 999.5)
+        self.assertGreaterEqual(cell["hi"], 1000.0)
+        self.assertNotEqual(render(math.nextafter(cell["lo"], -math.inf), ".3g"), "1e+03")
+        self.assertNotEqual(render(math.nextafter(cell["hi"], math.inf), ".3g"), "1e+03")
+
+    def test_3g_omitted_trailing_zeros_never_widen_acceptance(self):
+        derive_cell = _probe_symbol("derive_cell")
+        render = _probe_symbol("render")
+        cell = derive_cell(".3g", "1.9e+08")
+        self.assertEqual(render(1.9e8, ".3g"), "1.9e+08")
+        # Counting visible digits would read two significant digits and accept
+        # any 1.x e+08 value; the true .3g cell is the 1.90e8 rounding cell.
+        self.assertEqual(render(1.86e8, ".3g"), "1.86e+08")
+        self.assertGreater(1.86e8, cell["hi"])
+        self.assertEqual(render(1.8999e8, ".3g"), "1.9e+08")
+        self.assertGreaterEqual(1.8999e8, cell["lo"])
+        self.assertNotEqual(render(math.nextafter(cell["hi"], math.inf), ".3g"), "1.9e+08")
+
+    def test_compare_field_uses_exact_formatter_equality(self):
+        compare_field = _probe_symbol("compare_field")
+        expected = {"formatter": ".4f", "token": "0.0186"}
+        reproduced = compare_field(expected, 0.01862)
+        self.assertEqual(reproduced["status"], "reproduced")
+        failed = compare_field(expected, 0.018651)
+        self.assertEqual(failed["status"], "not_reproduced")
+
+    def test_compare_field_cross_checks_recorded_cells(self):
+        compare_field = _probe_symbol("compare_field")
+        derive_cell = _probe_symbol("derive_cell")
+        cell = derive_cell(".4f", "0.0186")
+        good = dict(_probe_symbol("compare_field")(
+            {"formatter": ".4f", "token": "0.0186",
+             "cell": {"lo_hex": float(cell["lo"]).hex(), "hi_hex": float(cell["hi"]).hex()}},
+            0.01862,
+        ))
+        self.assertEqual(good["status"], "reproduced")
+        tampered = {"formatter": ".4f", "token": "0.0186",
+                    "cell": {"lo_hex": (0.5).hex(), "hi_hex": (2.0).hex()}}
+        with self.assertRaises(ValueError):
+            compare_field(tampered, 0.01862)
+
+    def test_membership_and_render_agree_across_preserved_tokens(self):
+        compare_field = _probe_symbol("compare_field")
+        samples = (
+            (".2f", "0.78"), (".2f", "66.38"), (".3f", "-0.000"), (".3f", "1.000"),
+            (".3g", "4.97e+07"), (".3g", "51.9"), (".4f", "2.8730"), (".4f", "-0.0019"),
+        )
+        for formatter, token in samples:
+            with self.subTest(formatter=formatter, token=token):
+                anchor = float(token)
+                for value in (
+                    anchor,
+                    math.nextafter(anchor, math.inf),
+                    math.nextafter(anchor, -math.inf),
+                    anchor * 3.0,
+                ):
+                    verdict = compare_field({"formatter": formatter, "token": token}, value)
+                    expected_status = (
+                        "reproduced"
+                        if format(value, formatter) == token
+                        else "not_reproduced"
+                    )
+                    self.assertEqual(verdict["status"], expected_status)
+
+
+class ReadingRuleTests(unittest.TestCase):
+    """The registered reading rule: retained, withdrawn, and separately reported."""
+
+    def _evaluate(self, entries):
+        return _probe_symbol("evaluate_reading_rule")(entries)
+
+    def test_all_reproduced_fields_retain_the_lead(self):
+        entries = [
+            {"field_id": "a/init/frequency_median", "availability": "measured",
+             "status": "reproduced"},
+            {"field_id": "a/init/out_move", "availability": "measured",
+             "status": "reproduced"},
+        ]
+        rule = self._evaluate(entries)
+        self.assertEqual(rule["verdict"], "retained")
+        self.assertFalse(rule["scope49_proposal"])
+
+    def test_any_failed_required_comparison_withdraws_with_a_scope49_proposal(self):
+        entries = [
+            {"field_id": "a/init/frequency_median", "availability": "measured",
+             "status": "reproduced"},
+            {"field_id": "a/polish/rate_ratio", "availability": "measured",
+             "status": "not_reproduced"},
+        ]
+        rule = self._evaluate(entries)
+        self.assertEqual(rule["verdict"], "withdrawn")
+        self.assertTrue(rule["scope49_proposal"])
+        self.assertIn("a/polish/rate_ratio", rule["failed_required"])
+
+    def test_preserved_only_fields_are_reported_and_never_flip_the_verdict(self):
+        entries = [
+            {"field_id": "supplement/adam/moving/h3", "availability": "preserved_only"},
+            {"field_id": "a/init/frequency_median", "availability": "measured",
+             "status": "reproduced"},
+        ]
+        rule = self._evaluate(entries)
+        self.assertEqual(rule["verdict"], "retained")
+        self.assertIn("supplement/adam/moving/h3", rule["not_measured"])
+
+    def test_provenance_limitations_are_reported_separately(self):
+        entries = [
+            {"field_id": "missing/source/block", "availability": "provenance_limitation",
+             "reason": "the original output for this figure is absent from the source"},
+            {"field_id": "a/init/frequency_median", "availability": "measured",
+             "status": "reproduced"},
+        ]
+        rule = self._evaluate(entries)
+        self.assertEqual(rule["verdict"], "retained")
+        self.assertIn("missing/source/block", rule["provenance_limitations"])
+
+    def test_new_measurements_are_recorded_without_a_historical_target(self):
+        entry = _probe_symbol("new_measurement_entry")(
+            "arm/r1-1632/init", "h5", 0.9123, deep_min_token="0.925", deep_max_token="1.000"
+        )
+        self.assertEqual(entry["status"], "new_measurement")
+        self.assertEqual(entry["value"], 0.9123)
+        self.assertIn("delta", entry)
+        rule = self._evaluate([entry])
+        self.assertEqual(rule["verdict"], "retained")
+        self.assertIn("arm/r1-1632/init/h5", rule["new_measurements"])
+
+
+def _sha256_bytes(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _fixture_registration(root, kind="matching", expectations_extra=None):
+    """A minimal committed probe registration inside a throwaway git repository.
+
+    ``kind`` selects the broken variant: matching, missing (an artifact is
+    deleted), untracked (the expectations file is never committed), staged_only
+    (added but uncommitted), dirty (modified after commit), changed_dependency
+    (a listed code dependency changes content after the registration commit),
+    weight_changed (committed weight bytes no longer match the digest),
+    unrelated_dirty (an unlisted file is dirty — which must NOT refuse),
+    unordered (arms not in committed-record path order) and duplicate (the same
+    arm listed twice). ``expectations_extra`` is merged into the expectations
+    document before it is written (run-test probe rows).
+    """
+    import subprocess
+
+    def git(*args, check=True):
+        return subprocess.run(
+            ["git", *args], cwd=str(root), capture_output=True, text=True, check=check
+        )
+
+    root.mkdir(parents=True, exist_ok=True)
+    git("init", "-q")
+    git("config", "user.email", "fixture@example.com")
+    git("config", "user.name", "fixture")
+    # A cached-template maintenance run can repack loose objects mid-test
+    # (Phase 60 lesson); disable it for the throwaway repository.
+    git("config", "maintenance.auto", "false")
+    git("config", "gc.auto", "0")
+
+    reg = root / "reg"
+    reg.mkdir()
+    page_raw = b"# fixture prediction page\n"
+    manifest_raw = b'{"schema": "fixture/v1"}\n'
+    stdout_raw = b'{"messages": []}\n'
+    script_raw = b"# original script stand-in\n"
+    dep_raw = b"DEPENDENCY = 1\n"
+    frozen_raw = b"FROZEN = True\n"
+    (reg / "PREDICTION.md").write_bytes(page_raw)
+    (reg / "source-manifest.json").write_bytes(manifest_raw)
+    (reg / "stdout.json").write_bytes(stdout_raw)
+    (reg / "probe.py").write_bytes(script_raw)
+    (root / "code_dep.py").write_bytes(dep_raw)
+    frozen = root / "frozen"
+    frozen.mkdir()
+    (frozen / "scorer.py").write_bytes(frozen_raw)
+    arm = root / "arms" / "r1-1632"
+    arm.mkdir(parents=True)
+    record_raw = b'{"arm_id": "r1-1632"}\n'
+    weights_raw = b"weights-bytes"
+    (arm / "record.json").write_bytes(record_raw)
+    (arm / "adam.weights").write_bytes(weights_raw)
+
+    second = root / "arms" / "r1-851"
+    if kind in ("unordered", "duplicate"):
+        second.mkdir(parents=True)
+        (second / "record.json").write_bytes(b'{"arm_id": "r1-851"}\n')
+        (second / "adam.weights").write_bytes(b"weights-851")
+
+    def entry(rel, raw):
+        return {"path": rel, "sha256": _sha256_bytes(raw)}
+
+    arms = [
+        {
+            "arm_id": "r1-1632",
+            "record": entry("arms/r1-1632/record.json", record_raw),
+            "weights": {"adam": entry("arms/r1-1632/adam.weights", weights_raw)},
+        }
+    ]
+    if kind == "unordered":
+        arms.append({
+            "arm_id": "r1-851",
+            "record": entry("arms/r1-851/record.json", b'{"arm_id": "r1-851"}\n'),
+            "weights": {"adam": entry("arms/r1-851/adam.weights", b"weights-851")},
+        })
+    if kind == "duplicate":
+        arms.append(dict(arms[0]))
+
+    expectations = {
+        "schema": "phase65-probe-registration/v1",
+        "page": entry("reg/PREDICTION.md", page_raw),
+        "source": {
+            "manifest": entry("reg/source-manifest.json", manifest_raw),
+            "stdout": entry("reg/stdout.json", stdout_raw),
+            "scripts": [entry("reg/probe.py", script_raw)],
+        },
+        "code_dependencies": [entry("code_dep.py", dep_raw)],
+        "frozen": [entry("frozen/scorer.py", frozen_raw)],
+        "arms": arms,
+    }
+    if expectations_extra:
+        expectations.update(expectations_extra)
+    expectations_raw = (json.dumps(expectations, indent=2) + "\n").encode("utf-8")
+    (reg / "expectations.json").write_bytes(expectations_raw)
+
+    paths = [
+        "reg/PREDICTION.md", "reg/source-manifest.json", "reg/stdout.json",
+        "reg/probe.py", "code_dep.py", "frozen/scorer.py",
+        "arms/r1-1632/record.json", "arms/r1-1632/adam.weights",
+    ]
+    if kind in ("unordered", "duplicate"):
+        paths += ["arms/r1-851/record.json", "arms/r1-851/adam.weights"]
+    if kind == "untracked":
+        git("add", *paths)
+        git("commit", "-q", "-m", "fixture without the expectations file")
+        return root
+    if kind == "staged_only":
+        git("add", *paths)
+        git("add", "reg/expectations.json")
+        return root
+    git("add", *paths)
+    git("add", "reg/expectations.json")
+    git("commit", "-q", "-m", "fixture registration")
+
+    if kind == "missing":
+        (reg / "PREDICTION.md").unlink()
+    elif kind == "dirty":
+        (reg / "expectations.json").write_bytes(expectations_raw + b"# drifted\n")
+    elif kind == "changed_dependency":
+        (root / "code_dep.py").write_bytes(b"DEPENDENCY = 2\n")
+        git("add", "code_dep.py")
+        git("commit", "-q", "-m", "change the dependency after registration")
+    elif kind == "weight_changed":
+        (arm / "adam.weights").write_bytes(b"weights-bytes-tampered")
+        git("add", "arms/r1-1632/adam.weights")
+        git("commit", "-q", "-m", "change the weights after registration")
+    elif kind == "unrelated_dirty":
+        (root / "unrelated.txt").write_text("user-owned scratch\n")
+    return root
+
+
+class RegistrationAdmissionTests(unittest.TestCase):
+    """require_committed_registration: tracked/clean, digests, order — before any load."""
+
+    def test_a_matching_committed_fixture_passes(self):
+        require = _guard_function("require_committed_registration")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo")
+            require(repo / "reg/expectations.json", repo_root=repo)
+
+    def test_a_matching_fixture_tolerates_an_unrelated_dirty_file(self):
+        require = _guard_function("require_committed_registration")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo", kind="unrelated_dirty")
+            require(repo / "reg/expectations.json", repo_root=repo)
+
+    def _refused(self, kind):
+        require = _guard_function("require_committed_registration")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo", kind=kind)
+            with mock.patch.object(torch, "load", side_effect=AssertionError("weights loaded")), \
+                    mock.patch(
+                        "pinn.verification.diagnostic_data.open_diagnostic_context",
+                        side_effect=AssertionError("corpus context opened"),
+                    ), mock.patch(
+                        "pinn.verification.diagnostic_data.load_diagnostic_data",
+                        side_effect=AssertionError("corpus data read"),
+                    ):
+                require(repo / "reg/expectations.json", repo_root=repo)
+
+    def test_missing_artifacts_refuse(self):
+        with self.assertRaises(Exception):
+            self._refused("missing")
+
+    def test_untracked_registrations_refuse(self):
+        with self.assertRaises(Exception):
+            self._refused("untracked")
+
+    def test_staged_only_registrations_refuse(self):
+        with self.assertRaises(Exception):
+            self._refused("staged_only")
+
+    def test_dirty_registrations_refuse(self):
+        with self.assertRaises(Exception):
+            self._refused("dirty")
+
+    def test_changed_dependencies_refuse(self):
+        with self.assertRaises(Exception):
+            self._refused("changed_dependency")
+
+    def test_changed_weight_bytes_refuse_before_any_load(self):
+        with self.assertRaises(Exception):
+            self._refused("weight_changed")
+
+    def test_out_of_order_arms_refuse(self):
+        with self.assertRaises(Exception):
+            self._refused("unordered")
+
+    def test_duplicate_arms_refuse(self):
+        with self.assertRaises(Exception):
+            self._refused("duplicate")
+
+    def test_check_registration_mode_skips_weight_bytes(self):
+        require = _guard_function("require_committed_registration")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo")
+            (repo / "arms/r1-1632/adam.weights").unlink()
+            require(repo / "reg/expectations.json", repo_root=repo, weight_digests=False)
+            with self.assertRaises(Exception):
+                require(repo / "reg/expectations.json", repo_root=repo)
+
+
+class CheckRegistrationTests(unittest.TestCase):
+    """check-registration: read-only committed-identity report, zero data access."""
+
+    def test_a_committed_registration_reports_its_commit_and_hashes(self):
+        check_registration = _probe_symbol("check_registration")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo")
+            with mock.patch.object(torch, "load", side_effect=AssertionError("weights loaded")), \
+                    mock.patch(
+                        "pinn.verification.diagnostic_data.open_diagnostic_context",
+                        side_effect=AssertionError("corpus context opened"),
+                    ):
+                report = check_registration(repo / "reg/expectations.json", repo_root=repo)
+        self.assertTrue(report["committed"])
+        self.assertTrue(report["registration_commit"])
+        self.assertIn("reg/expectations.json", {a["path"] for a in report["artifacts"]})
+
+    def test_an_uncommitted_registration_refuses(self):
+        check_registration = _probe_symbol("check_registration")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo", kind="dirty")
+            with self.assertRaises(Exception):
+                check_registration(repo / "reg/expectations.json", repo_root=repo)
+
+
+def _expectations_with_rows(fields_by_row, *, supplement_fields=None):
+    """Extra registration content naming scripted measured tokens for a run test."""
+    return {
+        "probe": {
+            "arms": [
+                {
+                    "arm_id": "r1-1632",
+                    "first_omega_0": 30.0,
+                    "rows": [
+                        {"state": "init", "fields": fields_by_row["init"]},
+                        {"state": "adam", "fields": fields_by_row["adam"]},
+                    ],
+                    "new_measurements": True,
+                }
+            ],
+            "supplement": {
+                "arm_id": "r1-1632",
+                "states": {
+                    "adam": {"fields": supplement_fields or {}},
+                },
+            },
+            "logger_parity": {"arm_id": "r1-1632", "state": "adam"},
+        }
+    }
+
+
+class ProbeRunGateTests(unittest.TestCase):
+    """The read-only runner: admission first, exclusive attempts, no optimizer."""
+
+    def _setup(self, *, kind="matching", perturb=False, extra=None):
+        run_probe = _probe_symbol("run_probe")
+        rows = torch.randn((4, 5), generator=torch.Generator().manual_seed(11), dtype=torch.float64)
+        output_rows = torch.randn((4, 9), generator=torch.Generator().manual_seed(12), dtype=torch.float64)
+        model = _scripted_model([rows, rows.flip(0)], output_rows)
+        X, masses, targets, times = _samples(4)
+        measurement = measure_time_signal(model, X, masses, targets, times)
+
+        def token(value, formatter):
+            return format(value, formatter)
+
+        def row_fields(perturbed):
+            fields = {
+                "frequency_median": {"formatter": ".2f", "token": token(measurement.frequency_median, ".2f")},
+                "adj_h1": {"formatter": ".3f", "token": token(
+                    [row for row in measurement.layers if row.name == "h1"][0].adjacent_cosine_mean, ".3f")},
+                "out_move": {"formatter": ".4f", "token": token(measurement.output_movement, ".4f")},
+                "rate_ratio": {"formatter": ".3g", "token": token(measurement.output_rate_ratio, ".3g")},
+            }
+            if perturbed:
+                fields["out_move"]["token"] = "9.99"
+            return fields
+
+        fields_by_row = {"init": row_fields(perturb), "adam": row_fields(perturb)}
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(
+                Path(tmp) / "repo", kind=kind,
+                expectations_extra=extra if extra is not None else _expectations_with_rows(fields_by_row),
+            )
+            output_dir = Path(tmp) / "output"
+            output_dir.mkdir()
+            calls = {"data": 0, "models": 0}
+
+            def data_loader(arm_id):
+                calls["data"] += 1
+                return X, masses, targets, times
+
+            def model_factory(first_omega_0, state, weights_path):
+                calls["models"] += 1
+                return _scripted_model([rows, rows.flip(0)], output_rows)
+
+            result = run_probe(
+                repo / "reg/expectations.json",
+                repo_root=repo,
+                output_dir=output_dir,
+                data_loader=data_loader,
+                model_factory=model_factory,
+            )
+            yield_ = {
+                "repo": repo, "tmp": tmp, "output_dir": output_dir, "result": result,
+                "calls": calls, "run_probe": run_probe,
+                "data_loader": data_loader, "model_factory": model_factory,
+            }
+            yield yield_
+
+    def test_a_complete_run_writes_an_exclusive_result_with_a_verdict(self):
+        for setup in self._setup():
+            result = setup["result"]
+            break
+        self.assertEqual(result["schema"], "phase65-probe-result/v1")
+        self.assertEqual(result["status"], "complete")
+        self.assertTrue((setup["output_dir"] / "attempt.json").is_file())
+        self.assertTrue((setup["output_dir"] / "reproduction.json").is_file())
+        self.assertTrue((setup["output_dir"] / "reproduction.stdout.txt").is_file())
+
+    def test_all_matching_fields_reproduce_and_retain_the_lead(self):
+        for setup in self._setup():
+            result = setup["result"]
+            break
+        self.assertEqual(result["reading_rule"]["verdict"], "retained")
+        self.assertFalse(result["reading_rule"]["scope49_proposal"])
+
+    def test_a_perturbed_token_withdraws_but_stays_a_complete_result(self):
+        for setup in self._setup(perturb=True):
+            result = setup["result"]
+            break
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["reading_rule"]["verdict"], "withdrawn")
+        self.assertTrue(result["reading_rule"]["scope49_proposal"])
+        self.assertTrue(any("out_move" in field for field in result["reading_rule"]["failed_required"]))
+
+    def test_a_second_run_on_the_same_outputs_refuses_and_never_replaces_the_result(self):
+        for setup in self._setup():
+            first = setup["result"]
+            output_dir = setup["output_dir"]
+            run_probe = setup["run_probe"]
+            repo = setup["repo"]
+            data_loader = setup["data_loader"]
+            model_factory = setup["model_factory"]
+            break
+        before = (output_dir / "reproduction.json").read_bytes()
+        attempt_class = _probe_symbol("AttemptExists")
+        with self.assertRaises(attempt_class):
+            run_probe(
+                repo / "reg/expectations.json", repo_root=repo, output_dir=output_dir,
+                data_loader=data_loader, model_factory=model_factory,
+            )
+        self.assertEqual((output_dir / "reproduction.json").read_bytes(), before)
+
+    def test_an_interrupted_run_stays_incomplete_and_writes_no_result(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(
+                Path(tmp) / "repo", expectations_extra=_expectations_with_rows(
+                    {"init": {}, "adam": {}}
+                )
+            )
+            output_dir = Path(tmp) / "output"
+            output_dir.mkdir()
+            run_probe = _probe_symbol("run_probe")
+            calls = {"data": 0}
+
+            def data_loader(arm_id):
+                calls["data"] += 1
+                raise RuntimeError("synthetic interruption")
+
+            with self.assertRaises(RuntimeError):
+                run_probe(
+                    repo / "reg/expectations.json", repo_root=repo, output_dir=output_dir,
+                    data_loader=data_loader,
+                    model_factory=lambda *args: _scripted_model(
+                        [torch.zeros((4, 5))], torch.zeros((4, 9))
+                    ),
+                )
+            self.assertEqual(calls["data"], 1, "no automatic numerical retry is allowed")
+            attempt = json.loads((output_dir / "attempt.json").read_text())
+            self.assertEqual(attempt["status"], "incomplete")
+            self.assertFalse((output_dir / "reproduction.json").exists())
+
+    def test_the_loader_is_called_once_per_arm(self):
+        for setup in self._setup():
+            calls = setup["calls"]
+            break
+        # One data load per arm (the logger-parity measurement reuses it), and
+        # three model builds: the init reconstruction, the trained state and the
+        # registered logger-parity state.
+        self.assertEqual(calls["data"], 1)
+        self.assertEqual(calls["models"], 3)
+
+    def test_an_uncommitted_registration_refuses_before_any_access(self):
+        run_probe = _probe_symbol("run_probe")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo", kind="dirty")
+            output_dir = Path(tmp) / "output"
+            output_dir.mkdir()
+            with mock.patch.object(torch, "load", side_effect=AssertionError("weights loaded")), \
+                    mock.patch(
+                        "pinn.verification.diagnostic_data.open_diagnostic_context",
+                        side_effect=AssertionError("corpus context opened"),
+                    ), mock.patch(
+                        "pinn.verification.diagnostic_data.load_diagnostic_data",
+                        side_effect=AssertionError("corpus data read"),
+                    ):
+                with self.assertRaises(Exception):
+                    run_probe(
+                        repo / "reg/expectations.json", repo_root=repo,
+                        output_dir=output_dir,
+                        data_loader=lambda arm_id: (_ for _ in ()).throw(
+                            AssertionError("data read")),
+                        model_factory=lambda *args: (_ for _ in ()).throw(
+                            AssertionError("model built")),
+                    )
+            self.assertFalse((output_dir / "attempt.json").exists())
+
+    def test_the_run_records_zero_attempted_steps_and_matching_digests(self):
+        for setup in self._setup():
+            result = setup["result"]
+            break
+        self.assertEqual(result["interlock"]["attempted_steps"], 0)
+        self.assertEqual(
+            result["interlock"]["parameter_digest_before"],
+            result["interlock"]["parameter_digest_after"],
+        )
+
+    def test_individual_deep_layers_are_recorded_as_new_measurements(self):
+        for setup in self._setup():
+            result = setup["result"]
+            break
+        deep = [
+            entry for entry in result["new_measurements"]
+            if entry["field_id"].endswith("/h3")
+        ]
+        self.assertTrue(deep)
+        self.assertTrue(all(entry["status"] == "new_measurement" for entry in deep))
+
+    def test_logger_parity_is_recorded_from_the_registered_state(self):
+        for setup in self._setup(extra=None):
+            result = setup["result"]
+            break
+        parity = result["logger_parity"]
+        self.assertEqual(parity["arm_id"], "r1-1632")
+        self.assertEqual(parity["state"], "adam")
+        self.assertEqual(parity["entry"]["point"], "probe-logger-parity")
+        self.assertIn("layers", parity["entry"])
+
+
+class OptimizerInterlockTests(unittest.TestCase):
+    """The probe-only interlock: no optimizer construction or step is possible."""
+
+    def test_optimizer_construction_is_refused_under_the_interlock(self):
+        interlock = _probe_symbol("optimizer_interlock")
+        refused = _probe_symbol("ProbeInterlockRefused")
+        with self.assertRaises(refused):
+            with interlock():
+                torch.optim.Adam([torch.nn.Parameter(torch.zeros(1))], lr=1e-3)
+
+    def test_optimizer_steps_are_refused_under_the_interlock(self):
+        interlock = _probe_symbol("optimizer_interlock")
+        refused = _probe_symbol("ProbeInterlockRefused")
+        optimizer = torch.optim.SGD([torch.nn.Parameter(torch.zeros(1))], lr=0.1)
+        with self.assertRaises(refused):
+            with interlock():
+                optimizer.step()
+
+    def test_construction_works_again_after_the_interlock_releases(self):
+        interlock = _probe_symbol("optimizer_interlock")
+        with interlock():
+            pass
+        torch.optim.Adam([torch.nn.Parameter(torch.zeros(1))], lr=1e-3)
+
+    def test_parameter_tampering_during_measurement_is_refused(self):
+        run_probe = _probe_symbol("run_probe")
+        refused = _probe_symbol("ProbeInterlockRefused")
+
+        class _TamperingBoundary(_ScriptedBoundary):
+            def forward(self, _x):
+                with torch.no_grad():
+                    self.weight.add_(1.0)
+                return super().forward(_x)
+
+        rows = torch.zeros((4, 5), dtype=torch.float64)
+        tampering = _TamperingBoundary(rows, 0.3, _weight_column([0.5, 1.5, 2.5]))
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(
+                Path(tmp) / "repo",
+                expectations_extra=_expectations_with_rows({"init": {}, "adam": {}}),
+            )
+            output_dir = Path(tmp) / "output"
+            output_dir.mkdir()
+            with self.assertRaises(refused):
+                run_probe(
+                    repo / "reg/expectations.json", repo_root=repo, output_dir=output_dir,
+                    data_loader=lambda arm_id: _samples(4),
+                    model_factory=lambda *args: _ScriptedNet(
+                        [tampering], torch.zeros((4, 9), dtype=torch.float64)
+                    ),
+                )
+            attempt = json.loads((output_dir / "attempt.json").read_text())
+            self.assertEqual(attempt["status"], "incomplete")
+            self.assertFalse((output_dir / "reproduction.json").exists())
+
+
+class ProbeCliTests(unittest.TestCase):
+    """The CLI surface: check-registration / run / verify-result flags and exits."""
+
+    def test_check_registration_cli_exits_zero_on_a_committed_registration(self):
+        main = _probe_symbol("main")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo")
+            self.assertEqual(
+                main(
+                    ["check-registration", "--registration",
+                     str(repo / "reg/expectations.json")],
+                    repo_root=str(repo),
+                ),
+                0,
+            )
+
+    def test_check_registration_cli_exits_nonzero_when_uncommitted(self):
+        main = _probe_symbol("main")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo", kind="dirty")
+            self.assertEqual(
+                main(
+                    ["check-registration", "--registration",
+                     str(repo / "reg/expectations.json")],
+                    repo_root=str(repo),
+                ),
+                2,
+            )
+
+    def test_run_cli_refuses_before_any_access_when_uncommitted(self):
+        main = _probe_symbol("main")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo", kind="dirty")
+            output_dir = Path(tmp) / "output"
+            output_dir.mkdir()
+            with mock.patch.object(torch, "load", side_effect=AssertionError("weights loaded")), \
+                    mock.patch(
+                        "pinn.verification.diagnostic_data.open_diagnostic_context",
+                        side_effect=AssertionError("corpus context opened"),
+                    ):
+                self.assertEqual(
+                    main(
+                        ["run", "--registration", str(repo / "reg/expectations.json"),
+                         "--result", str(output_dir / "reproduction.json"),
+                         "--output", str(output_dir)],
+                        repo_root=str(repo),
+                    ),
+                    2,
+                )
+            self.assertFalse((output_dir / "attempt.json").exists())
+
+    def test_run_cli_requires_all_three_flags(self):
+        main = _probe_symbol("main")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(Path(tmp) / "repo")
+            self.assertEqual(
+                main(["run", "--registration", str(repo / "reg/expectations.json")],
+                     repo_root=str(repo)),
+                2,
+            )
+
+    def test_verify_result_cli_recomputes_the_branch_and_run_commit(self):
+        main = _probe_symbol("main")
+        for setup in self._run_setup():
+            break
+        repo, output_dir = setup["repo"], setup["output_dir"]
+        self.assertEqual(
+            main(["verify-result", "--result", str(output_dir / "reproduction.json")],
+                 repo_root=str(repo)),
+            0,
+        )
+        # A later committed change to a dependency does NOT invalidate the
+        # result: verify checks the recorded run commit, not current bytes.
+        (repo / "code_dep.py").write_bytes(b"DEPENDENCY = 2\n")
+        subprocess.run(["git", "add", "code_dep.py"], cwd=str(repo), check=True,
+                       capture_output=True)
+        subprocess.run(["git", "commit", "-q", "-m", "later change"], cwd=str(repo),
+                       check=True, capture_output=True)
+        self.assertEqual(
+            main(["verify-result", "--result", str(output_dir / "reproduction.json")],
+                 repo_root=str(repo)),
+            0,
+        )
+
+    def test_verify_result_refuses_a_result_whose_verdict_was_tampered(self):
+        main = _probe_symbol("main")
+        for setup in self._run_setup():
+            break
+        repo, output_dir = setup["repo"], setup["output_dir"]
+        result = json.loads((output_dir / "reproduction.json").read_text())
+        # Record one required field as failed while still claiming the retained
+        # branch: the recomputed reading rule contradicts the recorded verdict.
+        result["field_verdicts"][0]["status"] = "not_reproduced"
+        (output_dir / "tampered.json").write_text(json.dumps(result))
+        self.assertEqual(
+            main(["verify-result", "--result", str(output_dir / "tampered.json")],
+                 repo_root=str(repo)),
+            2,
+        )
+
+    def test_verify_result_logger_parity_flag_compares_the_recorded_entry(self):
+        main = _probe_symbol("main")
+        for setup in self._run_setup():
+            break
+        repo, output_dir = setup["repo"], setup["output_dir"]
+        parity_path = output_dir / "parity.json"
+        parity_path.write_text(json.dumps(setup["result"]["logger_parity"]["entry"]))
+        self.assertEqual(
+            main(["verify-result", "--result", str(output_dir / "reproduction.json"),
+                  "--logger-parity", str(parity_path)],
+                 repo_root=str(repo)),
+            0,
+        )
+        altered = dict(setup["result"]["logger_parity"]["entry"])
+        altered["point"] = "somewhere-else"
+        (output_dir / "parity2.json").write_text(json.dumps(altered))
+        self.assertEqual(
+            main(["verify-result", "--result", str(output_dir / "reproduction.json"),
+                  "--logger-parity", str(output_dir / "parity2.json")],
+                 repo_root=str(repo)),
+            2,
+        )
+
+    def _run_setup(self):
+        """One successful synthetic run on a committed fixture, yielded once."""
+        rows = torch.randn((4, 5), generator=torch.Generator().manual_seed(21), dtype=torch.float64)
+        output_rows = torch.randn((4, 9), generator=torch.Generator().manual_seed(22), dtype=torch.float64)
+        model = _scripted_model([rows, rows.flip(0)], output_rows)
+        X, masses, targets, times = _samples(4)
+        measurement = measure_time_signal(model, X, masses, targets, times)
+        fields = {
+            "frequency_median": {"formatter": ".2f", "token": format(measurement.frequency_median, ".2f")},
+            "adj_h1": {"formatter": ".3f", "token": format(
+                [row for row in measurement.layers if row.name == "h1"][0].adjacent_cosine_mean, ".3f")},
+            "out_move": {"formatter": ".4f", "token": format(measurement.output_movement, ".4f")},
+            "rate_ratio": {"formatter": ".3g", "token": format(measurement.output_rate_ratio, ".3g")},
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = _fixture_registration(
+                Path(tmp) / "repo",
+                expectations_extra=_expectations_with_rows({"init": fields, "adam": fields}),
+            )
+            output_dir = Path(tmp) / "output"
+            output_dir.mkdir()
+            result = _probe_symbol("run_probe")(
+                repo / "reg/expectations.json", repo_root=repo, output_dir=output_dir,
+                data_loader=lambda arm_id: (X, masses, targets, times),
+                model_factory=lambda *args: _scripted_model([rows, rows.flip(0)], output_rows),
+            )
+            yield {"repo": repo, "output_dir": output_dir, "result": result}
 
 
 if __name__ == "__main__":
