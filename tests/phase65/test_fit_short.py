@@ -164,7 +164,10 @@ class ShortFitTests(_FitCase):
         self.assertEqual(variant["window_length"], 10.0)
         self.assertEqual(record["seed"], SEED)
         self.assertEqual(record["runtime"], {"dtype": "float64", "device": "cpu"})
-        self.assertEqual(record["steps"], {"requested": 2, "completed": 2})
+        self.assertEqual(
+            record["steps"],
+            {"requested": 2, "warmup": 0, "measured": 2, "completed": 2},
+        )
 
     def test_the_two_adam_steps_really_changed_the_weights(self):
         model, payload = self._rebuild_final_model()
@@ -182,8 +185,8 @@ class ShortFitTests(_FitCase):
 
     def test_similarity_covers_initialization_and_the_final_step_once_each(self):
         similarity = self.record["similarity"]
-        self.assertEqual(similarity["cadence"], ["init", "final"])
-        init, final = similarity["init"], similarity["final"]
+        self.assertEqual(similarity["cadence"], [0, 2])
+        init, final = similarity["entries"]
         self.assertEqual(init["point"], "init")
         self.assertEqual(init["step"], 0)
         self.assertEqual(final["point"], "final")
@@ -589,17 +592,20 @@ def _fit_registration_fixture(root, kind="matching", settings_extra=None, receip
     def entry(rel, raw):
         return {"path": rel, "sha256": _sha256_bytes(raw)}
 
+    # Commit the probe-run evidence first: the receipt's recorded run commit
+    # must be a real ancestor of everything that follows. For
+    # run_commit_bytes_differ the receipt is then changed (and committed
+    # again) after the recorded run commit, so the committed bytes differ
+    # from the receipt's bytes at that commit.
+    git("add", "reg/PREDICTION.md", "reg/probe-result.json",
+        "reg/logger-parity.json", "fit_dep.py", "frozen/scorer.py")
+    git("commit", "-q", "-m", "fixture evidence as produced by the probe run")
+    run_commit = git("rev-parse", "HEAD").stdout.strip()
     if kind == "run_commit_bytes_differ":
-        # The receipt changes after the recorded run commit: commit the
-        # original receipt, then its replacement, and record the ORIGINAL
-        # commit as the run commit.
-        git("add", "reg/logger-parity.json")
-        git("commit", "-q", "-m", "receipt as produced by the probe run")
-        run_commit = git("rev-parse", "HEAD").stdout.strip()
         changed = _receipt_bytes() + b"# regenerated\n"
         (reg / "logger-parity.json").write_bytes(changed)
         git("add", "reg/logger-parity.json")
-        git("commit", "-q", "-m", "receipt regenerated")
+        git("commit", "-q", "-m", "receipt regenerated after the run")
         receipt = changed
 
     settings = _smoke_settings(**(settings_extra or {}))
@@ -612,11 +618,7 @@ def _fit_registration_fixture(root, kind="matching", settings_extra=None, receip
         "logger_parity": {
             "receipt": entry("reg/logger-parity.json", receipt),
             "run_commit": (
-                "0" * 64 if kind == "run_commit_not_ancestor"
-                else (
-                    run_commit if kind == "run_commit_bytes_differ"
-                    else None
-                )
+                "0" * 64 if kind == "run_commit_not_ancestor" else run_commit
             ),
             "arm": "r1-1632",
             "state": "polish",
@@ -632,31 +634,14 @@ def _fit_registration_fixture(root, kind="matching", settings_extra=None, receip
     registration_raw = (json.dumps(doc, indent=2) + "\n").encode("utf-8")
     (reg / "smoke-registration.json").write_bytes(registration_raw)
 
-    paths = [
-        "reg/PREDICTION.md", "reg/probe-result.json", "reg/logger-parity.json",
-        "fit_dep.py", "frozen/scorer.py",
-    ]
     if kind == "untracked":
-        git("add", *paths)
-        git("commit", "-q", "-m", "fixture without the registration file")
         return root
     if kind == "staged_only":
-        git("add", *paths)
         git("add", "reg/smoke-registration.json")
         return root
-    git("add", *paths)
     git("add", "reg/smoke-registration.json")
     git("commit", "-q", "-m", "fixture registration")
     commit = git("rev-parse", "HEAD").stdout.strip()
-    if doc["logger_parity"]["run_commit"] is None:
-        doc["logger_parity"]["run_commit"] = commit
-        # The registration must carry its own run commit; rewrite and amend so
-        # the committed bytes include it.
-        registration_raw = (json.dumps(doc, indent=2) + "\n").encode("utf-8")
-        (reg / "smoke-registration.json").write_bytes(registration_raw)
-        git("add", "reg/smoke-registration.json")
-        git("commit", "-q", "--amend", "-m", "fixture registration")
-        commit = git("rev-parse", "HEAD").stdout.strip()
 
     if kind == "missing":
         (reg / "PREDICTION.md").unlink()
@@ -879,7 +864,7 @@ class FitCheckRegistrationTests(unittest.TestCase):
         self.assertGreaterEqual(len(report["artifacts"]), 4)
 
     def test_an_uncommitted_registration_refuses(self):
-        root, _commit = _fit_registration_fixture(self.tmp / "untracked", kind="untracked")
+        root = _fit_registration_fixture(self.tmp / "untracked", kind="untracked")
         with self.assertRaises(self.guard.DiagnosticRegistrationRefused):
             self.symbols["check"](root / "reg/smoke-registration.json", repo_root=root)
 
@@ -1001,13 +986,21 @@ class BoundedSynchronizedTimingTests(unittest.TestCase):
         self.assertEqual(list(self.root.rglob("*")), [])
 
     def test_a_mid_run_non_finite_loss_stays_incomplete_and_publishes_nothing(self):
-        spoiled = torch.tensor(float("inf"), dtype=torch.float64)
-        with mock.patch.object(
-            self.fit, "data_only_loss",
-            side_effect=[torch.tensor(1.0, dtype=torch.float64), spoiled],
-        ), mock.patch.object(torch.optim.Adam, "step") as adam_step:
-            with self.assertRaises(self.fit.DiagnosticFitRefused):
-                self._bounded_fit(steps=4, warmup=2, cadence=[0, 4])
+        import pinn.verification.diagnostic_fit as fit_module
+
+        real_loss = fit_module.data_only_loss
+        calls = {"n": 0}
+
+        def flaky_loss(*args, **kwargs):
+            calls["n"] += 1
+            if calls["n"] >= 2:
+                return torch.tensor(float("inf"), dtype=torch.float64)
+            return real_loss(*args, **kwargs)
+
+        with mock.patch.object(fit_module, "data_only_loss", side_effect=flaky_loss):
+            with mock.patch.object(torch.optim.Adam, "step") as adam_step:
+                with self.assertRaises(self.fit.DiagnosticFitRefused):
+                    self._bounded_fit(steps=4, warmup=2, cadence=[0, 4])
         self.assertLessEqual(adam_step.call_count, 1)
         self.assertEqual(list(self.root.rglob("*")), [])
 
@@ -1099,20 +1092,25 @@ class AttemptOwnershipTests(unittest.TestCase):
 
     def test_the_worker_reports_refusals_and_marks_the_attempt_incomplete(self):
         root, registration = self._registration("worker")
+        doc = json.loads(registration.read_bytes())
         output = self.tmp / "out3" / "record.json"
-        output.parent.mkdir(parents=True)
-        (output.parent / "attempt.json").write_bytes(
-            (json.dumps({"schema": ATTEMPT_SCHEMA, "status": "running"}) + "\n").encode()
-        )
         queue = mock.MagicMock()
         with mock.patch.object(
             self.fit, "require_committed_smoke_registration",
-            side_effect=self.fit.DiagnosticFitRefused("admission refused"),
+            return_value=(root, doc),
+        ), mock.patch.object(
+            self.fit, "open_diagnostic_context", create=True,
+            return_value=self.context,
+        ), mock.patch.object(
+            self.fit, "one_orbit_spec", create=True, return_value=self.spec,
+        ), mock.patch.object(
+            self.fit, "load_diagnostic_data",
+            side_effect=self.fit.DiagnosticFitRefused("corpus refused"),
         ):
             self.symbols["worker"](str(registration), str(output), str(root), queue)
         attempt = json.loads((output.parent / "attempt.json").read_bytes())
         self.assertEqual(attempt["status"], "incomplete")
-        self.assertIn("admission refused", attempt["reason"])
+        self.assertIn("corpus refused", attempt["reason"])
         self.assertFalse(output.exists())
         self.assertTrue(queue.put.called)
 
@@ -1196,6 +1194,20 @@ class VerifyResultTests(unittest.TestCase):
             tempfile.TemporaryDirectory(prefix="phase65-verify-")
         ))
         self.spec, self.context, self.scorecard, self.data = _loaded(self.fixture)
+        # The verify gate requires access evidence: give the fixture context a
+        # summary-capable attestation and a Stage-0 style reader summary.
+        if self.context.attestation is None:
+            fake_attestation = SimpleNamespace(
+                summary=lambda: {"test_split_opens": 0, "withheld_refusals": 0}
+            )
+            self.context = SimpleNamespace(
+                **{**vars(self.context), "attestation": fake_attestation}
+            )
+        if not hasattr(self.context.reader, "access_summary"):
+            self.context.reader.access_summary = lambda: {
+                "requested": [], "opened": [], "refused_before_open": 0,
+                "actual_opens": 1,
+            }
         self.fit, self.symbols = _fit_symbols(self)
 
     def _registration(self, name, **settings_extra):

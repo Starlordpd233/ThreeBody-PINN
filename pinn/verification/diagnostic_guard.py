@@ -27,6 +27,7 @@ __all__ = [
     "RECORD_SCHEMA",
     "WEIGHTS_SCHEMA",
     "REGISTRATION_SCHEMA",
+    "FIT_REGISTRATION_SCHEMA",
     "ARTIFACT_KIND",
     "diagnostic_marker",
     "carries_diagnostic_marker",
@@ -40,6 +41,12 @@ __all__ = [
 RECORD_SCHEMA = "inst08-diagnostic/v1"
 WEIGHTS_SCHEMA = "inst08-diagnostic-weights/v1"
 REGISTRATION_SCHEMA = "phase65-probe-registration/v1"
+#: The plan 65-06 smoke registration shares the committed-registration
+#: admission; its enumerated artifacts are the prediction page, the committed
+#: logger-parity receipt, the recorded probe result, the final fit code
+#: dependencies and the frozen scorer artifacts. It has no arms and no
+#: pre-committed weight files (the smoke trains from its registered seed).
+FIT_REGISTRATION_SCHEMA = "phase65-fit-registration/v1"
 ARTIFACT_KIND = "diagnostic"
 
 
@@ -281,6 +288,39 @@ def _one_entry(entry, what):
     return entry["path"], entry["sha256"]
 
 
+def _fit_registration_entries(doc):
+    """Every enumerated (repo-relative path, recorded SHA-256) in a fit registration.
+
+    A fit registration has no arms and no committed weight files — the smoke
+    trains from its registered seed and publishes its own weights. It names
+    the prediction page, the committed logger-parity receipt, the recorded
+    probe result, the final fit code dependencies and the frozen scorer
+    artifacts. The settings and reading-rule blocks are validated by the fit
+    module's own admission, not here.
+    """
+    artifacts = []
+    artifacts.append(_one_entry(doc.get("page"), "page"))
+    parity = doc.get("logger_parity")
+    if not isinstance(parity, Mapping) or not isinstance(parity.get("receipt"), Mapping):
+        raise DiagnosticRegistrationRefused(
+            "the registration names no logger-parity receipt"
+        )
+    artifacts.append(_one_entry(parity["receipt"], "logger_parity.receipt"))
+    context = doc.get("context")
+    if isinstance(context, Mapping) and isinstance(context.get("probe_result"), Mapping):
+        artifacts.append(_one_entry(context["probe_result"], "context.probe_result"))
+    dependencies = doc.get("code_dependencies")
+    if not isinstance(dependencies, list) or not dependencies:
+        raise DiagnosticRegistrationRefused("the registration names no code dependencies")
+    for index, entry in enumerate(dependencies):
+        artifacts.append(_one_entry(entry, f"code_dependencies[{index}]"))
+    frozen = doc.get("frozen")
+    if isinstance(frozen, list):
+        for index, entry in enumerate(frozen):
+            artifacts.append(_one_entry(entry, f"frozen[{index}]"))
+    return artifacts, []
+
+
 def require_committed_registration(registration_path, *, repo_root=None, weight_digests=True):
     """Admit a committed-clean registration BEFORE any data or weight access.
 
@@ -318,8 +358,12 @@ def require_committed_registration(registration_path, *, repo_root=None, weight_
         raise DiagnosticRegistrationRefused(
             f"the registration is not valid JSON: {exc}"
         ) from exc
-    if not isinstance(doc, Mapping) or doc.get("schema") != REGISTRATION_SCHEMA:
-        raise DiagnosticRegistrationRefused(f"not a {REGISTRATION_SCHEMA} registration")
+    if not isinstance(doc, Mapping) or doc.get("schema") not in (
+        REGISTRATION_SCHEMA, FIT_REGISTRATION_SCHEMA,
+    ):
+        raise DiagnosticRegistrationRefused(
+            f"not a {REGISTRATION_SCHEMA} or {FIT_REGISTRATION_SCHEMA} registration"
+        )
 
     def git(*args):
         return subprocess.run(
@@ -332,20 +376,23 @@ def require_committed_registration(registration_path, *, repo_root=None, weight_
         status = git("status", "--porcelain", "--", relative_path)
         return status.returncode == 0 and status.stdout.strip() == ""
 
-    # Arm order before anything else: a reordered or duplicated registry is a
-    # different registration, not this one.
-    arms = doc.get("arms")
-    record_paths = [arm.get("record", {}).get("path") for arm in arms]
-    if record_paths != sorted(record_paths):
-        raise DiagnosticRegistrationRefused(
-            "the arms are not in stable committed-record path order"
-        )
-    arm_ids = [arm.get("arm_id") for arm in arms]
-    if len(set(arm_ids)) != len(arm_ids):
-        raise DiagnosticRegistrationRefused("a duplicate arm_id in the registration")
+    if doc.get("schema") == FIT_REGISTRATION_SCHEMA:
+        artifacts, weights = _fit_registration_entries(doc)
+    else:
+        # Arm order before anything else: a reordered or duplicated registry is a
+        # different registration, not this one.
+        arms = doc.get("arms")
+        record_paths = [arm.get("record", {}).get("path") for arm in arms]
+        if record_paths != sorted(record_paths):
+            raise DiagnosticRegistrationRefused(
+                "the arms are not in stable committed-record path order"
+            )
+        arm_ids = [arm.get("arm_id") for arm in arms]
+        if len(set(arm_ids)) != len(arm_ids):
+            raise DiagnosticRegistrationRefused("a duplicate arm_id in the registration")
 
-    artifacts, weights = _registration_entries(doc)
-    artifacts.append((relative, None))  # the expectations file itself: tracked/clean only
+        artifacts, weights = _registration_entries(doc)
+    artifacts.append((relative, None))  # the registration file itself: tracked/clean only
 
     for relative_path, recorded in artifacts:
         if not tracked_and_clean(relative_path):
