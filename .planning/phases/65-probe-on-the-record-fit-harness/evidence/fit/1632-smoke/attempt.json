@@ -1,0 +1,15 @@
+{
+  "completed_steps": 20,
+  "ended_utc": "2026-10-29T21:35:22+00:00",
+  "output": "record.json",
+  "pid": 33371,
+  "record_sha256": "f6faee77d5278aef139052a694e9e17b3090201aac17000eb9453fadd108d6ea",
+  "registration": {
+    "path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/fit/smoke-registration.json",
+    "sha256": "ba54e8124a33bb8b172256c6c7150b1f37e3dde1c52c682635bc49e169140d8e"
+  },
+  "schema": "phase65-fit-attempt/v1",
+  "started_utc": "2026-10-29T21:35:19+00:00",
+  "status": "published",
+  "whole_run_cap_seconds": 600.0
+}
