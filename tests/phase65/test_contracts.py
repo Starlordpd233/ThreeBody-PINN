@@ -111,7 +111,7 @@ class RegistryContractTests(unittest.TestCase):
             name="ladder-depth6", time_features="raw_tau_ic13", depth=6, width=64,
             learning_rate=1e-3, window_length=10.0,
         )
-        extended = register(register(first), into=register(first))
+        extended = register(first)
         extended = register(second, into=extended)
         self.assertEqual(names(extended), ["locked-12", "ladder-depth2", "ladder-depth6"])
 

@@ -41,6 +41,8 @@ __all__ = [
     "LOCKED_12",
     "REGISTRY",
     "build_variant",
+    "register_variant",
+    "registry_names",
     "resolve_variant",
 ]
 
@@ -169,6 +171,33 @@ def resolve_variant(variant):
     raise VariantRefused(
         f"variant must be a name or a DiagnosticVariant; got {type(variant).__name__}"
     )
+
+
+def register_variant(variant, *, into=None):
+    """Register an approved design into a copy of a registry, refusing duplicates.
+
+    The sealed Wave 0 catalog is never altered: registration returns a NEW
+    immutable registry holding the existing entries in registration order
+    followed by the new one. A name that already exists — in the sealed catalog
+    or in the registry being extended — is refused, so two designs can never
+    share an identifier (E-INST-encoding/identity).
+    """
+    registry = REGISTRY if into is None else into
+    if not isinstance(variant, DiagnosticVariant):
+        raise VariantRefused(
+            f"a registration needs a DiagnosticVariant; got {type(variant).__name__}"
+        )
+    if variant.name in registry:
+        raise VariantRefused(
+            f"a variant named {variant.name!r} is already registered; duplicate "
+            "names are refused"
+        )
+    return MappingProxyType({**registry, variant.name: variant})
+
+
+def registry_names(registry):
+    """The registry's names in registration order (insertion order is preserved)."""
+    return list(registry)
 
 
 def build_variant(variant, *, seed, dtype, device):
