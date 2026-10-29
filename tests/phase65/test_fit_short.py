@@ -557,7 +557,9 @@ def _fit_registration_fixture(root, kind="matching", settings_extra=None, receip
     (a listed code dependency changes content after the registration commit),
     receipt_tampered (the receipt changes after the registration commit),
     receipt_invalid (the receipt is committed but is not a measurement),
-    run_commit_bytes_differ (the receipt changed after the recorded run commit)
+    receipt_after_run (the receipt is first committed after the recorded run
+    commit, byte-faithful to its publication — the 65-05 shape, which admits),
+    run_commit_bytes_differ (the receipt changed after its own introduction)
     and run_commit_not_ancestor (the recorded run commit does not exist).
     """
     import subprocess
@@ -594,13 +596,22 @@ def _fit_registration_fixture(root, kind="matching", settings_extra=None, receip
 
     # Commit the probe-run evidence first: the receipt's recorded run commit
     # must be a real ancestor of everything that follows. For
-    # run_commit_bytes_differ the receipt is then changed (and committed
-    # again) after the recorded run commit, so the committed bytes differ
-    # from the receipt's bytes at that commit.
-    git("add", "reg/PREDICTION.md", "reg/probe-result.json",
-        "reg/logger-parity.json", "fit_dep.py", "frozen/scorer.py")
+    # receipt_after_run the receipt is first committed AFTER that run commit
+    # (the 65-05 provenance shape), byte-faithful from its introduction on.
+    # For run_commit_bytes_differ the receipt is changed (and committed
+    # again) after its introduction, so the committed bytes differ from the
+    # receipt's bytes at its introducing commit.
+    evidence_paths = ["reg/PREDICTION.md", "reg/probe-result.json",
+                      "fit_dep.py", "frozen/scorer.py"]
+    if kind != "receipt_after_run":
+        evidence_paths.append("reg/logger-parity.json")
+    git("add", *evidence_paths)
     git("commit", "-q", "-m", "fixture evidence as produced by the probe run")
     run_commit = git("rev-parse", "HEAD").stdout.strip()
+    if kind == "receipt_after_run":
+        git("add", "reg/logger-parity.json")
+        git("commit", "-q", "-m", "receipt materialized from the run's recorded entry")
+        run_commit = git("rev-parse", "HEAD~1").stdout.strip()
     if kind == "run_commit_bytes_differ":
         changed = _receipt_bytes() + b"# regenerated\n"
         (reg / "logger-parity.json").write_bytes(changed)
@@ -749,6 +760,18 @@ class FitRegistrationAdmissionTests(unittest.TestCase):
         root, _commit = _fit_registration_fixture(self.tmp / "invalid", kind="receipt_invalid")
         with self.assertRaises(self.fit.DiagnosticFitRefused):
             self.symbols["admission"](root / "reg/smoke-registration.json", repo_root=root)
+
+    def test_a_receipt_first_published_after_the_run_commit_admits(self):
+        # The 65-05 provenance shape: the receipt was materialized from the
+        # run's recorded entry after the run commit; it admits when it is
+        # byte-faithful from its own introduction onward.
+        root, _commit = _fit_registration_fixture(
+            self.tmp / "after-run", kind="receipt_after_run"
+        )
+        _root, doc = self.symbols["admission"](
+            root / "reg/smoke-registration.json", repo_root=root
+        )
+        self.assertEqual(doc["logger_parity"]["arm"], "r1-1632")
 
     def test_receipt_bytes_changed_since_the_run_commit_refuse(self):
         root, _commit = _fit_registration_fixture(

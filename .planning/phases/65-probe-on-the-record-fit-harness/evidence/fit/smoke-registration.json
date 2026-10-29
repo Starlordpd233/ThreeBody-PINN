@@ -84,7 +84,7 @@
   "code_dependencies": [
     {
       "path": "pinn/verification/diagnostic_fit.py",
-      "sha256": "b724d36c024633560c589fa3c863f37765e3407067be3a1cf2e31179b3afe496"
+      "sha256": "b00e45b460b8d60ee9dfabf9a1e74f09828f83e798d324947cabed5bea34c2cd"
     },
     {
       "path": "pinn/verification/diagnostic_guard.py",

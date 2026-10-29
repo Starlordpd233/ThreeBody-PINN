@@ -470,15 +470,18 @@ def _receipt_is_a_measurement(receipt):
 
 
 def verify_logger_parity_receipt(doc, *, repo_root):
-    """A successful committed receipt, faithful to its recorded run-commit bytes.
+    """A successful committed receipt, faithful to its publication bytes.
 
     The D-10 receipt precedes any training trace: the registered receipt file
     must be a real ``log_similarity`` measurement, its recorded run commit
-    must be an ancestor of HEAD, and its bytes at that commit must equal the
-    committed bytes (the receipt is never rewritten after the run). The
-    historical lead's reproduction branch is recorded in the registration and
-    never required here: an independent fit runs regardless of the probe's
-    verdict.
+    must be an ancestor of HEAD, and its bytes at its own introducing commit
+    must equal the committed bytes. (The receipt was materialized after the
+    probe run from the run's own recorded logger entry — plan 65-05's
+    receipt provenance — so its bytes exist only from that introducing commit
+    onward; rewriting it afterwards is the tampering this check refuses.)
+    The historical lead's reproduction branch is recorded in the registration
+    and never required here: an independent fit runs regardless of the
+    probe's verdict.
     """
     parity = doc.get("logger_parity")
     if not isinstance(parity, Mapping):
@@ -517,11 +520,17 @@ def verify_logger_parity_receipt(doc, *, repo_root):
             f"the recorded logger-parity run commit {run_commit} is not an "
             "ancestor of HEAD"
         )
-    at_run = git("show", f"{run_commit}:{receipt_entry['path']}")
-    if at_run.returncode != 0 or at_run.stdout.encode("utf-8") != raw:
+    introduced = git("log", "-n1", "--format=%H", "--diff-filter=A", "--", receipt_entry["path"])
+    if introduced.returncode != 0 or not introduced.stdout.strip():
         raise DiagnosticFitRefused(
-            "the committed logger-parity receipt differs from its bytes at the "
-            f"recorded run commit {run_commit}"
+            "the logger-parity receipt has no introducing commit; it is not committed"
+        )
+    receipt_commit = introduced.stdout.strip().splitlines()[0]
+    at_publication = git("show", f"{receipt_commit}:{receipt_entry['path']}")
+    if at_publication.returncode != 0 or at_publication.stdout.encode("utf-8") != raw:
+        raise DiagnosticFitRefused(
+            "the committed logger-parity receipt differs from its bytes at its "
+            f"introducing commit {receipt_commit}"
         )
     return receipt
 
