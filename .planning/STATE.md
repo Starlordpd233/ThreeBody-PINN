@@ -2,12 +2,14 @@
 gsd_state_version: "1.0"
 milestone: v2.5
 milestone_name: Root-Cause Confirmation
+current_phase: 65
+current_phase_name: Probe on the Record & Fit Harness
 status: planning
-stopped_at: "v2.5 roadmap created 2026-10-27 (5 phases 65-69, 13/13 requirements mapped); Phase 65 ready to plan"
-last_updated: "2026-10-28T01:08:19Z"
+stopped_at: Phase 65 context gathered; agent-led technical discussion delegation recorded; ready for planning
+last_updated: "2026-10-29T00:56:30.417Z"
 last_activity: 2026-10-27
 last_activity_desc: milestone v2.5 Root-Cause Confirmation started on branch milestone/v2.5 (from milestone/v2.4 at dac9d9c1). The Phase 64 verifier and its tests were first repointed at milestones/v2.4-PROJECT.md (dbc96887); PROJECT.md was then rewritten to the charter's C-12 and C-13 drafts, with C-14 B recorded. Order A - in-house tests first, trainex-r5 re-aimed at the redesign. Phases after the first experiments are provisional (owner, 2026-10-27). Requirements defined (13; 85c1a930) and roadmap created (Phases 65–69, 13/13 mapped).
-state_head: dbc96887ef6a9c6a22d402a9b4494aea129dd8a1
+state_head: 4e7633eb1e8977ec9ebac25f629afc8bff6b28e0
 progress:
   total_phases: 5
   completed_phases: 0
@@ -973,10 +975,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/PROJECT.md (the v2.5 Current Milestone section: goal, target features, order A, the pivot rule and scope)
+**Resume file:** .planning/phases/65-probe-on-the-record-fit-harness/65-CONTEXT.md
 
-Last session: 2026-10-27
-Stopped at: v2.5 initialized: verifier repoint `dbc96887`, milestone start `633f8eb4`, requirements `85c1a930`, roadmap created (5 phases, 65–69; 13/13 requirements mapped); branch milestone/v2.5 from milestone/v2.4 at dac9d9c1
+Last session: 2026-10-29T00:56:30.399Z
+Stopped at: Phase 65 context gathered; agent-led technical discussion delegation recorded; ready for planning
 Next action: plan Phase 65 (DIAG-09, the probe on the record; INST-08, the diagnostic fit harness) via `/gsd-discuss-phase 65` or `/gsd-plan-phase 65`. The 2026-10-27 probe scripts are preserved outside the repo for Phase 65 to register. Any merge to master and any tag push are the owner's. All computation is on this Mac.
 
 ## Operator Next Steps

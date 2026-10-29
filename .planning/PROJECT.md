@@ -321,6 +321,24 @@ Source: the owner's direction in the 2026-10-27 `/gsd-new-milestone` session, bu
 
 ## Context
 
+**Standing GSD decision delegation (owner, 2026-10-28):** In every current and
+future milestone, agents handle technical and scientific discussion questions.
+The owner does not have the technical background to supply those judgments.
+Agents inspect the sources, research unresolved questions, compare alternatives,
+make defensible decisions within the approved scope, and record their evidence,
+rationale and uncertainty. Do not turn those tasks into a technical interview.
+Ask the owner about scope, priorities, resource commitments, acceptable outcomes
+and other choices that require the owner's authority. Supply a recommendation
+and explain its practical consequences in plain language.
+
+Milestone-specific STOP protocols, locked contracts and expressly reserved
+owner checkpoints still apply. This delegation does not authorize unsupported
+claims, scope changes, moving locked values or spending a preserved evaluation.
+When such a protocol requires an owner decision, do the technical analysis
+first and ask for the reserved choice or authorization, rather than asking the
+owner to supply the science. Phase 65 records the first application of this
+standing instruction in `.planning/phases/65-probe-on-the-record-fit-harness/65-CONTEXT.md`.
+
 - Brutus generates trajectories with 30-40 significant digit precision, G=1 natural units
 - Two IC types: standard quasi-random (equal masses, Sobol sampling) and hierarchical (variable masses, orbital elements)
 - Four dataset variants per type: standard and gold-standard (higher-resolution output)
@@ -349,6 +367,7 @@ Source: the owner's direction in the 2026-10-27 `/gsd-new-milestone` session, bu
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| Agent-led technical and scientific GSD discussions across milestones (2026-10-28) | The owner explicitly delegated these judgments and retains scope and user-only choices. | Active standing instruction in this file's Context section; Phase 65 is its first application. |
 | Phase 56 lands the Phase-54 recalibration as a formal SCOPE-38 spec amendment, then GATE-04 fires on it (2026-09-07) | `pinn_architecture.md` §2.2/§3.2 must carry the ratified `η_c`/`R̄`/`n_col` recipe as a contract amendment (naming the superseded LOSS-04/D-04/AC-LOSS-04 ruling, provenance, a re-issued acceptance criterion) rather than a silent value edit; GATE-04 then makes INST-04's probe a fail-closed precondition on RUN-04 so a still-saturated recipe can never spend the milestone's single preserved Stage-0 run. Condition (ii)'s pass criterion (GAP-56-01) and the §2.4 table scope (GAP-56-02) are owner-ruled OPEN, not invented. | ✓ 56-VERIFICATION.md 6/6; SC1-SC5 independently confirmed, including a live re-run of the SC5 pre-amendment-refusal demonstration; authoritative GATE-04 run: PASS (INCOMPLETE, unratified: ii); a code-review pass (56-REVIEW.md, 1 critical + 4 warning) was fixed before close (`7be12ca0`); Phase 57 (RUN-04) is hard-gated on this PASS |
 | Phase 54 checkpoint ② recalibration (`A1 + B2 residual-wide + C1 + D3 + E1`, 2026-09-04) | A frozen measured reference removes the initialization-scale mismatch without relying on the disputed `omega_0` scaling law; residual-wide application also addresses the established severe loss-conditioning imbalance; 16 fixed time-bin means separate causal-prefix length from GAP-39-12's 4096-total batch estimator; unchanged frequency and underflow-only clip avoid unsupported architecture/semantic changes. The owner's express delegation is recorded verbatim in `54-RULING.md`. | ✓ Owner-authorized ruling; 10 Phase-54 gaps resolved and GAP-54-06 deferred to checkpoint ③; Phase 56 authorized only after Phase 55 completes |
 | Fine-tune Qwen 3.5 2B for trajectory prediction | Small enough to train locally on M2 Mac | — Pending |
