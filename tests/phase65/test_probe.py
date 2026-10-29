@@ -518,7 +518,7 @@ class FormatterCellTests(unittest.TestCase):
         # Counting visible digits would read two significant digits and accept
         # any 1.x e+08 value; the true .3g cell is the 1.90e8 rounding cell.
         self.assertEqual(render(1.86e8, ".3g"), "1.86e+08")
-        self.assertGreater(1.86e8, cell["hi"])
+        self.assertLess(1.86e8, cell["lo"])
         self.assertEqual(render(1.8999e8, ".3g"), "1.9e+08")
         self.assertGreaterEqual(1.8999e8, cell["lo"])
         self.assertNotEqual(render(math.nextafter(cell["hi"], math.inf), ".3g"), "1.9e+08")
@@ -705,7 +705,9 @@ def _fixture_registration(root, kind="matching", expectations_extra=None):
         }
     ]
     if kind == "unordered":
-        arms.append({
+        # r1-851's record path sorts BEFORE r1-1632's, so putting it first is
+        # genuinely out of stable committed-record path order.
+        arms.insert(0, {
             "arm_id": "r1-851",
             "record": entry("arms/r1-851/record.json", b'{"arm_id": "r1-851"}\n'),
             "weights": {"adam": entry("arms/r1-851/adam.weights", b"weights-851")},
@@ -894,8 +896,11 @@ class ProbeRunGateTests(unittest.TestCase):
     def _setup(self, *, kind="matching", perturb=False, extra=None):
         run_probe = _probe_symbol("run_probe")
         rows = torch.randn((4, 5), generator=torch.Generator().manual_seed(11), dtype=torch.float64)
+        # Four boundaries (input + h1..h3) so the deep-layer new-measurement
+        # recording has an h3..h12 population to label.
+        boundaries = [rows, rows.clone(), rows.clone(), rows.flip(0)]
         output_rows = torch.randn((4, 9), generator=torch.Generator().manual_seed(12), dtype=torch.float64)
-        model = _scripted_model([rows, rows.flip(0)], output_rows)
+        model = _scripted_model(boundaries, output_rows, omega_values=(0.3, 1.1, 2.7, 0.9))
         X, masses, targets, times = _samples(4)
         measurement = measure_time_signal(model, X, masses, targets, times)
 
@@ -911,45 +916,44 @@ class ProbeRunGateTests(unittest.TestCase):
                 "rate_ratio": {"formatter": ".3g", "token": token(measurement.output_rate_ratio, ".3g")},
             }
             if perturbed:
-                fields["out_move"]["token"] = "9.99"
+                fields["out_move"]["token"] = "9.9900"
             return fields
 
         fields_by_row = {"init": row_fields(perturb), "adam": row_fields(perturb)}
-        with tempfile.TemporaryDirectory() as tmp:
-            repo = _fixture_registration(
-                Path(tmp) / "repo", kind=kind,
-                expectations_extra=extra if extra is not None else _expectations_with_rows(fields_by_row),
-            )
-            output_dir = Path(tmp) / "output"
-            output_dir.mkdir()
-            calls = {"data": 0, "models": 0}
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        repo = _fixture_registration(
+            Path(tmp.name) / "repo", kind=kind,
+            expectations_extra=extra if extra is not None else _expectations_with_rows(fields_by_row),
+        )
+        output_dir = Path(tmp.name) / "output"
+        output_dir.mkdir()
+        calls = {"data": 0, "models": 0}
 
-            def data_loader(arm_id):
-                calls["data"] += 1
-                return X, masses, targets, times
+        def data_loader(arm_id):
+            calls["data"] += 1
+            return X, masses, targets, times
 
-            def model_factory(first_omega_0, state, weights_path):
-                calls["models"] += 1
-                return _scripted_model([rows, rows.flip(0)], output_rows)
+        def model_factory(first_omega_0, state, weights_path):
+            calls["models"] += 1
+            return _scripted_model(boundaries, output_rows, omega_values=(0.3, 1.1, 2.7, 0.9))
 
-            result = run_probe(
-                repo / "reg/expectations.json",
-                repo_root=repo,
-                output_dir=output_dir,
-                data_loader=data_loader,
-                model_factory=model_factory,
-            )
-            yield_ = {
-                "repo": repo, "tmp": tmp, "output_dir": output_dir, "result": result,
-                "calls": calls, "run_probe": run_probe,
-                "data_loader": data_loader, "model_factory": model_factory,
-            }
-            yield yield_
+        result = run_probe(
+            repo / "reg/expectations.json",
+            repo_root=repo,
+            output_dir=output_dir,
+            data_loader=data_loader,
+            model_factory=model_factory,
+        )
+        return {
+            "repo": repo, "output_dir": output_dir, "result": result,
+            "calls": calls, "run_probe": run_probe,
+            "data_loader": data_loader, "model_factory": model_factory,
+        }
 
     def test_a_complete_run_writes_an_exclusive_result_with_a_verdict(self):
-        for setup in self._setup():
-            result = setup["result"]
-            break
+        setup = self._setup()
+        result = setup["result"]
         self.assertEqual(result["schema"], "phase65-probe-result/v1")
         self.assertEqual(result["status"], "complete")
         self.assertTrue((setup["output_dir"] / "attempt.json").is_file())
@@ -957,30 +961,26 @@ class ProbeRunGateTests(unittest.TestCase):
         self.assertTrue((setup["output_dir"] / "reproduction.stdout.txt").is_file())
 
     def test_all_matching_fields_reproduce_and_retain_the_lead(self):
-        for setup in self._setup():
-            result = setup["result"]
-            break
-        self.assertEqual(result["reading_rule"]["verdict"], "retained")
-        self.assertFalse(result["reading_rule"]["scope49_proposal"])
+        setup = self._setup()
+        self.assertEqual(setup["result"]["reading_rule"]["verdict"], "retained")
+        self.assertFalse(setup["result"]["reading_rule"]["scope49_proposal"])
 
     def test_a_perturbed_token_withdraws_but_stays_a_complete_result(self):
-        for setup in self._setup(perturb=True):
-            result = setup["result"]
-            break
+        setup = self._setup(perturb=True)
+        result = setup["result"]
         self.assertEqual(result["status"], "complete")
         self.assertEqual(result["reading_rule"]["verdict"], "withdrawn")
         self.assertTrue(result["reading_rule"]["scope49_proposal"])
         self.assertTrue(any("out_move" in field for field in result["reading_rule"]["failed_required"]))
 
     def test_a_second_run_on_the_same_outputs_refuses_and_never_replaces_the_result(self):
-        for setup in self._setup():
-            first = setup["result"]
-            output_dir = setup["output_dir"]
-            run_probe = setup["run_probe"]
-            repo = setup["repo"]
-            data_loader = setup["data_loader"]
-            model_factory = setup["model_factory"]
-            break
+        setup = self._setup()
+        first = setup["result"]
+        output_dir = setup["output_dir"]
+        run_probe = setup["run_probe"]
+        repo = setup["repo"]
+        data_loader = setup["data_loader"]
+        model_factory = setup["model_factory"]
         before = (output_dir / "reproduction.json").read_bytes()
         attempt_class = _probe_symbol("AttemptExists")
         with self.assertRaises(attempt_class):
@@ -1020,14 +1020,13 @@ class ProbeRunGateTests(unittest.TestCase):
             self.assertFalse((output_dir / "reproduction.json").exists())
 
     def test_the_loader_is_called_once_per_arm(self):
-        for setup in self._setup():
-            calls = setup["calls"]
-            break
-        # One data load per arm (the logger-parity measurement reuses it), and
-        # three model builds: the init reconstruction, the trained state and the
-        # registered logger-parity state.
+        setup = self._setup()
+        calls = setup["calls"]
+        # One data load per arm (the logger-parity measurement reuses it). Two
+        # model builds: the init reconstruction and the trained state — the
+        # logger-parity measurement reuses the registered state's cached model.
         self.assertEqual(calls["data"], 1)
-        self.assertEqual(calls["models"], 3)
+        self.assertEqual(calls["models"], 2)
 
     def test_an_uncommitted_registration_refuses_before_any_access(self):
         run_probe = _probe_symbol("run_probe")
@@ -1055,9 +1054,8 @@ class ProbeRunGateTests(unittest.TestCase):
             self.assertFalse((output_dir / "attempt.json").exists())
 
     def test_the_run_records_zero_attempted_steps_and_matching_digests(self):
-        for setup in self._setup():
-            result = setup["result"]
-            break
+        setup = self._setup()
+        result = setup["result"]
         self.assertEqual(result["interlock"]["attempted_steps"], 0)
         self.assertEqual(
             result["interlock"]["parameter_digest_before"],
@@ -1065,9 +1063,8 @@ class ProbeRunGateTests(unittest.TestCase):
         )
 
     def test_individual_deep_layers_are_recorded_as_new_measurements(self):
-        for setup in self._setup():
-            result = setup["result"]
-            break
+        setup = self._setup()
+        result = setup["result"]
         deep = [
             entry for entry in result["new_measurements"]
             if entry["field_id"].endswith("/h3")
@@ -1076,9 +1073,8 @@ class ProbeRunGateTests(unittest.TestCase):
         self.assertTrue(all(entry["status"] == "new_measurement" for entry in deep))
 
     def test_logger_parity_is_recorded_from_the_registered_state(self):
-        for setup in self._setup(extra=None):
-            result = setup["result"]
-            break
+        setup = self._setup()
+        result = setup["result"]
         parity = result["logger_parity"]
         self.assertEqual(parity["arm_id"], "r1-1632")
         self.assertEqual(parity["state"], "adam")
@@ -1205,8 +1201,7 @@ class ProbeCliTests(unittest.TestCase):
 
     def test_verify_result_cli_recomputes_the_branch_and_run_commit(self):
         main = _probe_symbol("main")
-        for setup in self._run_setup():
-            break
+        setup = self._run_setup()
         repo, output_dir = setup["repo"], setup["output_dir"]
         self.assertEqual(
             main(["verify-result", "--result", str(output_dir / "reproduction.json")],
@@ -1228,8 +1223,7 @@ class ProbeCliTests(unittest.TestCase):
 
     def test_verify_result_refuses_a_result_whose_verdict_was_tampered(self):
         main = _probe_symbol("main")
-        for setup in self._run_setup():
-            break
+        setup = self._run_setup()
         repo, output_dir = setup["repo"], setup["output_dir"]
         result = json.loads((output_dir / "reproduction.json").read_text())
         # Record one required field as failed while still claiming the retained
@@ -1244,8 +1238,7 @@ class ProbeCliTests(unittest.TestCase):
 
     def test_verify_result_logger_parity_flag_compares_the_recorded_entry(self):
         main = _probe_symbol("main")
-        for setup in self._run_setup():
-            break
+        setup = self._run_setup()
         repo, output_dir = setup["repo"], setup["output_dir"]
         parity_path = output_dir / "parity.json"
         parity_path.write_text(json.dumps(setup["result"]["logger_parity"]["entry"]))
@@ -1266,10 +1259,11 @@ class ProbeCliTests(unittest.TestCase):
         )
 
     def _run_setup(self):
-        """One successful synthetic run on a committed fixture, yielded once."""
+        """One successful synthetic run on a committed fixture, returned once."""
         rows = torch.randn((4, 5), generator=torch.Generator().manual_seed(21), dtype=torch.float64)
+        boundaries = [rows, rows.clone(), rows.clone(), rows.flip(0)]
         output_rows = torch.randn((4, 9), generator=torch.Generator().manual_seed(22), dtype=torch.float64)
-        model = _scripted_model([rows, rows.flip(0)], output_rows)
+        model = _scripted_model(boundaries, output_rows, omega_values=(0.3, 1.1, 2.7, 0.9))
         X, masses, targets, times = _samples(4)
         measurement = measure_time_signal(model, X, masses, targets, times)
         fields = {
@@ -1279,19 +1273,191 @@ class ProbeCliTests(unittest.TestCase):
             "out_move": {"formatter": ".4f", "token": format(measurement.output_movement, ".4f")},
             "rate_ratio": {"formatter": ".3g", "token": format(measurement.output_rate_ratio, ".3g")},
         }
-        with tempfile.TemporaryDirectory() as tmp:
-            repo = _fixture_registration(
-                Path(tmp) / "repo",
-                expectations_extra=_expectations_with_rows({"init": fields, "adam": fields}),
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        repo = _fixture_registration(
+            Path(tmp.name) / "repo",
+            expectations_extra=_expectations_with_rows({"init": fields, "adam": fields}),
+        )
+        output_dir = Path(tmp.name) / "output"
+        output_dir.mkdir()
+        result = _probe_symbol("run_probe")(
+            repo / "reg/expectations.json", repo_root=repo, output_dir=output_dir,
+            data_loader=lambda arm_id: (X, masses, targets, times),
+            model_factory=lambda *args: _scripted_model(boundaries, output_rows, omega_values=(0.3, 1.1, 2.7, 0.9)),
+        )
+        return {"repo": repo, "output_dir": output_dir, "result": result}
+
+
+class RegistrationContentTests(unittest.TestCase):
+    """The real registration derives from the preserved stdout and is exact."""
+
+    @classmethod
+    def _phase_dir(cls):
+        return (
+            Path(__file__).resolve().parents[2]
+            / ".planning/phases/65-probe-on-the-record-fit-harness"
+        )
+
+    @classmethod
+    def _registration(cls):
+        path = cls._phase_dir() / "evidence/probe/expectations.json"
+        if not path.is_file():
+            cls.fail("the registration expectations file is missing")
+        try:
+            return json.loads(path.read_text())
+        except ValueError as exc:
+            cls.fail(f"expectations.json is not valid JSON: {exc}")
+
+    def _stdout_text(self):
+        document = json.loads(
+            (self._phase_dir() / "evidence/original/stdout.json").read_text()
+        )
+        return {m["tool_use_id"]: m["text"] for m in document["messages"]}
+
+    def test_the_registration_names_seven_arms_in_committed_record_order(self):
+        doc = self._registration()
+        arms = doc["arms"]
+        paths = [arm["record"]["path"] for arm in arms]
+        self.assertEqual(len(arms), 7)
+        self.assertEqual(paths, sorted(paths))
+        self.assertEqual(
+            [arm["arm_id"] for arm in arms],
+            ["g2s-1632-w060", "g2s-1632-w120", "g2s-1632-w240", "g2s-1632-w480",
+             "r1-1632", "r1-4658", "r1-851"],
+        )
+        better = {arm["arm_id"]: arm["better_state"] for arm in arms}
+        self.assertEqual(
+            better,
+            {"g2s-1632-w060": "adam", "g2s-1632-w120": "adam",
+             "g2s-1632-w240": "adam", "g2s-1632-w480": "adam",
+             "r1-1632": "polish", "r1-4658": "adam", "r1-851": "adam"},
+        )
+
+    def test_every_registered_token_appears_in_the_preserved_stdout(self):
+        doc = self._registration()
+        texts = self._stdout_text()
+        joined = "\n".join(texts.values())
+        missing = []
+        for arm in doc["probe"]["arms"]:
+            for row in arm["rows"]:
+                for name, entry in row["fields"].items():
+                    if entry["token"] not in joined:
+                        missing.append(f"{arm['arm_id']}/{row['state']}/{name}")
+        for state, entry in doc["probe"]["supplement"]["states"].items():
+            for name, field_entry in entry["fields"].items():
+                if field_entry["token"] not in joined:
+                    missing.append(f"supplement/{state}/{name}")
+        self.assertEqual(missing, [])
+
+    def test_every_recorded_cell_matches_its_formatter(self):
+        doc = self._registration()
+        derive_cell = _probe_symbol("derive_cell")
+        checked = 0
+
+        def check(entry, where):
+            nonlocal checked
+            cell = derive_cell(entry["formatter"], entry["token"])
+            self.assertEqual(float.fromhex(entry["cell"]["lo_hex"]), cell["lo"], where)
+            self.assertEqual(float.fromhex(entry["cell"]["hi_hex"]), cell["hi"], where)
+            self.assertEqual(
+                float.fromhex(entry["cell"]["excluded_below_hex"]), cell["excluded_below"], where
             )
-            output_dir = Path(tmp) / "output"
-            output_dir.mkdir()
-            result = _probe_symbol("run_probe")(
-                repo / "reg/expectations.json", repo_root=repo, output_dir=output_dir,
-                data_loader=lambda arm_id: (X, masses, targets, times),
-                model_factory=lambda *args: _scripted_model([rows, rows.flip(0)], output_rows),
+            self.assertEqual(
+                float.fromhex(entry["cell"]["excluded_above_hex"]), cell["excluded_above"], where
             )
-            yield {"repo": repo, "output_dir": output_dir, "result": result}
+            checked += 1
+
+        for arm in doc["probe"]["arms"]:
+            for row in arm["rows"]:
+                for name, entry in row["fields"].items():
+                    check(entry, f"{arm['arm_id']}/{row['state']}/{name}")
+        for state, entry in doc["probe"]["supplement"]["states"].items():
+            for name, field_entry in entry["fields"].items():
+                check(field_entry, f"supplement/{state}/{name}")
+        self.assertGreater(checked, 150)
+
+    def test_the_r1_1632_supplement_keeps_its_individual_h3_values(self):
+        doc = self._registration()
+        states = doc["probe"]["supplement"]["states"]
+        self.assertEqual(states["adam"]["fields"]["adj_h3"]["token"], "0.0186")
+        self.assertEqual(states["polish"]["fields"]["adj_h3"]["token"], "0.0177")
+        all_rows = {
+            (arm["arm_id"], row["state"]): row
+            for arm in doc["probe"]["arms"] for row in arm["rows"]
+        }
+        polish_row = all_rows[("r1-1632", "polish")]
+        self.assertEqual(polish_row["fields"]["deep_max"]["token"], "0.018")
+        # The all-arm row carries ONLY the range field for the deep layers —
+        # no invented individual targets.
+        for name in ("adj_h3", "adj_h4", "adj_h5"):
+            self.assertNotIn(name, polish_row["fields"])
+
+    def test_other_arms_deep_layers_are_new_measurements_not_targets(self):
+        doc = self._registration()
+        for arm in doc["probe"]["arms"]:
+            if arm["arm_id"] == "r1-1632":
+                continue
+            for row in arm["rows"]:
+                for name in ("adj_h3", "adj_h7", "adj_h12"):
+                    self.assertNotIn(name, row["fields"])
+                self.assertTrue(row.get("new_measurements"), arm["arm_id"])
+        # r1-1632's historical individual values: the init row carries the
+        # single-arm init block's per-layer fields, and the Adam/polish
+        # supplement carries theirs; the all-arm polish row stays the range.
+        rows = {
+            row["state"]: row
+            for arm in doc["probe"]["arms"] if arm["arm_id"] == "r1-1632"
+            for row in arm["rows"]
+        }
+        self.assertIn("adj_h3", rows["init"]["fields"])
+        self.assertNotIn("adj_h3", rows["polish"]["fields"])
+        supplement = doc["probe"]["supplement"]["states"]
+        self.assertIn("adj_h3", supplement["adam"]["fields"])
+        self.assertIn("adj_h3", supplement["polish"]["fields"])
+        self.assertFalse(rows["init"].get("new_measurements"))
+
+    def test_preserved_only_fields_carry_their_original_formatters(self):
+        doc = self._registration()
+        adam = doc["probe"]["supplement"]["states"]["adam"]["fields"]
+        self.assertEqual(adam["moving_h1"]["formatter"], ".4f")
+        self.assertEqual(adam["moving_h1"]["availability"], "preserved_only")
+        self.assertEqual(adam["spike_h12"]["formatter"], ".4f")
+        self.assertEqual(adam["skip_siren_h1"]["formatter"], ".1f")
+
+    def test_the_recorded_dependency_and_source_digests_match_disk(self):
+        doc = self._registration()
+        root = Path(__file__).resolve().parents[2]
+
+        def sha(relative):
+            return hashlib.sha256((root / relative).read_bytes()).hexdigest()
+
+        for entry in doc["source"]["scripts"]:
+            self.assertEqual(sha(entry["path"]), entry["sha256"], entry["path"])
+        for entry in doc["code_dependencies"]:
+            self.assertEqual(sha(entry["path"]), entry["sha256"], entry["path"])
+        for entry in doc["frozen"]:
+            self.assertEqual(sha(entry["path"]), entry["sha256"], entry["path"])
+        for arm in doc["arms"]:
+            self.assertEqual(sha(arm["record"]["path"]), arm["record"]["sha256"])
+            for state, weights in arm["weights"].items():
+                self.assertEqual(sha(weights["path"]), weights["sha256"], state)
+        self.assertEqual(
+            doc["pinned"]["protocol"]["sha256"],
+            sha(doc["pinned"]["protocol"]["path"]),
+        )
+
+    def test_the_page_is_named_and_the_reading_rule_is_immutable(self):
+        doc = self._registration()
+        page = self._phase_dir() / "65-PROBE-PREDICTION.md"
+        self.assertTrue(page.is_file())
+        self.assertEqual(
+            hashlib.sha256(page.read_bytes()).hexdigest(), doc["page"]["sha256"]
+        )
+        self.assertTrue(doc["reading_rule"]["immutable_after_observation"])
+        text = page.read_text()
+        for branch in ("retained", "withdrawn", "SCOPE-49", "provenance"):
+            self.assertIn(branch, text)
 
 
 if __name__ == "__main__":
