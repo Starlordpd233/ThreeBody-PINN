@@ -12,8 +12,11 @@ raised forward. No real record is opened by this module.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 import unittest
+from pathlib import Path
 
 import torch
 import torch.nn.functional as F
@@ -271,6 +274,157 @@ class MeasurementRefusalTests(unittest.TestCase):
         measurement = measure_time_signal(model, X, masses, targets, times)
         self.assertEqual(len(measurement.layers), 2)
         self.assertEqual(len(model.hidden_layers[0]._forward_hooks), 0)
+
+
+_HISTORICAL_SCRIPT_SHA256 = {
+    "probe_time_signal.py": "16db5c8cccf76417f4d18a84811d62b99eea4746d11d6f2322cef349065c9a4f",
+    "probe_all_arms.py": "a4dea7d08b750b8cef9fa28c3d354f646922b7eb4463b3b39a2ede18ac9d04c8",
+}
+_SINGLE_ARM_TOOL_ID = "toolu_01PUFNWxrDDsVrU8DTCH4tX3"
+_ALL_ARM_TOOL_ID = "toolu_01NHGWRv6pEQCJmqeAXxqonK"
+_HISTORICAL_MESSAGE_SHA256 = {
+    _SINGLE_ARM_TOOL_ID: "8e916fea7e5dba57b530230a0befaa4de5f3c492d9d086dbbac89c428fb250bd",
+    _ALL_ARM_TOOL_ID: "ec112712c5f690521e3c8bb78bf7f390b5205d2f1856cd332cb6b57984dcae78",
+}
+_HISTORICAL_TIMESTAMP = {
+    _SINGLE_ARM_TOOL_ID: "2026-10-27T14:12:02.670Z",
+    _ALL_ARM_TOOL_ID: "2026-10-27T14:14:01.814Z",
+}
+_EXPECTED_ALL_ARM_ROWS = (
+    ("g2s-1632-w060", "init"), ("g2s-1632-w060", "adam"),
+    ("g2s-1632-w120", "init"), ("g2s-1632-w120", "adam"),
+    ("g2s-1632-w240", "init"), ("g2s-1632-w240", "adam"),
+    ("g2s-1632-w480", "init"), ("g2s-1632-w480", "adam"),
+    ("r1-1632", "init"), ("r1-1632", "polish"),
+    ("r1-4658", "init"), ("r1-4658", "adam"),
+    ("r1-851", "init"), ("r1-851", "adam"),
+)
+
+
+def _original_dir():
+    return (
+        Path(__file__).resolve().parents[2]
+        / ".planning/phases/65-probe-on-the-record-fit-harness/evidence/original"
+    )
+
+
+class HistoricalSourceTests(unittest.TestCase):
+    """The preserved 2026-10-27 originals are byte-exact and durably scoped.
+
+    The preserved scripts are only read and hashed here — importing or executing
+    them is forbidden (the preservation check must never run the originals).
+    """
+
+    def _read_bytes(self, name):
+        path = _original_dir() / name
+        if not path.is_file():
+            self.fail(f"preserved source artifact is missing: {name}")
+        return path.read_bytes()
+
+    def _stdout_document(self):
+        try:
+            payload = json.loads(self._read_bytes("stdout.json").decode("utf-8"))
+        except ValueError as exc:
+            self.fail(f"stdout.json is not valid JSON: {exc}")
+        if payload.get("schema") != "phase65-original-stdout/v1":
+            self.fail(f"unexpected stdout schema: {payload.get('schema')!r}")
+        return payload
+
+    def _message(self, tool_use_id):
+        for message in self._stdout_document()["messages"]:
+            if message.get("tool_use_id") == tool_use_id:
+                return message
+        self.fail(f"stdout.json is missing the historical message {tool_use_id}")
+
+    def test_preserved_script_hashes_match_the_context_hashes(self):
+        for name, expected in _HISTORICAL_SCRIPT_SHA256.items():
+            with self.subTest(script=name):
+                raw = self._read_bytes(name)
+                self.assertEqual(hashlib.sha256(raw).hexdigest(), expected)
+                self.assertEqual(
+                    len(raw),
+                    4040 if name == "probe_time_signal.py" else 3145,
+                    "byte count drifted from the recorded original",
+                )
+
+    def test_both_numerical_messages_are_preserved_verbatim(self):
+        for tool_use_id, expected_sha in _HISTORICAL_MESSAGE_SHA256.items():
+            with self.subTest(message=tool_use_id):
+                message = self._message(tool_use_id)
+                raw = message["text"].encode("utf-8")
+                self.assertEqual(hashlib.sha256(raw).hexdigest(), expected_sha)
+                self.assertEqual(message["sha256"], expected_sha)
+                self.assertEqual(message["byte_count"], len(raw))
+                self.assertEqual(message["timestamp"], _HISTORICAL_TIMESTAMP[tool_use_id])
+        # The extraction is scoped: the single-arm message carries the per-layer
+        # tables, the all-arm message carries the 14-row table; both are complete.
+        self.assertIn("== trained r1-1632, adam state", self._message(_SINGLE_ARM_TOOL_ID)["text"])
+        self.assertIn("adj h3..h12 range", self._message(_ALL_ARM_TOOL_ID)["text"])
+
+    def _all_arm_rows(self):
+        text = self._message(_ALL_ARM_TOOL_ID)["text"]
+        rows = []
+        for line in text.splitlines():
+            fields = line.split()
+            if len(fields) == 10 and fields[6] == "to":
+                rows.append(fields)
+        return rows
+
+    def test_the_all_arm_table_holds_exactly_the_14_state_rows(self):
+        rows = self._all_arm_rows()
+        observed = tuple((fields[0], fields[1]) for fields in rows)
+        self.assertEqual(len(rows), 14)
+        self.assertEqual(observed, _EXPECTED_ALL_ARM_ROWS)
+        # Signed zero and formatting are preserved verbatim in the table cells.
+        by_key = {(fields[0], fields[1]): fields for fields in rows}
+        self.assertEqual(by_key[("g2s-1632-w240", "adam")][4], "-0.000")
+        self.assertEqual(by_key[("r1-4658", "adam")][4], "-0.000")
+        self.assertEqual(by_key[("g2s-1632-w480", "init")][9], "1.61e+03")
+        self.assertEqual(by_key[("r1-1632", "polish")][9], "4.97e+07")
+        self.assertEqual(by_key[("r1-1632", "polish")][7], "0.018")
+        self.assertEqual(by_key[("r1-1632", "init")][8], "2.8730")
+
+    def test_the_r1_1632_adam_polish_supplement_is_distinct(self):
+        single = self._message(_SINGLE_ARM_TOOL_ID)["text"]
+        adam_block = single.split("== trained r1-1632, adam state", 1)[1]
+        polish_block = single.split("== trained r1-1632, polish state", 1)[1]
+        # The distinct individual deep-layer values, at the single-arm .4f format.
+        self.assertIn("h3", adam_block)
+        self.assertIn("0.0186", adam_block)
+        self.assertIn("0.0177", polish_block)
+        # The single-arm output fields, at their own original formatters.
+        self.assertIn("0.0035", adam_block)
+        self.assertIn("5.19e+07", adam_block)
+        self.assertIn("0.0034", polish_block)
+        self.assertIn("4.97e+07", polish_block)
+        # The all-arm range for the same state is a DIFFERENT field (.3f over
+        # h3..h12): the individual polish h3 value is never merged into it.
+        all_rows = {(fields[0], fields[1]): fields for fields in self._all_arm_rows()}
+        self.assertEqual(all_rows[("r1-1632", "polish")][7], "0.018")
+        self.assertNotIn("0.0177", " ".join(all_rows[("r1-1632", "polish")]))
+
+    def test_the_manifest_records_re_derivable_provenance(self):
+        try:
+            manifest = json.loads(self._read_bytes("source-manifest.json").decode("utf-8"))
+        except ValueError as exc:
+            self.fail(f"source-manifest.json is not valid JSON: {exc}")
+        if manifest.get("schema") != "phase65-source-manifest/v1":
+            self.fail(f"unexpected manifest schema: {manifest.get('schema')!r}")
+        source = manifest["extraction_source"]
+        self.assertEqual(
+            source["message_lines"][_SINGLE_ARM_TOOL_ID], 332, "single-arm line drifted"
+        )
+        self.assertEqual(source["message_lines"][_ALL_ARM_TOOL_ID], 353, "all-arm line drifted")
+        self.assertTrue(source["session_file"].endswith("acb49c49-444a-46ea-a66b-792086b740d2.jsonl"))
+        recovery = manifest["recovery_provenance"]
+        self.assertEqual(recovery["snapshots"]["probe_time_signal.py"], "85ac6b7d6b97691b@v2")
+        self.assertEqual(recovery["snapshots"]["probe_all_arms.py"], "4f2e7a23e12db4e1@v2")
+        for entry, expected in zip(manifest["scripts"], _HISTORICAL_SCRIPT_SHA256.items()):
+            name, sha = expected
+            self.assertEqual(entry["path"], f"evidence/original/{name}")
+            self.assertEqual(entry["sha256"], sha)
+        for entry in manifest["messages"]:
+            self.assertEqual(entry["sha256"], _HISTORICAL_MESSAGE_SHA256[entry["tool_use_id"]])
 
 
 if __name__ == "__main__":

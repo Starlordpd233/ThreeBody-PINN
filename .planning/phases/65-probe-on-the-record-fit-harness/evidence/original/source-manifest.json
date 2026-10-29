@@ -1,0 +1,69 @@
+{
+  "schema": "phase65-source-manifest/v1",
+  "extracted_on": "2026-10-29",
+  "extraction_source": {
+    "session_file": "<home>/.claude-alt/projects/-Users-<user>-Desktop-3-body-problem--worktrees-trainex/acb49c49-444a-46ea-a66b-792086b740d2.jsonl",
+    "session_sha256_at_extraction": "a3209ed34dadbb918cbdfa84f743e8e6f073d9dcbe2e5c8f657825b4a5f57043",
+    "session_lines_total": 1567,
+    "message_lines": {
+      "toolu_01PUFNWxrDDsVrU8DTCH4tX3": 332,
+      "toolu_01NHGWRv6pEQCJmqeAXxqonK": 353
+    },
+    "scope_note": "extraction read only lines 332 and 353 of the named session record; exactly the two numerical tool_result messages were copied, nothing else"
+  },
+  "recovery_provenance": {
+    "note": "The temporary scratchpad originals were lost to macOS cleanup and were restored by the execute-phase orchestrator from the durable session file-history store, then re-verified byte-exact against the plan's expected SHA-256 hashes before this preservation task ran.",
+    "original_scratchpad_dir": "/private/tmp/claude-501/-Users-<user>-Desktop-3-body-problem--worktrees-trainex/bac24a94-a63c-43a3-acbd-dfc3a0bbe1ba/scratchpad/v25-probe-origin/",
+    "file_history_store": "<home>/.claude-alt/file-history/acb49c49-444a-46ea-a66b-792086b740d2/",
+    "snapshots": {
+      "probe_time_signal.py": "85ac6b7d6b97691b@v2",
+      "probe_all_arms.py": "4f2e7a23e12db4e1@v2"
+    },
+    "hash_verification": "2026-10-29: both restored scripts re-hashed byte-exact against the expected SHA-256 values recorded below (16db5c8c…, a4dea7d0…).",
+    "historical_tool_messages_confirmed": [
+      "line 332 tool_result toolu_01PUFNWxrDDsVrU8DTCH4tX3 (2026-10-27T14:12:02.670Z)",
+      "line 353 tool_result toolu_01NHGWRv6pEQCJmqeAXxqonK (2026-10-27T14:14:01.814Z)"
+    ]
+  },
+  "scripts": [
+    {
+      "path": "evidence/original/probe_time_signal.py",
+      "sha256": "16db5c8cccf76417f4d18a84811d62b99eea4746d11d6f2322cef349065c9a4f",
+      "byte_count": 4040,
+      "original_location": "/private/tmp/claude-501/-Users-<user>-Desktop-3-body-problem--worktrees-trainex/bac24a94-a63c-43a3-acbd-dfc3a0bbe1ba/scratchpad/v25-probe-origin/probe_time_signal.py",
+      "note": "copied byte-exact, never imported or executed"
+    },
+    {
+      "path": "evidence/original/probe_all_arms.py",
+      "sha256": "a4dea7d08b750b8cef9fa28c3d354f646922b7eb4463b3b39a2ede18ac9d04c8",
+      "byte_count": 3145,
+      "original_location": "/private/tmp/claude-501/-Users-<user>-Desktop-3-body-problem--worktrees-trainex/bac24a94-a63c-43a3-acbd-dfc3a0bbe1ba/scratchpad/v25-probe-origin/probe_all_arms.py",
+      "note": "copied byte-exact, never imported or executed"
+    }
+  ],
+  "messages": [
+    {
+      "tool_use_id": "toolu_01PUFNWxrDDsVrU8DTCH4tX3",
+      "timestamp": "2026-10-27T14:12:02.670Z",
+      "message_uuid": "2d7296c2-959c-43d9-a65e-e672c9b8ae48",
+      "parent_uuid": "a2390f9a-a455-4fba-8615-b6ff91c95f7e",
+      "byte_count": 3077,
+      "sha256": "8e916fea7e5dba57b530230a0befaa4de5f3c492d9d086dbbac89c428fb250bd"
+    },
+    {
+      "tool_use_id": "toolu_01NHGWRv6pEQCJmqeAXxqonK",
+      "timestamp": "2026-10-27T14:14:01.814Z",
+      "message_uuid": "245afdd1-59c6-4740-8f8f-0a7154a0db97",
+      "parent_uuid": "cdbedc7c-f4c3-4eb2-be9e-6319efa29f3b",
+      "byte_count": 1771,
+      "sha256": "ec112712c5f690521e3c8bb78bf7f390b5205d2f1856cd332cb6b57984dcae78"
+    }
+  ],
+  "stdout_document": {
+    "path": "evidence/original/stdout.json",
+    "sha256": "9041549e9401e6d448ac3464444581041f6f432e9abfe12580e1a514cac80235",
+    "byte_count": 6238
+  },
+  "session_branch": "milestone/v2.4",
+  "session_cwd": "<home>/Desktop/3_body_problem/.worktrees/trainex"
+}
