@@ -114,7 +114,7 @@ status: complete
 
 Each task followed RED → GREEN (TDD); each RED was machine-verified `RED_EVIDENCE_OK` (`check tdd-red-evidence`, per the RED commit records):
 
-1. **65-02-01 enforce Stage-0 TRAIN before every corpus operation** — `56bac6e6` (test) + `b64f4fa0` (feat)
+1. **65-02-01 enforce Stage-0 TRAIN before every corpus operation** — `56bac6e6` (test) + `b64f4ba0` (feat)
 2. **65-02-02 hydrate retained statistics and preserve physical windows** — `dadb523b` (test) + `22768976` (feat)
 
 **Plan metadata:** this commit (docs).
