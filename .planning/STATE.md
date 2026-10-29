@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 65
 current_phase_name: Probe on the Record & Fit Harness
 status: executing
-stopped_at: "Completed 65-03-PLAN.md (production-entry isolation)"
-last_updated: "2026-10-29T17:56:00Z"
+stopped_at: "Completed 65-04-PLAN.md (probe registration and gates)"
+last_updated: "2026-10-29T19:58:00Z"
 last_activity: 2026-10-29
-last_activity_desc: Plan 65-03 executed (Wave 3)
-state_head: 039d78ab6b965152c23f2098853862a76be8921c
+last_activity_desc: Plan 65-04 executed (Wave 4)
+state_head: d2cbc1d39f95df1eaa03dc63d62563e416e082fa
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
-  completed_plans: 3
-  percent: 50
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 65 (Probe on the Record & Fit Harness) — EXECUTING
-Plan: 4 of 6
-Status: Executing Phase 65 (Wave 3 complete)
-Last activity: 2026-10-29 — Plan 65-03 executed (Wave 3)
+Plan: 5 of 6
+Status: Executing Phase 65 (Wave 4 complete)
+Last activity: 2026-10-29 — Plan 65-04 executed (Wave 4)
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
 v2.4 time-constant failure before any redesign (the redesign is v2.6), on
@@ -52,6 +52,13 @@ mutating verbs have corrupted it before (the full note is in this file at
 commit `b8632832`). The v2.5 start was written by hand and its diff reviewed.
 
 Phase 64 record (kept for reference): Phase 64 complete 2026-10-26; planned 2026-10-25 and executed in 7 waves. The verdict is RETHINK-REPRESENTATION; at owner checkpoint ① the owner decided `change-course` (ruling `64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`), and every charter row C-1 to C-14 was recorded `open`, so PROJECT.md and the twelve skipped-phase requirement statuses are unchanged. FEAS-06, FEAS-10 and VER-22 are complete, and VER-22 was re-verified at close on the final text: 24 defined, 24 in the traceability table, 24 in the roadmap. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`); Phases 61–63 skipped at G2.
+
+### Decisions from 65-04 (2026-10-29)
+
+- The 2026-10-27 exploratory probe is on the record before any rerun (DIAG-09, D-02/D-03): both original scripts preserved byte-exact under `evidence/original/` (SHA-256s `16db5c8c…` / `a4dea7d0…` re-verified; never imported or executed), the complete verbatim text of exactly the two historical numerical tool outputs (`toolu_01PUFNWxrDDsVrU8DTCH4tX3`, `toolu_01NHGWRv6pEQCJmqeAXxqonK`) with timestamps, precision and signed zero, and re-derivable scoped provenance in `source-manifest.json` — including the recovery chain for the scratchpad originals lost to macOS cleanup (restored by the orchestrator from the durable file-history store, snapshots `85ac6b7d6b97691b@v2` / `4f2e7a23e12db4e1@v2`, re-hashed byte-exact). Commits `e71daf0a` (evidence), `b9645d36` (test RED) + `7255835f` (feat GREEN), `f469e003` (evidence(65), the registration), SUMMARY `d2cbc1d3`.
+- Reproduction is exact formatter equality with pre-derived rounding cells: every historical token's acceptance region is its formatter-defined cell (first/last representable doubles as float hex, boundary inclusion, excluded `nextafter` neighbours) under the original `.2f`/`.3f`/`.4f`/`.3g` formatters — signed zero, round-half-even ties, exponent changes and `.3g`'s omitted trailing zeros sit inside the cells, and no tolerance is widened after results. The reading rule is immutable after observation: all required fields reproduced keeps the association (`retained`); any failed required comparison withdraws the lead (`withdrawn`, SCOPE-49 proposal to the owner); missing source output is a `provenance_limitation`, never a fabricated failure or success; the single-arm moving/spike/skip-siren columns are `preserved_only`; other arms' individual deep-layer values are `new_measurement` entries with raw values and deltas, never invented targets (D-03/D-07).
+- `require_committed_registration` (diagnostic_guard, shared with the fit registration) admits only a committed-clean registration before any data resolution, weight deserialization or attempt creation: git tracked/clean checks scoped to the registration's own enumerated artifacts, exact byte digests, ancestor-commit proof, arms in stable committed-record path order; an unrelated dirty file elsewhere is never a refusal. The read-only runner has exclusive attempt claims, no automatic retry, complete evidence records even when figures fail, `reproduction.stdout.txt` beside `reproduction.json`, hash-before-load weights (`weights_only=True`, CPU), an optimizer interlock refusing construction/steps with counted attempts and parameter digests, and the `check-registration` / `run` / `verify-result` CLI; `verify-result` verifies historical dependencies against the recorded run commit, not current bytes. The CPU float64 seed-42 initialization is labelled a reconstruction, distinct from historical MPS float32 training (D-04).
+- Task 65-04-03 committed the registration (`f469e003`: `65-PROBE-PREDICTION.md` + `evidence/probe/expectations.json`, 2975 lines) and the read-only gate proved live admission: `CHECK-REGISTRATION-OK registration-commit=f469e003…` with every artifact hash, zero corpus/weight opens, no probe result or attempt. Verification: task verifies (5, 72 tests) and the full phase65 suite (168 tests) OK at the final HEAD; `git diff --check` clean; `load_protocol()` revalidates all 33 pinned digests; no real probe ran and no corpus was accessed — the seven-arm rerun belongs to 65-05 under this committed gate. Process notes: the plan executed across two executor sessions (prior session committed all four task commits and was interrupted before close-out; the resume re-ran every verify at HEAD and completed SUMMARY/STATE/ROADMAP), and the executor ran under the general-purpose runtime with the gsd-executor role definition. DIAG-09 and INST-08 stay open (later plans own them).
 
 ### Decisions from 65-03 (2026-10-29)
 
