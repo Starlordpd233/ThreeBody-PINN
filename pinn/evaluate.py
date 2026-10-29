@@ -67,6 +67,10 @@ from pinn.training.config_yaml import load_config
 from pinn.training.summary import refresh_completed_summary
 from pinn.training import validation_gate
 from pinn.verification import gate_metrics
+from pinn.verification.diagnostic_guard import (
+    DiagnosticArtifactRefused,
+    require_not_diagnostic,
+)
 
 __all__ = [
     "METRICS_SCHEMA_VERSION",
@@ -375,11 +379,12 @@ def evaluate_run(
     """Run the ACC-03 one-time held-out gate and write its artifacts.
 
     Fail-closed ordering: checkpoint ownership -> canonical output guard ->
-    prior attempt/receipt check -> frozen config/manifest load -> manifest-only
-    empty-test refusal -> EXCLUSIVE durable claim -> CPU/float32 adapter +
-    test-split selection -> model load (``weights_only=True``) -> the single
-    no-grad forward pass -> gate metrics -> atomic artifact writes -> completed
-    attempt marker. No admitted-corpus access occurs before the claim.
+    prior attempt/receipt check -> INST-08 diagnostic-content refusal ->
+    frozen config/manifest load -> manifest-only empty-test refusal ->
+    EXCLUSIVE durable claim -> CPU/float32 adapter + test-split selection ->
+    model load (``weights_only=True``) -> the single no-grad forward pass ->
+    gate metrics -> atomic artifact writes -> completed attempt marker. No
+    admitted-corpus access occurs before the claim.
     """
     # D-12/GAP-46-01: this must remain the first evaluator-boundary action,
     # before even the persisted held-out split object is constructed.
@@ -400,6 +405,23 @@ def evaluate_run(
     _assert_evaluation_unclaimed(
         attempt_path=attempt_path, receipt_path=receipt_path
     )
+
+    # INST-08 / D-09 (Plan 65-03): refuse an intrinsic diagnostic artifact by
+    # CONTENT, after the canonical-frame precondition (the first established
+    # evaluator precondition, above) and before the frozen config/manifest
+    # load, the exclusive evaluation claim, any data-adapter construction or
+    # any corpus access. Filename/location is never trust evidence: a renamed
+    # or relocated INST-08 record/weights envelope — even one carrying every
+    # CTX-53 production key around the marker — is refused here, translated
+    # into the evaluator's existing public refusal convention.
+    try:
+        require_not_diagnostic(checkpoint_path)
+    except DiagnosticArtifactRefused as exc:
+        raise CheckpointOwnershipError(
+            f"checkpoint {checkpoint_path} carries the intrinsic diagnostic "
+            "marker (INST-08) and is not a production checkpoint; refusing "
+            "before the evaluation claim"
+        ) from exc
 
     config = load_config(run_dir / "config.yaml")
     manifest = SplitManifest.from_path(run_dir / "splits.json")
