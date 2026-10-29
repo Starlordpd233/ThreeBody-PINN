@@ -211,3 +211,7 @@ None — every delivered path is real; no placeholder, TODO or unwired data sour
 ---
 *Phase: 65-probe-on-the-record-fit-harness*
 *Completed: 2026-10-29*
+
+## Self-Check: PASSED
+
+All ten key files exist on disk; all seven commits (three RED, three GREEN, one SUMMARY) are in history; the RED/GREEN gate sequence is present for every task; all four Phase 65 verify commands exit 0.

@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 65
 current_phase_name: Probe on the Record & Fit Harness
 status: executing
-stopped_at: "Phase 65 planning complete: six plans in six waves, 15 tasks; independent plan check passed"
-last_updated: "2026-10-29T02:10:10.129Z"
-last_activity: 2026-10-27
-last_activity_desc: milestone v2.5 Root-Cause Confirmation started on branch milestone/v2.5 (from milestone/v2.4 at dac9d9c1). The Phase 64 verifier and its tests were first repointed at milestones/v2.4-PROJECT.md (dbc96887); PROJECT.md was then rewritten to the charter's C-12 and C-13 drafts, with C-14 B recorded. Order A - in-house tests first, trainex-r5 re-aimed at the redesign. Phases after the first experiments are provisional (owner, 2026-10-27). Requirements defined (13; 85c1a930) and roadmap created (Phases 65–69, 13/13 mapped).
-state_head: be7c2af837155d0bc5dd49c8401224086b4dc26a
+stopped_at: "Completed 65-01-PLAN.md (Wave 0 synthetic fit harness)"
+last_updated: "2026-10-29T03:21:01Z"
+last_activity: 2026-10-29
+last_activity_desc: Plan 65-01 executed (Wave 0)
+state_head: d60652964ce11366e1e4ac7ea948d62ecdc3c689
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 17
 ---
 
 # Project State
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Milestone v2.5 — Phase 65 (Probe on the Record & Fit Harness) ready to plan. All computation is on this Mac.
+**Current focus:** Phase 65 — Probe on the Record & Fit Harness
 
 ## Current Position
 
-Phase: 65 (Probe on the Record & Fit Harness) — READY TO EXECUTE
-Plan: —
-Status: Ready to execute
-Last activity: 2026-10-27 — v2.5 started; requirements defined (13) and roadmap created (5 phases, 13/13 mapped)
+Phase: 65 (Probe on the Record & Fit Harness) — EXECUTING
+Plan: 2 of 6
+Status: Executing Phase 65 (Wave 0 complete)
+Last activity: 2026-10-29 — Plan 65-01 executed (Wave 0)
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
 v2.4 time-constant failure before any redesign (the redesign is v2.6), on
@@ -52,6 +52,13 @@ mutating verbs have corrupted it before (the full note is in this file at
 commit `b8632832`). The v2.5 start was written by hand and its diff reviewed.
 
 Phase 64 record (kept for reference): Phase 64 complete 2026-10-26; planned 2026-10-25 and executed in 7 waves. The verdict is RETHINK-REPRESENTATION; at owner checkpoint ① the owner decided `change-course` (ruling `64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`), and every charter row C-1 to C-14 was recorded `open`, so PROJECT.md and the twelve skipped-phase requirement statuses are unchanged. FEAS-06, FEAS-10 and VER-22 are complete, and VER-22 was re-verified at close on the final text: 24 defined, 24 in the traceability table, 24 in the roadmap. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`); Phases 61–63 skipped at G2.
+
+### Decisions from 65-01 (2026-10-29)
+
+- Wave 0 shipped the synthetic fit harness with no corpus access: `pinn/verification/diagnostic_{variants,similarity,fit,guard}.py` and all four `tests/phase65` modules (58 tests, 1.1 s). One tiny fixture orbit traverses named locked-12 variant → two guarded constant-rate Adam steps (OptConfig betas/eps, lr 1e-4) → init+final similarity once each → frozen `score_network` (full `to_json_dict`) → window-mean-constant and two-Kepler comparison rows through the frozen `score_trajectory` → one exclusive `inst08-diagnostic/v1` record plus an intrinsically marked tensor payload. Six RED/GREEN commits (`6c728271`…`b548da0a`), each RED machine-verified `RED_EVIDENCE_OK`; SUMMARY `d6065296`.
+- `measure_time_signal` is the one shared centred-neighbour implementation (D-05), transcribed from the preserved originals: feature-wise centring across time samples, cosine of successive centred rows at the torch default epsilon, first-layer frequency `|w[:,0]|·omega_0/π`, output movement as the centered norm ratio, and the labelled network-autograd/gold-finite-difference tau-rate comparator. Hooks ride the actual forward (input layer + each hidden layer) and never survive a raised forward; physical time and normalized tau are recorded separately; non-finite or non-increasing times refuse before any forward, never sort.
+- Registry sealed to exactly `locked-12` (12×256, raw [tau, IC13], locked frequencies, lr 1e-4, window [0,10]); `register_variant` extends a copy in registration order, refuses duplicates, and later prediction pages register there without altering the catalog. The locked variant is bitwise the production network at the same seed (CPU float64 `torch.equal`; MPS float32 same-weights case skips only when unavailable, per D-04 — independently initialized cross-runtime nets are never compared).
+- The frozen two-Kepler Newton solver does not converge on the synthetic fixture orbit; that `RuntimeError` is caught narrowly around the call and recorded as a non-applicable row (`failure: solver_did_not_converge`, the frozen message verbatim), never a successful score. All 33 `PINNED_MODULES` digests still match the committed protocol `93486d24…`; the scorecard stays `f4b17688…`. Spies prove no `open_real_context`, `run_arm` or `admit_arm` call, and no `runs/phase65` tree exists. DIAG-09 and INST-08 stay open (later plans own them).
 
 ### Decisions from Phase 64 (2026-10-26)
 
