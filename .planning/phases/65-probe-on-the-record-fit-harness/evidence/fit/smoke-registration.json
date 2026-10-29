@@ -1,0 +1,138 @@
+{
+  "schema": "phase65-fit-registration/v1",
+  "title": "INST-08(e) registered smoke fit (plan 65-06): locked-12 on system 1632, MPS float32, 20 steps",
+  "committed_before": "the first real optimizer step; the settings, the cap, the cadence and the reading rule are immutable after the run",
+  "page": {
+    "path": ".planning/phases/65-probe-on-the-record-fit-harness/65-SMOKE-PREDICTION.md",
+    "sha256": "d746e46ccf39236bb7c8b16ace15a8df1e4fce78557f2f1f15b2348e1c200bd7"
+  },
+  "settings": {
+    "variant": {
+      "name": "locked-12",
+      "time_features": "raw_tau_ic13",
+      "depth": 12,
+      "width": 256,
+      "learning_rate": 0.0001,
+      "window_length": 10.0,
+      "first_omega_0": 30.0,
+      "hidden_omega_0": 1.0
+    },
+    "seed": 42,
+    "runtime": {
+      "dtype": "float32",
+      "device": "mps"
+    },
+    "orbit_key": "hierarchical/gold/1632",
+    "orbit_note": "Stage-0 training gold record, split train, manifest stage 0; the only record the guarded seam may open",
+    "physical_window": {
+      "t_start": 0.0,
+      "t_end": 10.0
+    },
+    "optimizer_steps": 20,
+    "warmup_steps": 2,
+    "measured_steps": 18,
+    "similarity_cadence": [
+      0,
+      5,
+      10,
+      15,
+      20
+    ],
+    "whole_run_cap_seconds": 600,
+    "optimizer": {
+      "kind": "adam_constant_rate",
+      "lr": 0.0001,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "eps": 1e-08,
+      "scheduler": null,
+      "clipping": null,
+      "physics_term": null,
+      "polish": null
+    },
+    "loss": {
+      "kind": "data_only",
+      "definition": "INST-05 data_huber_loss over the windowed gold targets"
+    },
+    "timing_definitions": "synchronized completed-work segments: admission and data load recorded by the CLI; setup (model and optimizer build), the 2 warmup updates, the 18 measured updates, similarity logging, frozen scoring and publication recorded separately by the fit; every segment wrapped in the MPS _synchronize helper with an injected monotonic clock; seconds_per_step is the measured 18-update sum over 18, excluding warmup, logging and scoring; end-to-end seconds per completed step is total wall over 20",
+    "reading_rule": {
+      "mechanical_pass": "all 20 finite updates, exactly five similarity entries at steps 0/5/10/15/20, the frozen network score and both comparison rows on the same window, Stage-0 TRAIN-only access evidence, all within the 600-second cap; no E/tier threshold and no expected improvement is imposed",
+      "incomplete": "an interrupted, over-cap or non-finite attempt records status incomplete with its reason and publishes nothing; it is never retried, extended or resumed and never substitutes for a record",
+      "out_of_branch": "any outcome this rule does not describe is reported to the orchestrator rather than interpreted; the smoke proves mechanics and cost only, with no learnability, causal or representation claim"
+    }
+  },
+  "logger_parity": {
+    "receipt": {
+      "path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/probe/logger-parity.json",
+      "sha256": "4f908f39b500d9976a2cd82fa549db0087b7405bc7443b2f2d33a70b731da6b5"
+    },
+    "run_commit": "22cee7d241f10286594c3c5cc1a2a6817663d4a7",
+    "arm": "r1-1632",
+    "state": "polish",
+    "note": "D-10: the real-arm logger-parity receipt from the registered probe run precedes this smoke; admission verifies the receipt is a successful measurement whose bytes match the recorded run commit"
+  },
+  "context": {
+    "probe_result": {
+      "path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/probe/reproduction.json",
+      "sha256": "b83528011ca045b15ffd449f38d9d1e69860cb8a21cfd726a22ef62b66f02ef8"
+    },
+    "probe_verdict": "retained",
+    "note": "the historical lead's registered branch (144/144 required fields reproduced) is recorded but never required for the independent fit mechanics; the smoke does not rescue, refute or re-interpret it"
+  },
+  "code_dependencies": [
+    {
+      "path": "pinn/verification/diagnostic_fit.py",
+      "sha256": "b724d36c024633560c589fa3c863f37765e3407067be3a1cf2e31179b3afe496"
+    },
+    {
+      "path": "pinn/verification/diagnostic_guard.py",
+      "sha256": "8dd577a263c28bf7886a0795336ac613fe3fde7c8ebf424fcd6eaf2e80fef540"
+    },
+    {
+      "path": "pinn/verification/diagnostic_data.py",
+      "sha256": "47b9d99dd991c2a899cb8a4308273643c1d98ea591b851546373e44bcf429836"
+    },
+    {
+      "path": "pinn/verification/diagnostic_variants.py",
+      "sha256": "ad8ed66c43a8d6edbef15e794f4f06af194a99729acd103428c25bd6cd0c5dfb"
+    },
+    {
+      "path": "pinn/verification/diagnostic_similarity.py",
+      "sha256": "e80079b62485f04c7c42a513913ef392d7201eea625ff496bae432d0c440d4b7"
+    }
+  ],
+  "frozen": [
+    {
+      "path": "pinn/verification/feasibility_scorer.py",
+      "sha256": "00edf81d59396fe189d476dd3e69473c4291b71bc6af6171da758f68b61f2bc7"
+    },
+    {
+      "path": "pinn/verification/feasibility_scorecard.py",
+      "sha256": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5"
+    },
+    {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/audit/reader_acceptance.json",
+      "sha256": "11a6cf7bc3342a5ccee5bb30bb85fc94429faeeb1bc9ea58e5ff51e9b12522c0"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/splits.json",
+      "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+    }
+  ],
+  "pinned": {
+    "protocol": {
+      "path": ".planning/phases/60-single-system-learnability/evidence/run-protocol.json",
+      "sha256": "93486d240f129bb5947cddb56d2eb18936ac0cbad7ac0bceeb0af0372b850383"
+    },
+    "modules": 33,
+    "note": "admission revalidates all 33 PINNED_MODULES digests through load_protocol()"
+  },
+  "threats": {
+    "T-65-17": "committed-clean settings and code with exact digests before any data access; no automatic altered retry",
+    "T-65-18": "Stage-0 TRAIN-only guarded seam, full access attestation and marked diagnostic payload",
+    "T-65-19": "exclusive attempt claim, supervised 600-second whole-run cap, explicit incomplete status, hour-plus refusal",
+    "T-65-20": "MPS synchronization at segment boundaries, explicit 2/18 split, retained reproduction branch, bounded claim review"
+  }
+}
