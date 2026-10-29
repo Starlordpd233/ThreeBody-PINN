@@ -533,12 +533,14 @@ class WindowBoundaryTests(unittest.TestCase):
         self.spec = self.data.one_orbit_spec(self.fixture.valid_gold)
         self.scorecard = load_scorecard()  # loaded before any spy is armed
 
-    def _load(self, window_length=None, **kwargs):
+    _ANY_WINDOW = object()  # distinguishes "omitted" from an explicit window value
+
+    def _load(self, window_length=_ANY_WINDOW, **kwargs):
         call = dict(
             spec=self.spec, context=self.context, scorecard=self.scorecard,
             dtype=torch.float64, device=CPU,
         )
-        if window_length is not None:
+        if window_length is not self._ANY_WINDOW:
             call["window_length"] = window_length
         call.update(kwargs)
         return self.data.load_diagnostic_data(**call)
@@ -590,11 +592,16 @@ class WindowBoundaryTests(unittest.TestCase):
     def test_a_window_with_fewer_than_two_samples_refuses(self):
         times = self._gold_times()
         first_step = float(times[1])
-        stack, spies = _no_open()
-        with stack:
-            with self.assertRaises(self.data.DiagnosticDataRefused) as caught:
-                self._load(first_step / 2.0)
+        opened_before = self.reader.access_summary()["actual_opens"]
+        with self.assertRaises(self.data.DiagnosticDataRefused) as caught:
+            self._load(first_step / 2.0)
         self.assertIn("two", str(caught.exception))
+        # The record is read before windowing; the refusal came from the
+        # window (fewer than two retained samples), not from the read:
+        # exactly one additional open, and it is the train record itself.
+        self.assertEqual(
+            self.reader.access_summary()["actual_opens"], opened_before + 1
+        )
 
     def test_tau_uses_the_locked_characteristic_time_not_the_window(self):
         from pinn.constants import T_CHARACTERISTIC_TIME
@@ -612,8 +619,12 @@ class WindowBoundaryTests(unittest.TestCase):
         self.assertGreater(float(tau[-1]), -1.0)
         self.assertLess(float(tau[-1]), 2.0 * (window / T_CHARACTERISTIC_TIME) - 1.0 + 1e-12)
         self.assertLess(float(tau[-1]), 0.0)  # a rescaled [-1, 1] window would end at 0
-        # Physical adjacency is preserved separately from tau.
-        np.testing.assert_array_equal(np.diff(times), np.diff(times))
+        # Physical adjacency is preserved separately from tau: tau steps are the
+        # locked-T conversion of the physical steps, never a rescaled grid.
+        np.testing.assert_allclose(
+            np.diff(tau), (2.0 / float(T_CHARACTERISTIC_TIME)) * np.diff(times),
+            rtol=0.0, atol=1e-14,
+        )
 
     def test_target_scores_and_comparisons_share_one_ordered_time_grid(self):
         loaded = self._load(5.0)
