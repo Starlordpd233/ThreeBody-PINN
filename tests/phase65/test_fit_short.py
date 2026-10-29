@@ -12,9 +12,12 @@ ever reached; the spies prove it.
 
 from __future__ import annotations
 
+import hashlib
 import importlib
+import json
 import shutil
 import tempfile
+import time
 import unittest
 from collections import OrderedDict
 from contextlib import ExitStack
@@ -457,6 +460,839 @@ class RefusalTests(_FitCase):
                 self._fit()
         self.assertEqual(adam_step.call_count, 0)
         self._assert_nothing_written()
+
+
+# ---------------------------------------------------------------------------
+# Plan 65-06: the guarded real-data CLI, bounded synchronized timing, the
+# 600-second whole-run cap and exclusive attempt ownership.
+# ---------------------------------------------------------------------------
+
+FIT_REGISTRATION_SCHEMA = "phase65-fit-registration/v1"
+ATTEMPT_SCHEMA = "phase65-fit-attempt/v1"
+
+
+class _InlineQueue:
+    """A stand-in for the supervised worker's result queue, in-process."""
+
+    def __init__(self):
+        self.payload = None
+
+    def put(self, value):
+        self.payload = value
+
+
+def _sha256_bytes(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _receipt_bytes(valid=True):
+    """A minimal log_similarity receipt (the 65-05 logger-parity shape)."""
+    payload = {
+        "step": -1,
+        "point": "probe-logger-parity",
+        "n_points": 1001,
+        "layers": [
+            {"name": "input", "order": 0, "adjacent_cosine_mean": 0.9993},
+            {"name": "h1", "order": 1, "adjacent_cosine_mean": 0.9854},
+        ],
+        "first_layer_frequency": {"definition": "d", "median": 4.24, "max": 14.88},
+        "output_movement": {"definition": "d", "value": 0.0034},
+        "output_rate_ratio": {"definition": "d", "value": 4.9e7},
+        "times_physical": [0.0, 0.01],
+        "tau_values": [-1.0, 1.0],
+        "physical_dt_median": {"definition": "d", "value": 0.01},
+    }
+    if not valid:
+        payload.pop("layers")
+    return (json.dumps(payload, indent=2) + "\n").encode("utf-8")
+
+
+def _smoke_settings(**overrides):
+    """The registered smoke settings, on the CPU float64 fixture runtime."""
+    from pinn.verification.diagnostic_variants import LOCKED_12
+
+    settings = {
+        "variant": LOCKED_12.to_json_dict(),
+        "seed": 42,
+        "runtime": {"dtype": "float64", "device": "cpu"},
+        "orbit_key": "hierarchical/gold/0",
+        "physical_window": {"t_start": 0.0, "t_end": 10.0},
+        "optimizer_steps": 20,
+        "warmup_steps": 2,
+        "measured_steps": 18,
+        "similarity_cadence": [0, 5, 10, 15, 20],
+        "whole_run_cap_seconds": 600,
+        "optimizer": {
+            "kind": "adam_constant_rate",
+            "lr": 1e-4,
+            "scheduler": None,
+            "clipping": None,
+            "physics_term": None,
+            "polish": None,
+        },
+        "loss": {"kind": "data_only"},
+        "timing_definitions": (
+            "synchronized completed-work segments around setup, the 2 warmup "
+            "updates, the 18 measured updates, similarity logging and scoring"
+        ),
+        "reading_rule": {
+            "mechanical_pass": "all 20 finite steps, five cadence entries, scores and comparisons present",
+            "incomplete": "an interrupted or over-cap attempt stays incomplete and is never a result",
+            "out_of_branch": "no E/tier threshold and no expected improvement is imposed",
+        },
+    }
+    settings.update(overrides)
+    return settings
+
+
+def _fit_registration_fixture(root, kind="matching", settings_extra=None, receipt_raw=None):
+    """A minimal committed fit registration inside a throwaway git repository.
+
+    ``kind`` selects the broken variant: matching, missing (an artifact is
+    deleted), untracked (the registration file is never committed), staged_only
+    (added but uncommitted), dirty (modified after commit), changed_dependency
+    (a listed code dependency changes content after the registration commit),
+    receipt_tampered (the receipt changes after the registration commit),
+    receipt_invalid (the receipt is committed but is not a measurement),
+    run_commit_bytes_differ (the receipt changed after the recorded run commit)
+    and run_commit_not_ancestor (the recorded run commit does not exist).
+    """
+    import subprocess
+
+    def git(*args, check=True):
+        return subprocess.run(
+            ["git", *args], cwd=str(root), capture_output=True, text=True, check=check
+        )
+
+    root.mkdir(parents=True, exist_ok=True)
+    git("init", "-q")
+    git("config", "user.email", "fixture@example.com")
+    git("config", "user.name", "fixture")
+    git("config", "maintenance.auto", "false")
+    git("config", "gc.auto", "0")
+
+    reg = root / "reg"
+    reg.mkdir()
+    page_raw = b"# fixture smoke prediction page\n"
+    probe_raw = b'{"schema": "probe-result-stand-in", "reading_rule": {"verdict": "retained"}}\n'
+    dep_raw = b"FIT_DEPENDENCY = 1\n"
+    frozen_raw = b"FROZEN = True\n"
+    receipt = _receipt_bytes(valid=(kind != "receipt_invalid")) if receipt_raw is None else receipt_raw
+    (reg / "PREDICTION.md").write_bytes(page_raw)
+    (reg / "probe-result.json").write_bytes(probe_raw)
+    (reg / "logger-parity.json").write_bytes(receipt)
+    (root / "fit_dep.py").write_bytes(dep_raw)
+    frozen = root / "frozen"
+    frozen.mkdir()
+    (frozen / "scorer.py").write_bytes(frozen_raw)
+
+    def entry(rel, raw):
+        return {"path": rel, "sha256": _sha256_bytes(raw)}
+
+    if kind == "run_commit_bytes_differ":
+        # The receipt changes after the recorded run commit: commit the
+        # original receipt, then its replacement, and record the ORIGINAL
+        # commit as the run commit.
+        git("add", "reg/logger-parity.json")
+        git("commit", "-q", "-m", "receipt as produced by the probe run")
+        run_commit = git("rev-parse", "HEAD").stdout.strip()
+        changed = _receipt_bytes() + b"# regenerated\n"
+        (reg / "logger-parity.json").write_bytes(changed)
+        git("add", "reg/logger-parity.json")
+        git("commit", "-q", "-m", "receipt regenerated")
+        receipt = changed
+
+    settings = _smoke_settings(**(settings_extra or {}))
+    doc = {
+        "schema": FIT_REGISTRATION_SCHEMA,
+        "title": "fixture smoke registration",
+        "committed_before": "the first real optimizer step",
+        "page": entry("reg/PREDICTION.md", page_raw),
+        "settings": settings,
+        "logger_parity": {
+            "receipt": entry("reg/logger-parity.json", receipt),
+            "run_commit": (
+                "0" * 64 if kind == "run_commit_not_ancestor"
+                else (
+                    run_commit if kind == "run_commit_bytes_differ"
+                    else None
+                )
+            ),
+            "arm": "r1-1632",
+            "state": "polish",
+        },
+        "context": {
+            "probe_result": entry("reg/probe-result.json", probe_raw),
+            "probe_verdict": "retained",
+            "note": "the retained lead is recorded, not required",
+        },
+        "code_dependencies": [entry("fit_dep.py", dep_raw)],
+        "frozen": [entry("frozen/scorer.py", frozen_raw)],
+    }
+    registration_raw = (json.dumps(doc, indent=2) + "\n").encode("utf-8")
+    (reg / "smoke-registration.json").write_bytes(registration_raw)
+
+    paths = [
+        "reg/PREDICTION.md", "reg/probe-result.json", "reg/logger-parity.json",
+        "fit_dep.py", "frozen/scorer.py",
+    ]
+    if kind == "untracked":
+        git("add", *paths)
+        git("commit", "-q", "-m", "fixture without the registration file")
+        return root
+    if kind == "staged_only":
+        git("add", *paths)
+        git("add", "reg/smoke-registration.json")
+        return root
+    git("add", *paths)
+    git("add", "reg/smoke-registration.json")
+    git("commit", "-q", "-m", "fixture registration")
+    commit = git("rev-parse", "HEAD").stdout.strip()
+    if doc["logger_parity"]["run_commit"] is None:
+        doc["logger_parity"]["run_commit"] = commit
+        # The registration must carry its own run commit; rewrite and amend so
+        # the committed bytes include it.
+        registration_raw = (json.dumps(doc, indent=2) + "\n").encode("utf-8")
+        (reg / "smoke-registration.json").write_bytes(registration_raw)
+        git("add", "reg/smoke-registration.json")
+        git("commit", "-q", "--amend", "-m", "fixture registration")
+        commit = git("rev-parse", "HEAD").stdout.strip()
+
+    if kind == "missing":
+        (reg / "PREDICTION.md").unlink()
+    elif kind == "dirty":
+        (reg / "smoke-registration.json").write_bytes(registration_raw + b"# drifted\n")
+    elif kind == "changed_dependency":
+        (root / "fit_dep.py").write_bytes(b"FIT_DEPENDENCY = 2\n")
+        git("add", "fit_dep.py")
+        git("commit", "-q", "-m", "change the dependency after registration")
+    elif kind == "receipt_tampered":
+        (reg / "logger-parity.json").write_bytes(_receipt_bytes() + b"# tampered\n")
+        git("add", "reg/logger-parity.json")
+        git("commit", "-q", "-m", "tamper the receipt after registration")
+    return root, commit
+
+
+def _fit_symbols(case):
+    fit = _module(case, "diagnostic_fit")
+    return fit, {
+        "admission": _symbol(case, fit, "require_committed_smoke_registration"),
+        "check": _symbol(case, fit, "check_fit_registration"),
+        "verify": _symbol(case, fit, "verify_fit_result"),
+        "run_smoke": _symbol(case, fit, "run_registered_smoke"),
+        "worker": _symbol(case, fit, "_smoke_worker"),
+        "supervised": _symbol(case, fit, "_run_supervised"),
+        "main": _symbol(case, fit, "main"),
+    }
+
+
+class _NoDataNoOptimizer:
+    """Spies that fail the test the moment data is resolved or Adam steps.
+
+    Both the fit module's own imported references and the data module's
+    definitions are patched, so the spy holds however the admission reaches
+    the seam.
+    """
+
+    def __call__(self, case):
+        import pinn.verification.diagnostic_data as diagnostic_data
+
+        stack = ExitStack()
+        for module in (case.fit, diagnostic_data):
+            stack.enter_context(mock.patch.object(
+                module, "open_diagnostic_context", create=True,
+                side_effect=AssertionError("diagnostic context opened"),
+            ))
+            stack.enter_context(mock.patch.object(
+                module, "load_diagnostic_data", create=True,
+                side_effect=AssertionError("corpus data loaded"),
+            ))
+            stack.enter_context(mock.patch.object(
+                module, "one_orbit_spec", create=True,
+                side_effect=AssertionError("orbit spec built"),
+            ))
+        stack.enter_context(mock.patch.object(
+            torch.optim.Adam, "step", side_effect=AssertionError("optimizer stepped"),
+        ))
+        return stack
+
+
+class FitRegistrationAdmissionTests(unittest.TestCase):
+    """The fit registration admission: committed-clean settings, parity receipt —
+    all before any data access or optimizer construction."""
+
+    def setUp(self):
+        self.stack = ExitStack()
+        self.addCleanup(self.stack.close)
+        self.tmp = Path(self.stack.enter_context(
+            tempfile.TemporaryDirectory(prefix="phase65-fitreg-")
+        ))
+        self.fit, self.symbols = _fit_symbols(self)
+        self.guard = _module(self, "diagnostic_guard")
+        self.nodata = self.stack.enter_context(_NoDataNoOptimizer()(self))
+
+    def test_a_committed_matching_registration_admits(self):
+        root, commit = _fit_registration_fixture(self.tmp / "ok")
+        admitted_root, doc = self.symbols["admission"](
+            root / "reg/smoke-registration.json", repo_root=root
+        )
+        self.assertEqual(admitted_root, root.resolve())
+        self.assertEqual(doc["schema"], FIT_REGISTRATION_SCHEMA)
+        self.assertEqual(doc["settings"]["optimizer_steps"], 20)
+
+    def test_absent_untracked_staged_and_dirty_registrations_refuse_before_any_access(self):
+        for kind in ("missing", "untracked", "staged_only", "dirty"):
+            with self.subTest(kind=kind):
+                branch = self.tmp / kind
+                _fit_registration_fixture(branch, kind=kind)
+                with self.assertRaises(self.guard.DiagnosticRegistrationRefused):
+                    self.symbols["admission"](
+                        branch / "reg/smoke-registration.json", repo_root=branch
+                    )
+
+    def test_a_changed_code_dependency_refuses_before_any_access(self):
+        root, _commit = _fit_registration_fixture(self.tmp / "dep", kind="changed_dependency")
+        with self.assertRaises(self.guard.DiagnosticRegistrationRefused):
+            self.symbols["admission"](root / "reg/smoke-registration.json", repo_root=root)
+
+    def test_a_tampered_parity_receipt_refuses_before_any_access(self):
+        root, _commit = _fit_registration_fixture(self.tmp / "tamper", kind="receipt_tampered")
+        with self.assertRaises(self.guard.DiagnosticRegistrationRefused):
+            self.symbols["admission"](root / "reg/smoke-registration.json", repo_root=root)
+
+    def test_a_receipt_that_is_not_a_measurement_refuses(self):
+        root, _commit = _fit_registration_fixture(self.tmp / "invalid", kind="receipt_invalid")
+        with self.assertRaises(self.fit.DiagnosticFitRefused):
+            self.symbols["admission"](root / "reg/smoke-registration.json", repo_root=root)
+
+    def test_receipt_bytes_changed_since_the_run_commit_refuse(self):
+        root, _commit = _fit_registration_fixture(
+            self.tmp / "runcode", kind="run_commit_bytes_differ"
+        )
+        with self.assertRaises(self.fit.DiagnosticFitRefused):
+            self.symbols["admission"](root / "reg/smoke-registration.json", repo_root=root)
+
+    def test_a_run_commit_that_is_not_an_ancestor_refuses(self):
+        root, _commit = _fit_registration_fixture(
+            self.tmp / "noancestor", kind="run_commit_not_ancestor"
+        )
+        with self.assertRaises(self.fit.DiagnosticFitRefused):
+            self.symbols["admission"](root / "reg/smoke-registration.json", repo_root=root)
+
+    def test_cap_at_or_above_one_hour_refuses_before_any_access(self):
+        for cap in (3600, 7200):
+            with self.subTest(cap=cap):
+                root, _commit = _fit_registration_fixture(
+                    self.tmp / f"cap{cap}",
+                    settings_extra={"whole_run_cap_seconds": cap},
+                )
+                with self.assertRaises(self.fit.DiagnosticFitRefused):
+                    self.symbols["admission"](
+                        root / "reg/smoke-registration.json", repo_root=root
+                    )
+
+    def test_a_cap_below_the_hour_boundary_passes_the_cap_gate(self):
+        root, _commit = _fit_registration_fixture(
+            self.tmp / "cap-ok", settings_extra={"whole_run_cap_seconds": 3599.5}
+        )
+        _root, doc = self.symbols["admission"](
+            root / "reg/smoke-registration.json", repo_root=root
+        )
+        self.assertEqual(doc["settings"]["whole_run_cap_seconds"], 3599.5)
+
+    def test_inconsistent_settings_refuse_before_any_access(self):
+        cases = {
+            "duplicate_cadence": {"similarity_cadence": [0, 5, 5, 15, 20]},
+            "cadence_misses_steps": {"similarity_cadence": [0, 5, 10, 15]},
+            "cadence_beyond_steps": {"similarity_cadence": [0, 5, 10, 15, 21]},
+            "warmup_ge_steps": {"warmup_steps": 20},
+            "unknown_variant": {"variant": {**_smoke_settings()["variant"], "name": "no-such"}},
+            "variant_field_drift": {"variant": {**_smoke_settings()["variant"], "width": 128}},
+            "window_drift": {"physical_window": {"t_start": 0.0, "t_end": 9.0}},
+            "measured_mismatch": {"measured_steps": 17},
+            "clipping_enabled": {"optimizer": {**_smoke_settings()["optimizer"], "clipping": 8.5}},
+            "scheduler_enabled": {"optimizer": {**_smoke_settings()["optimizer"], "scheduler": "cosine"}},
+            "missing_reading_rule": {"reading_rule": None},
+            "bad_orbit_key": {"orbit_key": "hierarchical/gold"},
+        }
+        for name, extra in cases.items():
+            with self.subTest(case=name):
+                root, _commit = _fit_registration_fixture(
+                    self.tmp / name, settings_extra=extra
+                )
+                with self.assertRaises(self.fit.DiagnosticFitRefused):
+                    self.symbols["admission"](
+                        root / "reg/smoke-registration.json", repo_root=root
+                    )
+
+    def test_an_mps_registration_without_mps_refuses_before_any_access(self):
+        root, _commit = _fit_registration_fixture(
+            self.tmp / "mps",
+            settings_extra={"runtime": {"dtype": "float32", "device": "mps"}},
+        )
+        with mock.patch("torch.backends.mps.is_available", return_value=False):
+            with self.assertRaises(self.fit.DiagnosticFitRefused):
+                self.symbols["admission"](
+                    root / "reg/smoke-registration.json", repo_root=root
+                )
+
+    def test_an_mps_registration_with_mps_available_passes_the_runtime_gate(self):
+        root, _commit = _fit_registration_fixture(
+            self.tmp / "mps-ok",
+            settings_extra={"runtime": {"dtype": "float32", "device": "mps"}},
+        )
+        with mock.patch("torch.backends.mps.is_available", return_value=True):
+            _root, doc = self.symbols["admission"](
+                root / "reg/smoke-registration.json", repo_root=root
+            )
+        self.assertEqual(doc["settings"]["runtime"]["device"], "mps")
+
+
+class FitCheckRegistrationTests(unittest.TestCase):
+    """check-registration is metadata-only: a real ancestor commit, no corpus
+    opens and no weight reads."""
+
+    def setUp(self):
+        self.stack = ExitStack()
+        self.addCleanup(self.stack.close)
+        self.tmp = Path(self.stack.enter_context(
+            tempfile.TemporaryDirectory(prefix="phase65-fitcheck-")
+        ))
+        self.fit, self.symbols = _fit_symbols(self)
+        self.guard = _module(self, "diagnostic_guard")
+
+    def test_a_committed_registration_reports_a_real_ancestor_commit(self):
+        root, commit = _fit_registration_fixture(self.tmp / "ok")
+        with mock.patch.object(
+            self.guard, "read_diagnostic_weights",
+            side_effect=AssertionError("weight bytes read"),
+        ), mock.patch.object(
+            self.fit, "open_diagnostic_context",
+            side_effect=AssertionError("diagnostic context opened"),
+            create=True,
+        ):
+            report = self.symbols["check"](
+                root / "reg/smoke-registration.json", repo_root=root
+            )
+        self.assertTrue(report["committed"])
+        self.assertEqual(report["registration_commit"], commit)
+        self.assertGreaterEqual(len(report["artifacts"]), 4)
+
+    def test_an_uncommitted_registration_refuses(self):
+        root, _commit = _fit_registration_fixture(self.tmp / "untracked", kind="untracked")
+        with self.assertRaises(self.guard.DiagnosticRegistrationRefused):
+            self.symbols["check"](root / "reg/smoke-registration.json", repo_root=root)
+
+
+class BoundedSynchronizedTimingTests(unittest.TestCase):
+    """The bounded fit: 2 warmup + measured split, exact cadence, synchronized
+    segments with recorded overhead, and deadline refusals."""
+
+    def setUp(self):
+        stack = ExitStack()
+        self.addCleanup(stack.close)
+        self.fixture = stack.enter_context(gold_corpus_fixture())
+        self.root = Path(stack.enter_context(
+            tempfile.TemporaryDirectory(prefix="phase65-bounded-")
+        ))
+        self.spec, self.context, self.scorecard, self.data = _loaded(self.fixture)
+        self.fit = _module(self, "diagnostic_fit")
+
+    def _bounded_fit(self, *, steps=20, warmup=2, cadence=(0, 5, 10, 15, 20), **overrides):
+        options = dict(
+            context=self.context,
+            scorecard=self.scorecard,
+            runtime=FIXTURE_RUNTIME,
+            evidence_root=self.root,
+            steps=steps,
+            warmup_steps=warmup,
+            cadence=list(cadence),
+            times_physical=self.data.score.times,
+            seed=SEED,
+        )
+        options.update(overrides)
+        return self.fit.fit_diagnostic("locked-12", self.data, **options)
+
+    def test_the_measured_rate_denominator_is_the_measured_steps_only(self):
+        record = self._bounded_fit()
+        timing = record["timing"]
+        self.assertEqual(
+            timing["steps"],
+            {"requested": 20, "warmup": 2, "measured": 18, "completed": 20},
+        )
+        self.assertAlmostEqual(
+            timing["seconds_per_step"],
+            timing["measured_seconds"] / 18,
+            places=12,
+        )
+        # The denominator must not be the 20 requested steps.
+        self.assertNotAlmostEqual(
+            timing["seconds_per_step"], timing["measured_seconds"] / 20, places=6
+        )
+        self.assertGreater(timing["warmup_seconds"], 0.0)
+        self.assertGreater(timing["measured_seconds"], 0.0)
+        self.assertLess(timing["measured_seconds"], timing["wall_seconds"])
+        self.assertAlmostEqual(
+            timing["end_to_end_seconds_per_completed_step"],
+            timing["total_wall_seconds"] / 20,
+            places=12,
+        )
+        self.assertIn("warmup", timing["seconds_per_step_basis"])
+        self.assertIn("not steady-state", timing["seconds_per_step_basis"])
+
+    def test_the_five_cadence_entries_are_exactly_the_registered_steps(self):
+        record = self._bounded_fit()
+        similarity = record["similarity"]
+        self.assertEqual(similarity["cadence"], [0, 5, 10, 15, 20])
+        entries = similarity["entries"]
+        self.assertEqual([entry["step"] for entry in entries], [0, 5, 10, 15, 20])
+        self.assertEqual(len({entry["step"] for entry in entries}), 5)
+        self.assertEqual(entries[0]["point"], "init")
+        self.assertEqual(entries[-1]["point"], "final")
+        for entry in entries:
+            self.assertTrue(entry["layers"])
+            self.assertTrue(np.isfinite(entry["output_movement"]["value"]))
+
+    def test_synchronization_rides_every_timed_segment_and_is_recorded(self):
+        from pinn.verification.learnability_run import _synchronize as real_sync
+
+        with mock.patch.object(
+            self.fit, "_synchronize", wraps=real_sync
+        ) as sync_spy:
+            record = self._bounded_fit(steps=4, warmup=2, cadence=[0, 4])
+        timing = record["timing"]
+        # Two boundary syncs per update, plus the phase boundaries.
+        self.assertGreaterEqual(sync_spy.call_count, 2 * 4 + 2)
+        self.assertEqual(timing["sync"]["sample_count"], sync_spy.call_count)
+        self.assertGreaterEqual(timing["sync"]["overhead_seconds"], 0.0)
+        self.assertEqual(
+            timing["steps"],
+            {"requested": 4, "warmup": 2, "measured": 2, "completed": 4},
+        )
+
+    def test_phase_seconds_are_recorded_separately(self):
+        record = self._bounded_fit(steps=4, warmup=2, cadence=[0, 4])
+        phases = record["timing"]["phases"]
+        for name in ("setup_seconds", "logging_seconds", "scoring_seconds", "publish_seconds"):
+            self.assertIn(name, phases)
+            self.assertGreaterEqual(phases[name], 0.0)
+        self.assertGreater(phases["logging_seconds"], 0.0)
+        self.assertGreater(phases["scoring_seconds"], 0.0)
+
+    def test_an_expired_deadline_refuses_between_updates_and_publishes_nothing(self):
+        import pinn.verification.diagnostic_fit as fit_module
+
+        real_loss = fit_module.data_only_loss
+
+        def slow_loss(*args, **kwargs):
+            time.sleep(0.05)
+            return real_loss(*args, **kwargs)
+
+        with mock.patch.object(fit_module, "data_only_loss", side_effect=slow_loss):
+            with mock.patch.object(torch.optim.Adam, "step") as adam_step:
+                with self.assertRaises(self.fit.DiagnosticFitRefused):
+                    self._bounded_fit(steps=4, warmup=0, cadence=[0, 4], deadline_seconds=0.05)
+        self.assertLessEqual(adam_step.call_count, 1)
+        self.assertEqual(list(self.root.rglob("*")), [])
+
+    def test_a_deadline_at_or_above_one_hour_is_refused(self):
+        with self.assertRaises(self.fit.DiagnosticFitRefused):
+            self._bounded_fit(steps=2, warmup=0, cadence=[0, 2], deadline_seconds=3600)
+        self.assertEqual(list(self.root.rglob("*")), [])
+
+    def test_a_mid_run_non_finite_loss_stays_incomplete_and_publishes_nothing(self):
+        spoiled = torch.tensor(float("inf"), dtype=torch.float64)
+        with mock.patch.object(
+            self.fit, "data_only_loss",
+            side_effect=[torch.tensor(1.0, dtype=torch.float64), spoiled],
+        ), mock.patch.object(torch.optim.Adam, "step") as adam_step:
+            with self.assertRaises(self.fit.DiagnosticFitRefused):
+                self._bounded_fit(steps=4, warmup=2, cadence=[0, 4])
+        self.assertLessEqual(adam_step.call_count, 1)
+        self.assertEqual(list(self.root.rglob("*")), [])
+
+
+class AttemptOwnershipTests(unittest.TestCase):
+    """Exclusive attempt ownership: one claim, refusals on repeats, incomplete
+    status retained on failure, and a supervised worker with graceful timeout."""
+
+    def setUp(self):
+        stack = ExitStack()
+        self.addCleanup(stack.close)
+        self.fixture = stack.enter_context(gold_corpus_fixture())
+        self.tmp = Path(stack.enter_context(
+            tempfile.TemporaryDirectory(prefix="phase65-attempt-")
+        ))
+        self.spec, self.context, self.scorecard, self.data = _loaded(self.fixture)
+        self.fit, self.symbols = _fit_symbols(self)
+
+    def _registration(self, name, **settings_extra):
+        root, commit = _fit_registration_fixture(
+            self.tmp / name, settings_extra=settings_extra or None
+        )
+        return root, root / "reg/smoke-registration.json"
+
+    def _patched_data(self):
+        """Route the run body to the fixture data seam: no corpus, no resolver."""
+        import pinn.verification.diagnostic_data as diagnostic_data
+
+        stack = ExitStack()
+        for module in (self.fit, diagnostic_data):
+            stack.enter_context(mock.patch.object(
+                module, "open_diagnostic_context", create=True,
+                return_value=self.context,
+            ))
+            stack.enter_context(mock.patch.object(
+                module, "load_diagnostic_data", create=True,
+                return_value=self.data,
+            ))
+            stack.enter_context(mock.patch.object(
+                module, "one_orbit_spec", create=True, return_value=self.spec,
+            ))
+        self.addCleanup(stack.close)
+        return stack
+
+    def test_a_registered_run_publishes_once_and_marks_the_attempt(self):
+        root, registration = self._registration("run-ok")
+        self._patched_data()
+        output = self.tmp / "out" / "record.json"
+        summary = self.symbols["run_smoke"](registration, output, repo_root=root)
+        self.assertEqual(summary["status"], "complete")
+        record = json.loads(output.read_bytes())
+        self.assertEqual(record["status"], "complete")
+        self.assertEqual(record["steps"]["completed"], 20)
+        attempt = json.loads((output.parent / "attempt.json").read_bytes())
+        self.assertEqual(attempt["status"], "published")
+        # A second attempt refuses before any optimizer step, and the first
+        # record is never replaced.
+        first_bytes = output.read_bytes()
+        with mock.patch.object(torch.optim.Adam, "step") as adam_step:
+            with self.assertRaises(
+                (self.fit.DiagnosticFitRefused, FirstResultExists)
+            ):
+                self.symbols["run_smoke"](registration, output, repo_root=root)
+        self.assertEqual(adam_step.call_count, 0)
+        self.assertEqual(output.read_bytes(), first_bytes)
+
+    def test_a_refusing_run_marks_the_attempt_incomplete_and_never_publishes(self):
+        import pinn.verification.diagnostic_data as diagnostic_data
+
+        root, registration = self._registration("run-refused")
+        stack = ExitStack()
+        self.addCleanup(stack.close)
+        for module in (self.fit, diagnostic_data):
+            stack.enter_context(mock.patch.object(
+                module, "open_diagnostic_context", create=True,
+                return_value=self.context,
+            ))
+            stack.enter_context(mock.patch.object(
+                module, "load_diagnostic_data", create=True,
+                side_effect=self.fit.DiagnosticFitRefused("corpus refused"),
+            ))
+        output = self.tmp / "out2" / "record.json"
+        with self.assertRaises(self.fit.DiagnosticFitRefused):
+            self.symbols["run_smoke"](registration, output, repo_root=root)
+        self.assertFalse(output.exists())
+        attempt = json.loads((output.parent / "attempt.json").read_bytes())
+        self.assertEqual(attempt["status"], "incomplete")
+        self.assertIn("corpus refused", attempt["reason"])
+
+    def test_the_worker_reports_refusals_and_marks_the_attempt_incomplete(self):
+        root, registration = self._registration("worker")
+        output = self.tmp / "out3" / "record.json"
+        output.parent.mkdir(parents=True)
+        (output.parent / "attempt.json").write_bytes(
+            (json.dumps({"schema": ATTEMPT_SCHEMA, "status": "running"}) + "\n").encode()
+        )
+        queue = mock.MagicMock()
+        with mock.patch.object(
+            self.fit, "require_committed_smoke_registration",
+            side_effect=self.fit.DiagnosticFitRefused("admission refused"),
+        ):
+            self.symbols["worker"](str(registration), str(output), str(root), queue)
+        attempt = json.loads((output.parent / "attempt.json").read_bytes())
+        self.assertEqual(attempt["status"], "incomplete")
+        self.assertIn("admission refused", attempt["reason"])
+        self.assertFalse(output.exists())
+        self.assertTrue(queue.put.called)
+
+    def test_a_supervised_worker_is_terminated_at_the_timeout(self):
+        done = []
+
+        def sleeping_worker(*args):
+            time.sleep(30)
+            done.append(True)
+
+        started = time.monotonic()
+        status, payload = self.symbols["supervised"](
+            sleeping_worker, (), timeout=0.5, context_method="fork"
+        )
+        elapsed = time.monotonic() - started
+        self.assertEqual(status, "timeout")
+        self.assertIsNone(payload)
+        self.assertFalse(done)
+        self.assertLess(elapsed, 15.0)
+
+    def test_a_completing_worker_reports_its_payload(self):
+        def quick_worker(*args):
+            args[-1].put({"status": "complete", "completed_steps": 20})
+
+        status, payload = self.symbols["supervised"](
+            quick_worker, (), timeout=10.0, context_method="fork"
+        )
+        self.assertEqual(status, "exited")
+        self.assertEqual(payload["status"], "complete")
+
+    def test_a_repeated_cli_run_refuses_before_the_worker_body_runs_again(self):
+        root, registration = self._registration("cli-dup")
+        self._patched_data()
+        output = self.tmp / "cli-dup-out" / "record.json"
+
+        def inline_supervisor(target, args, *, timeout, **kwargs):
+            queue = _InlineQueue()
+            target(*args, queue)
+            return ("exited", queue.payload)
+
+        first = self.symbols["main"](
+            ["run", "--registration", str(registration), "--output", str(output)],
+            repo_root=root, supervisor=inline_supervisor,
+        )
+        self.assertEqual(first, 0)
+        with mock.patch.object(torch.optim.Adam, "step") as adam_step:
+            second = self.symbols["main"](
+                ["run", "--registration", str(registration), "--output", str(output)],
+                repo_root=root, supervisor=inline_supervisor,
+            )
+        self.assertEqual(second, 2)
+        self.assertEqual(adam_step.call_count, 0)
+
+    def test_a_cli_timeout_marks_the_attempt_incomplete(self):
+        root, registration = self._registration("cli-timeout", whole_run_cap_seconds=1)
+        output = self.tmp / "cli-timeout-out" / "record.json"
+        with mock.patch.object(
+            self.fit, "run_registered_smoke",
+            side_effect=lambda *a, **k: time.sleep(30),
+        ):
+            code = self.symbols["main"](
+                ["run", "--registration", str(registration), "--output", str(output)],
+                repo_root=root, context_method="fork",
+            )
+        self.assertEqual(code, 2)
+        self.assertFalse(output.exists())
+        attempt = json.loads((output.parent / "attempt.json").read_bytes())
+        self.assertEqual(attempt["status"], "incomplete")
+        self.assertIn("wall_cap_expired", attempt["reason"])
+
+
+class VerifyResultTests(unittest.TestCase):
+    """verify-result re-checks an existing record against the committed
+    registration without retraining or opening the corpus."""
+
+    def setUp(self):
+        stack = ExitStack()
+        self.addCleanup(stack.close)
+        self.fixture = stack.enter_context(gold_corpus_fixture())
+        self.tmp = Path(stack.enter_context(
+            tempfile.TemporaryDirectory(prefix="phase65-verify-")
+        ))
+        self.spec, self.context, self.scorecard, self.data = _loaded(self.fixture)
+        self.fit, self.symbols = _fit_symbols(self)
+
+    def _registration(self, name, **settings_extra):
+        root, commit = _fit_registration_fixture(
+            self.tmp / name, settings_extra=settings_extra or None
+        )
+        return root, root / "reg/smoke-registration.json", commit
+
+    def _record(self, out_dir, registration_path, root):
+        model_root = self.tmp / "evidence"
+        doc = json.loads(registration_path.read_bytes())
+        record = self.fit.fit_diagnostic(
+            "locked-12",
+            self.data,
+            context=self.context,
+            scorecard=self.scorecard,
+            runtime=FIXTURE_RUNTIME,
+            evidence_root=model_root,
+            out_dir=out_dir,
+            steps=20,
+            warmup_steps=2,
+            cadence=[0, 5, 10, 15, 20],
+            times_physical=self.data.score.times,
+            seed=SEED,
+            registration_provenance={
+                "path": registration_path.relative_to(root).as_posix(),
+                "sha256": _sha256_bytes(registration_path.read_bytes()),
+            },
+            logger_parity_provenance={
+                "receipt_path": doc["logger_parity"]["receipt"]["path"],
+                "receipt_sha256": doc["logger_parity"]["receipt"]["sha256"],
+                "run_commit": doc["logger_parity"]["run_commit"],
+            },
+        )
+        return record
+
+    def test_a_complete_agreeing_record_verifies(self):
+        root, registration, _commit = self._registration("verify-ok")
+        out_dir = self.tmp / "result"
+        self._record(out_dir, registration, root)
+        report = self.symbols["verify"](registration, out_dir / "record.json", repo_root=root)
+        self.assertTrue(report["verified"])
+
+    def test_tampered_weights_refuse_verification(self):
+        root, registration, _commit = self._registration("verify-tamper")
+        out_dir = self.tmp / "result-tamper"
+        self._record(out_dir, registration, root)
+        weights_path = out_dir / "weights.pt"
+        weights_path.write_bytes(weights_path.read_bytes() + b"# tampered\n")
+        with self.assertRaises(self.fit.DiagnosticFitRefused):
+            self.symbols["verify"](registration, out_dir / "record.json", repo_root=root)
+
+    def test_a_step_count_disagreement_refuses_verification(self):
+        root, registration, _commit = self._registration(
+            "verify-steps", optimizer_steps=19, measured_steps=17
+        )
+        out_dir = self.tmp / "result-steps"
+        self._record(out_dir, registration, root)
+        with self.assertRaises(self.fit.DiagnosticFitRefused):
+            self.symbols["verify"](registration, out_dir / "record.json", repo_root=root)
+
+    def test_a_missing_timing_field_refuses_verification(self):
+        root, registration, _commit = self._registration("verify-timing")
+        out_dir = self.tmp / "result-timing"
+        self._record(out_dir, registration, root)
+        record = json.loads((out_dir / "record.json").read_bytes())
+        del record["timing"]["seconds_per_step"]
+        (out_dir / "record.json").write_bytes(
+            (json.dumps(record, indent=2, sort_keys=True) + "\n").encode("utf-8")
+        )
+        with self.assertRaises(self.fit.DiagnosticFitRefused):
+            self.symbols["verify"](registration, out_dir / "record.json", repo_root=root)
+
+
+class FitCliSurfaceTests(unittest.TestCase):
+    """The diagnostic_fit command line: check-registration / run / verify-result
+    with their required flags; unknown commands and missing flags refuse."""
+
+    def setUp(self):
+        self.fit, self.symbols = _fit_symbols(self)
+
+    def test_unknown_and_missing_commands_refuse(self):
+        for argv in ([], ["bogus"], ["--registration", "x"]):
+            with self.subTest(argv=argv):
+                self.assertEqual(self.symbols["main"](argv), 2)
+
+    def test_each_command_requires_its_flags(self):
+        cases = [
+            ["check-registration"],
+            ["run"],
+            ["run", "--registration", "r"],
+            ["verify-result"],
+            ["verify-result", "--registration", "r"],
+        ]
+        for argv in cases:
+            with self.subTest(argv=argv):
+                self.assertEqual(self.symbols["main"](argv), 2)
 
 
 if __name__ == "__main__":
