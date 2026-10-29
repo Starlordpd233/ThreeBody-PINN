@@ -781,5 +781,334 @@ class EvaluateEntryIsolationTests(unittest.TestCase):
         self.assertTrue((self.run_dir / "evaluation" / "evaluation-attempt.json").is_file())
 
 
+def _write_train_config(path, *, run_name="test-run"):
+    """A minimal valid synthetic-source production config (float64/cpu)."""
+    import yaml
+
+    doc = {
+        "run": {
+            "seed": 11,
+            "precision": "float64",
+            "device": "cpu",
+            "strict_cpu_determinism": False,
+            "log_every": 1,
+            "run_name": run_name,
+            "checkpoint": {
+                "every_n_steps": 1,
+                "wall_clock_ceiling_s": 3600.0,
+                "rolling_keep": 5,
+                "failure_keep": 10,
+            },
+            "guards": {
+                "loss_explosion_ceiling": 1.0e12,
+                "disk_floor_fraction": 0.01,
+                "memory_watermark_fraction": 0.99,
+            },
+        },
+        "stage": {
+            "max_epochs": 2,
+            "n_adam": 2,
+            "stagnation_window": 10_000,
+            "percentile_10_relaxation": 0.1,
+            "beta": 0.9,
+            "patience": 50,
+            "eps_plateau": 1e-5,
+            "eps_phys": 1e-4,
+            "eps_energy": 1e-4,
+        },
+        "opt": {
+            "validation_every": 1,
+            "lbfgs_max_iter": 2,
+            "lbfgs_chunk_size": 4,
+        },
+        "loss": {"lambda_e_max": 0.0},
+    }
+    Path(path).write_text(yaml.safe_dump(doc, sort_keys=True), encoding="utf-8")
+    return Path(path)
+
+
+class EarlyResumeAdmissionTests(unittest.TestCase):
+    """65-03-02 unit: the read-only early resume admission in diagnostic_guard.
+
+    The admission mirrors ``load_resume_target``'s routing (explicit file /
+    directory / literal ``latest`` resolved against the run's own checkpoints
+    directory) and refuses when the payload that WOULD be selected carries the
+    intrinsic marker — never by silently taking an older ordinary file. It must
+    not construct a checkpoint store, so an absent checkpoints directory stays
+    absent after the check.
+    """
+
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory(prefix="phase65-admit-")
+        self.addCleanup(directory.cleanup)
+        self.tmp = Path(directory.name)
+        self.ckpt_dir = self.tmp / "runs" / "test-run" / "checkpoints"
+        self.evidence = self.tmp / "diagnostic-evidence"
+
+    def _admission(self):
+        admitted = getattr(guard, "require_resume_not_diagnostic", None)
+        self.assertIsNotNone(
+            admitted, "guard.require_resume_not_diagnostic is missing"
+        )
+        return admitted
+
+    def _write(self, directory, name, payload=None, *, json_record=False):
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / name
+        if json_record:
+            path.write_bytes(
+                evidence_io.canonical_json_bytes(_diagnostic_record_payload())
+            )
+        else:
+            atomic_write_torch(path, payload or _diagnostic_weights_payload())
+        return path
+
+    def _ordinary(self, directory, name):
+        return self._write(directory, name, _production_payload(with_marker=False))
+
+    def test_a_relocated_marked_explicit_file_is_refused(self):
+        path = self._write(self.evidence, "model.weights")
+        with self.assertRaises(guard.DiagnosticArtifactRefused):
+            self._admission()(str(path), self.ckpt_dir)
+
+    def test_a_renamed_json_record_resume_is_refused(self):
+        path = self._write(self.evidence, "final.pt", json_record=True)
+        with self.assertRaises(guard.DiagnosticArtifactRefused):
+            self._admission()(str(path), self.ckpt_dir)
+
+    def test_an_ordinary_explicit_file_is_admitted(self):
+        path = self._ordinary(self.evidence, "step-000001.pt")
+        self.assertIsNone(self._admission()(str(path), self.ckpt_dir))
+
+    def test_a_marked_latest_pt_is_refused_even_with_an_ordinary_fallback(self):
+        self._write(self.ckpt_dir, "latest.pt", _production_payload(with_marker=True))
+        self._ordinary(self.ckpt_dir, "step-000005.pt")
+        with self.assertRaises(guard.DiagnosticArtifactRefused):
+            self._admission()("latest", self.ckpt_dir)
+
+    def test_an_ordinary_latest_pt_is_admitted(self):
+        self._ordinary(self.ckpt_dir, "latest.pt")
+        self.assertIsNone(self._admission()("latest", self.ckpt_dir))
+
+    def test_a_marked_newest_candidate_refuses_instead_of_falling_through(self):
+        # The marked envelope carries every CTX-53 key, so structural key
+        # absence cannot supply the refusal — and an older ordinary file must
+        # not become a silent fallback past it.
+        self._write(self.ckpt_dir, "step-000010.pt", _production_payload(with_marker=True))
+        self._ordinary(self.ckpt_dir, "step-000005.pt")
+        with self.assertRaises(guard.DiagnosticArtifactRefused):
+            self._admission()("latest", self.ckpt_dir)
+
+    def test_an_ordinary_newer_candidate_still_wins_over_a_marked_older_one(self):
+        self._ordinary(self.ckpt_dir, "step-000010.pt")
+        self._write(self.ckpt_dir, "step-000005.pt", _production_payload(with_marker=True))
+        self.assertIsNone(self._admission()("latest", self.ckpt_dir))
+
+    def test_a_directory_resume_mirrors_the_latest_routing(self):
+        self._write(self.ckpt_dir, "latest.pt", _production_payload(with_marker=True))
+        with self.assertRaises(guard.DiagnosticArtifactRefused):
+            self._admission()(str(self.ckpt_dir), self.ckpt_dir)
+
+    def test_an_absent_checkpoints_directory_is_not_this_admission_s_refusal(self):
+        self.assertFalse(self.ckpt_dir.exists())
+        self.assertIsNone(self._admission()("latest", self.ckpt_dir))
+        # The admission is read-only: it must never create the directory.
+        self.assertFalse(self.ckpt_dir.exists())
+
+
+class GradedEntryIsolationTests(unittest.TestCase):
+    """65-03-02: train.main refuses diagnostic resumes before run creation."""
+
+    def setUp(self):
+        import io
+
+        stack = ExitStack()
+        self.addCleanup(stack.close)
+        import pinn.train as train_module
+
+        self.train_module = train_module
+        self._io = io
+        self.tmp = Path(stack.enter_context(TemporaryDirectory(prefix="phase65-graded-")))
+        self.runs_root = self.tmp / "runs"
+        self.runs_root.mkdir()
+        self.run_dir = self.runs_root / "test-run"
+        self.ckpt_dir = self.run_dir / "checkpoints"
+        self.cfg_path = _write_train_config(self.tmp / "cfg.yaml")
+        self._orig_runs = train_module._RUNS_ROOT
+        train_module._RUNS_ROOT = self.runs_root
+        self.addCleanup(setattr, train_module, "_RUNS_ROOT", self._orig_runs)
+
+    def _run_main(self, argv):
+        from contextlib import redirect_stderr, redirect_stdout
+
+        out, err = self._io.StringIO(), self._io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = self.train_module.main(argv)
+        return code, out.getvalue(), err.getvalue()
+
+    def _write(self, directory, name, payload=None, *, json_record=False):
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / name
+        if json_record:
+            path.write_bytes(
+                evidence_io.canonical_json_bytes(_diagnostic_record_payload())
+            )
+        else:
+            atomic_write_torch(path, payload or _diagnostic_weights_payload())
+        return path
+
+    def _refused_before_run_creation(self, resume_arg):
+        before = _snapshot_tree(self.tmp)
+        with mock.patch.object(
+            self.train_module, "_resolve_runtime_spec",
+            side_effect=ValueError("sentinel-runtime-resolve"),
+        ) as runtime, mock.patch.object(
+            self.train_module, "_build_sources",
+            side_effect=AssertionError("sources built"),
+        ) as sources, mock.patch.object(
+            self.train_module, "build_network",
+            side_effect=AssertionError("model built"),
+        ) as build, mock.patch.object(
+            self.train_module, "RunController",
+            side_effect=AssertionError("controller built"),
+        ) as controller:
+            code, _out, err = self._run_main(
+                ["--config", str(self.cfg_path), "--resume", resume_arg]
+            )
+        self.assertEqual(code, 1)
+        self.assertIn("diagnostic", err)
+        self.assertEqual(runtime.call_count, 0)
+        self.assertEqual(sources.call_count, 0)
+        self.assertEqual(build.call_count, 0)
+        self.assertEqual(controller.call_count, 0)
+        self.assertEqual(_snapshot_tree(self.tmp), before)
+        self.assertFalse((self.run_dir / "status.json").exists())
+        self.assertFalse((self.run_dir / "config.yaml").exists())
+
+    def test_an_explicit_marked_file_resume_is_refused_before_run_creation(self):
+        # Relocated beside the run's own checkpoint layout, with an ordinary
+        # production envelope sibling, so only the content differs.
+        self._write(self.ckpt_dir, "step-000042.pt", _production_payload(with_marker=True))
+        self._write(self.ckpt_dir, "step-000041.pt", _production_payload(with_marker=False))
+        self._refused_before_run_creation(str(self.ckpt_dir / "step-000042.pt"))
+
+    def test_a_renamed_json_record_resume_is_refused_before_run_creation(self):
+        path = self._write(self.ckpt_dir, "record.pt", json_record=True)
+        self._refused_before_run_creation(str(path))
+
+    def test_a_directory_resume_with_a_marked_latest_is_refused(self):
+        self._write(self.ckpt_dir, "latest.pt", _production_payload(with_marker=True))
+        self._write(self.ckpt_dir, "step-000005.pt", _production_payload(with_marker=False))
+        self._refused_before_run_creation(str(self.ckpt_dir))
+
+    def test_a_literal_latest_resume_with_a_marked_newest_step_is_refused(self):
+        self._write(self.ckpt_dir, "step-000010.pt", _production_payload(with_marker=True))
+        self._write(self.ckpt_dir, "step-000005.pt", _production_payload(with_marker=False))
+        self._refused_before_run_creation("latest")
+
+    def test_an_ordinary_latest_resume_preserves_the_production_route(self):
+        # Control: a valid production envelope under latest.pt is admitted by
+        # the early guard and the run proceeds through the normal setup — the
+        # sentinel below fires at _build_sources, far PAST the guard, proving
+        # the refusals above are diagnostic-content refusals, not layout
+        # artifacts, and that routing/ordering for valid files is unchanged.
+        self._write(self.ckpt_dir, "latest.pt", _production_payload(with_marker=False))
+        with mock.patch.object(
+            self.train_module, "_build_sources",
+            side_effect=ValueError("sentinel-sources"),
+        ) as sources:
+            code, _out, err = self._run_main(
+                ["--config", str(self.cfg_path), "--resume", "latest"]
+            )
+        self.assertEqual(code, 1)
+        self.assertEqual(sources.call_count, 1)
+        self.assertIn("sentinel-sources", err)
+        self.assertNotIn("diagnostic", err)
+        self.assertTrue((self.run_dir / "config.yaml").is_file())
+
+
+class CheckpointRouteIsolationTests(unittest.TestCase):
+    """65-03-02: no checkpoint load route ever returns a diagnostic envelope."""
+
+    def setUp(self):
+        from pinn.training import checkpoint as checkpoint_module
+        from pinn.training.resume import load_resume_target
+
+        self.checkpoint_module = checkpoint_module
+        self.load_resume_target = load_resume_target
+        directory = tempfile.TemporaryDirectory(prefix="phase65-store-")
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name)
+        self.store = checkpoint_module.TorchSaveCheckpointStore(self.root)
+
+    def _refused_cls(self):
+        return getattr(
+            self.checkpoint_module,
+            "DiagnosticCheckpointRefused",
+            self.checkpoint_module.NoValidCheckpointError,
+        )
+
+    def _write(self, name, payload):
+        return atomic_write_torch(self.root / name, payload)
+
+    def _assert_diagnostic_refusal(self, callable_, *args):
+        refused = self._refused_cls()
+        with self.assertRaises(refused) as caught:
+            callable_(*args)
+        # NoValidCheckpointError-compatible AND specifically diagnostic.
+        self.assertIsInstance(
+            caught.exception, self.checkpoint_module.NoValidCheckpointError
+        )
+        self.assertIn("diagnostic", str(caught.exception))
+
+    def test_load_checkpoint_refuses_a_marked_envelope(self):
+        # Every CTX-53 key present and schema matches: only the marker refuses.
+        path = self._write("step-000010.pt", _production_payload(with_marker=True))
+        self._assert_diagnostic_refusal(self.store.load_checkpoint, path)
+
+    def test_load_checkpoint_still_loads_ordinary_production_payloads(self):
+        path = self._write("step-000011.pt", _production_payload(with_marker=False))
+        payload = self.store.load_checkpoint(path)
+        self.assertEqual(payload["schema_version"], CHECKPOINT_SCHEMA_VERSION)
+
+    def test_load_latest_never_returns_a_marked_latest_envelope(self):
+        # The broad corrupt-file handler around latest.pt must not swallow the
+        # diagnostic refusal and silently fall back to the ordinary step file.
+        self._write("latest.pt", _production_payload(with_marker=True))
+        self._write("step-000005.pt", _production_payload(with_marker=False))
+        self._assert_diagnostic_refusal(self.store.load_latest)
+
+    def test_fallback_scan_refuses_a_marked_newest_candidate(self):
+        self._write("step-000010.pt", _production_payload(with_marker=True))
+        self._write("step-000005.pt", _production_payload(with_marker=False))
+        self._assert_diagnostic_refusal(self.store.fallback_scan)
+
+    def test_fallback_scan_preserves_ordering_for_ordinary_files(self):
+        self._write("step-000010.pt", _production_payload(with_marker=False))
+        self._write("step-000005.pt", _production_payload(with_marker=True))
+        payload = self.store.fallback_scan()
+        self.assertEqual(payload["schema_version"], CHECKPOINT_SCHEMA_VERSION)
+
+    def test_load_resume_target_refuses_a_returned_diagnostic_payload(self):
+        # Boundary defense: even a store that failed to check must not leak a
+        # diagnostic envelope through load_resume_target's return value.
+        from types import SimpleNamespace
+
+        marked = _production_payload(with_marker=True)
+        stub = SimpleNamespace(
+            load_latest=lambda: marked,
+            load_checkpoint=lambda path: marked,
+        )
+        self._assert_diagnostic_refusal(self.load_resume_target, stub, "latest")
+        self._assert_diagnostic_refusal(self.load_resume_target, stub, "step-1.pt")
+
+    def test_load_resume_target_still_returns_ordinary_payloads(self):
+        from types import SimpleNamespace
+
+        ordinary = _production_payload(with_marker=False)
+        stub = SimpleNamespace(load_latest=lambda: ordinary)
+        self.assertIs(self.load_resume_target(stub, "latest"), ordinary)
+
+
 if __name__ == "__main__":
     unittest.main()
