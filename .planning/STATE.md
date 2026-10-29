@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 65
 current_phase_name: Probe on the Record & Fit Harness
 status: executing
-stopped_at: "Completed 65-05-PLAN.md (the registered probe run and result)"
-last_updated: "2026-10-29T20:32:00Z"
+stopped_at: "Completed 65-06-PLAN.md (the registered smoke fit and measured cost)"
+last_updated: "2026-10-29T21:50:00Z"
 last_activity: 2026-10-29
-last_activity_desc: Plan 65-05 executed (Wave 5)
-state_head: ffb12522
+last_activity_desc: Plan 65-06 executed (Wave 6)
+state_head: 3caf4869
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Phase 65 — Probe on the Record & Fit Harness
+**Current focus:** Phase 65 — Probe on the Record & Fit Harness (all 6 plans executed; phase verification next)
 
 ## Current Position
 
 Phase: 65 (Probe on the Record & Fit Harness) — EXECUTING
-Plan: 6 of 6
-Status: Executing Phase 65 (Wave 5 complete)
-Last activity: 2026-10-29 — Plan 65-05 executed (Wave 5)
+Plan: 6 of 6 (executed)
+Status: Executing Phase 65 (Wave 6 complete; phase verification is next)
+Last activity: 2026-10-29 — Plan 65-06 executed (Wave 6)
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
 v2.4 time-constant failure before any redesign (the redesign is v2.6), on
@@ -52,6 +52,15 @@ mutating verbs have corrupted it before (the full note is in this file at
 commit `b8632832`). The v2.5 start was written by hand and its diff reviewed.
 
 Phase 64 record (kept for reference): Phase 64 complete 2026-10-26; planned 2026-10-25 and executed in 7 waves. The verdict is RETHINK-REPRESENTATION; at owner checkpoint ① the owner decided `change-course` (ruling `64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`), and every charter row C-1 to C-14 was recorded `open`, so PROJECT.md and the twelve skipped-phase requirement statuses are unchanged. FEAS-06, FEAS-10 and VER-22 are complete, and VER-22 was re-verified at close on the final text: 24 defined, 24 in the traceability table, 24 in the roadmap. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`); Phases 61–63 skipped at G2.
+
+### Decisions from 65-06 (2026-10-29)
+
+- The registered smoke fit ran once and completed mechanically (registration `ac4358cb` re-pinned by `b1dcacc4`, bytes `ba54e8124a33…`; run evidence commit `84128fe2`, record sha256 `f6faee77d527…`): locked-12 on the Stage-0 training gold record `hierarchical/gold/1632` (split train, manifest stage 0, 1,001 samples, physical [0, 10]), MPS float32, seed 42, **20/20 finite updates (2 warmup + 18 measured) within the 600-second supervised cap**, similarity logged at steps 0/5/10/15/20 through the shared `measure_time_signal`, frozen FEAS-01 score beside the window-mean-constant and two-Kepler comparators on identical times/masses/body order (network E 24.80 tier 0; constant E 1.1538 tier 0; two-Kepler E 0.9168 tier 0; loss 0.0405 as context — no E/tier threshold imposed). Access: exactly one corpus open, zero validation/test opens, clean attestation, 33 pinned digests; marked `inst08-diagnostic` record and weights published exclusively (attempt running → published). `verify-result` printed `VERIFY-RESULT-OK` (exit 0).
+- **Measured cost (INST-08e): seconds_per_step 0.014265** — the sum of the 18 measured synchronized update durations (0.25678 s) over 18; warmup 0.13147 s, logging 0.57212 s, scoring 1.21599 s, setup 0.52892 s, data load 0.25356 s and publication 0.01508 s recorded separately; end-to-end 0.13597 s per completed step; sync overhead 0.000120 s over 42 calls. 18 steps is explicitly not steady-state throughput; no other depth/width/rate/device is costed, and no Phase 66–67 experiment is selected. Longer diagnostics refuse at an hour until governed pause/resume/power is proven.
+- The guarded bounded fit CLI shipped TDD-first in `diagnostic_fit.py` (RED `f7007b5e` machine-verified `RED_EVIDENCE_OK`, GREEN `59647328`, 131-test gate): `phase65-fit-registration/v1` admission through a new fit-schema branch in the shared `require_committed_registration` (guard edit; probe path unchanged), settings agreement with the sealed registry, sub-hour cap refusal before data access, MPS-availability gate, committed run-commit-faithful logger-parity receipt (D-10), exclusive attempt ownership with explicit incomplete status, supervised-worker cap enforcement, and `check-registration` / `run` / `verify-result`. The smoke's settings and mechanical reading rule were committed before the run (`65-SMOKE-PREDICTION.md` + registration). SUMMARY `3caf4869`; findings `65-FINDINGS.md` (`bdc600fb`).
+- The first smoke attempt refused in admission before any claim (nothing created): the receipt check originally demanded bytes at the run commit, but the logger-parity receipt was materialized after the probe run from the run's recorded entry (65-05's provenance). Fixed pre-run (`b1dcacc4`) to verify the receipt against its own introducing commit plus the run commit as ancestor; the registration re-pinned the corrected `diagnostic_fit.py` digest in the same commit; a `receipt_after_run` fixture test pins the 65-05 shape as admitting.
+- Owner-only items (preserved, not acted on): the 65-05 probe registration's pinned digests drifted for exactly `diagnostic_fit.py` and `diagnostic_guard.py` (the files this plan was mandated to edit) — one content test fails on those two entries and the amendment/re-commit-vs-historical decision belongs to the owner (the probe's committed result remains verifiable; its `verify-result` exits 0); the 65-05 routed runner defects remain queued; the two bespoke scientific-reporting prohibitions are flagged for review in `65-FINDINGS.md`, not judged by any test. GAP-59-08 stays open and unadjudicated.
+- Verification: task-01 gate 131 tests OK; full phase65 discovery 202/203 (the one failure is the owner-routed digest drift); `check-registration` OK with a real ancestor commit; `verify-result` exit 0; `load_protocol()` `PROTOCOL-OK` (33 digests unchanged); `git diff --check` clean at every commit; the held-out evaluation remains unspent. Phase 65's plans are 6/6; the phase verification act flips DIAG-09/INST-08 and closes the phase.
 
 ### Decisions from 65-05 (2026-10-29)
 
