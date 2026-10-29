@@ -511,17 +511,29 @@ def load_resume_target(store: Any, resume_arg: PathLike) -> Any:
 
     Assumes main() already validated path existence (except the literal
     ``latest``). Does not re-validate existence.
+
+    Plan 65-03 (INST-08 d): the RETURNED payload is boundary-checked — a
+    diagnostic envelope never leaves this function even if a non-production
+    store returned one, surfacing as the NoValidCheckpointError-compatible
+    ``DiagnosticCheckpointRefused``.
     """
+    from pinn.training.checkpoint import DiagnosticCheckpointRefused
+    from pinn.verification.diagnostic_guard import carries_diagnostic_marker
+
     arg = str(resume_arg)
     if arg == "latest":
-        return store.load_latest()
-    path = Path(arg)
-    if path.is_file():
-        return store.load_checkpoint(path)
-    if path.is_dir():
-        return store.load_latest()
-    # Path was validated by main as existing; treat non-file/dir as latest.
-    return store.load_latest()
+        payload = store.load_latest()
+    else:
+        path = Path(arg)
+        if path.is_file():
+            payload = store.load_checkpoint(path)
+        else:
+            # Path was validated by main as existing; treat non-file/dir as
+            # latest (directory and other forms route to load_latest()).
+            payload = store.load_latest()
+    if carries_diagnostic_marker(payload):
+        raise DiagnosticCheckpointRefused(resume_arg)
+    return payload
 
 
 def validate_hold_stage_target(resume_arg: PathLike) -> None:

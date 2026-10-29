@@ -25,7 +25,9 @@ __all__ = [
     "WEIGHTS_SCHEMA",
     "ARTIFACT_KIND",
     "diagnostic_marker",
+    "carries_diagnostic_marker",
     "require_not_diagnostic",
+    "require_resume_not_diagnostic",
     "read_diagnostic_record",
     "read_diagnostic_weights",
 ]
@@ -69,6 +71,16 @@ def _carries_marker(payload) -> bool:
     )
 
 
+def carries_diagnostic_marker(payload) -> bool:
+    """Public predicate over an ALREADY-LOADED payload (no file I/O).
+
+    The production checkpoint store's load routes and structural validator
+    (Plan 65-03) call this on every payload they are about to return or accept,
+    so the marker check has exactly one implementation.
+    """
+    return _carries_marker(payload)
+
+
 def require_not_diagnostic(path):
     """Refuse the file when its content carries the intrinsic diagnostic marker.
 
@@ -96,6 +108,50 @@ def require_not_diagnostic(path):
             "enter a production reader"
         )
     return None
+
+
+def require_resume_not_diagnostic(resume_arg, checkpoints_dir):
+    """Early (pre-run) graded-resume admission — read-only content check.
+
+    Plan 65-03 (D-09 / INST-08 d): ``train.main`` calls this BEFORE creating
+    the run directory, so a diagnostic resume candidate can never reach run
+    creation, data/model/optimizer setup or the graded training loop. The
+    routing mirrors ``pinn.training.resume.load_resume_target`` exactly:
+
+    * an explicit FILE argument is checked by content (``require_not_diagnostic``);
+    * the literal ``latest``, a directory, or any other non-file argument is
+      resolved against the run's OWN checkpoints directory exactly as
+      ``store.load_latest()`` would (``latest.pt`` first, then the step/stage
+      candidate ordering — never selection by scientific metric), and the
+      payload that WOULD be selected is refused when it carries the marker. A
+      marked newest candidate refuses instead of silently falling through to an
+      older ordinary file.
+
+    The check never constructs a checkpoint store (whose constructor creates
+    its directory): an absent checkpoints directory stays absent, and a
+    selection failure with no diagnostic content (no candidates, none
+    structurally valid) is left to the real load route to report.
+    """
+    from pinn.training.checkpoint import (  # deferred: checkpoint imports this module
+        DiagnosticCheckpointRefused,
+        EmptyCheckpointStore,
+        NoValidCheckpointError,
+        peek_latest_selection,
+    )
+
+    arg = str(resume_arg)
+    if arg != "latest":
+        path = Path(arg)
+        if path.is_file():
+            require_not_diagnostic(path)
+            return
+        # A directory (or any non-file argument) routes to store.load_latest().
+    try:
+        peek_latest_selection(Path(checkpoints_dir))
+    except DiagnosticCheckpointRefused as exc:
+        raise DiagnosticArtifactRefused(f"--resume {arg}: {exc}") from exc
+    except (NoValidCheckpointError, EmptyCheckpointStore):
+        return  # not a diagnostic question; the load route reports it
 
 
 def read_diagnostic_record(path):

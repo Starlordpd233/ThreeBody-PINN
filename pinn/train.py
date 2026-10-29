@@ -82,6 +82,10 @@ from pinn.training.stage_exit import StageExitMachine
 from pinn.training.step_log import HumanStepHandler, JsonlStepHandler
 from pinn.training.summary import finalize_summary, stub_summary
 from pinn.training.tb_sink import TbSink
+from pinn.verification.diagnostic_guard import (
+    DiagnosticArtifactRefused,
+    require_resume_not_diagnostic,
+)
 
 # Overridable for tests (inject synthetic sources / alternate runs root).
 _RUNS_ROOT: Path = Path("runs")
@@ -855,6 +859,21 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         try:
             _check_duration_gate(config, runs_root=runs_root)
         except DurationGateError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+
+    # INST-08 / D-09 (Plan 65-03): the early graded-resume admission. Read-only
+    # content check over the resume candidates the routing would actually
+    # select (explicit file / directory / literal latest, resolved against the
+    # run's own checkpoints directory via the existing name/root functions) —
+    # BEFORE run-dir creation, data/model/optimizer setup or the graded loop.
+    # Never constructs TorchSaveCheckpointStore (its constructor creates the
+    # directory); a diagnostic refusal is the guard's typed error, surfaced
+    # through the existing CLI nonzero-refusal convention.
+    if is_resume:
+        try:
+            require_resume_not_diagnostic(args.resume, run_dir / "checkpoints")
+        except DiagnosticArtifactRefused as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1
 

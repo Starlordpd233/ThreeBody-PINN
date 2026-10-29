@@ -25,6 +25,7 @@ from typing import Any, Callable, Optional, Protocol, Union, runtime_checkable
 
 from pinn.training.atomic_io import atomic_write_torch
 from pinn.training.config import CheckpointCadence
+from pinn.verification.diagnostic_guard import carries_diagnostic_marker
 
 PathLike = Union[str, Path]
 
@@ -124,6 +125,24 @@ class NoValidCheckpointError(RuntimeError):
         super().__init__(f"no valid checkpoint at {self.location}")
 
 
+class DiagnosticCheckpointRefused(NoValidCheckpointError):
+    """The payload carries the INST-08 intrinsic diagnostic marker (65-03).
+
+    A subclass of :class:`NoValidCheckpointError` so every existing caller and
+    CLI convention keeps working, while the message names the diagnostic
+    refusal explicitly — a marked envelope never loads, never silently falls
+    back to an older ordinary file, and never crosses into a graded run.
+    """
+
+    def __init__(self, location: PathLike) -> None:
+        self.location = str(location)
+        RuntimeError.__init__(
+            self,
+            f"checkpoint at {self.location} carries the intrinsic diagnostic "
+            "marker (INST-08) and may not enter a graded run",
+        )
+
+
 class PromotionRefused(ValueError):
     """Ordered-promotion guard refused a skip, regress, or beyond-terminal."""
 
@@ -164,13 +183,27 @@ def _disposition_str(disposition: Any) -> str:
     return str(disposition)
 
 
+def _refuse_diagnostic_payload(payload: Any, location: PathLike) -> None:
+    """Refuse a payload carrying the INST-08 intrinsic diagnostic marker.
+
+    Plan 65-03 (T-65-08): called on every load route BEFORE the structural
+    check, so a diagnostic refusal is always a typed refusal — never a
+    corrupt-file skip, never a silent fallback to an older ordinary file.
+    """
+    if carries_diagnostic_marker(payload):
+        raise DiagnosticCheckpointRefused(location)
+
+
 def _is_structurally_valid(payload: Any) -> bool:
     """CTX-53 structural validity: required-key PRESENCE + matching schema.
 
     Presence, not truthiness — ``optimizer: None`` (stage-init / CTRL-06) is
-    accepted.
+    accepted. An INST-08 diagnostic payload is NEVER structurally valid, even
+    when every production-required key is present around the marker (65-03).
     """
     if not isinstance(payload, dict):
+        return False
+    if carries_diagnostic_marker(payload):
         return False
     for key in _CTX53_REQUIRED_KEYS:
         if key not in payload:
@@ -212,6 +245,94 @@ def _parse_failure_step(name: str) -> Optional[int]:
     if match:
         return int(match.group(1))
     return None
+
+
+def fallback_candidates(root: Path) -> list[Path]:
+    """Enumerate step-* and stage-* candidates; EXCLUDE failure-* (LOW-2).
+
+    Ordering: step-* files by step index (desc); stage anchors by mtime
+    (desc) after all step files of equal rank. Practically, higher step
+    index is preferred; among pure stage anchors, newest mtime wins.
+    Never selects by scientific metric; ``latest.pt``/``best.pt`` are never
+    candidates (they are resolved by their own routes).
+    """
+    if not root.is_dir():
+        return []
+    # sort key: (kind_rank, primary, mtime) — higher is newer.
+    # kind_rank 1 = step-* (primary = step index); kind_rank 0 = stage-*.
+    candidates: list[tuple[tuple[int, int, float], Path]] = []
+    for path in root.iterdir():
+        if not path.is_file() or path.suffix != ".pt":
+            continue
+        name = path.name
+        if name.startswith("failure-"):
+            continue  # LOW-2: never auto-resume from a failure state
+        if name in ("latest.pt", "best.pt"):
+            continue
+        mtime = path.stat().st_mtime
+        step_idx = _parse_step_index(name)
+        if step_idx is not None:
+            candidates.append(((1, step_idx, mtime), path))
+            continue
+        if _STAGE_ANCHOR_RE.match(name):
+            candidates.append(((0, 0, mtime), path))
+            continue
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    return [p for _, p in candidates]
+
+
+def _scan_first_valid(root: Path) -> tuple[Path, Any]:
+    """The newest structurally-valid step-*/stage-* payload, or raise.
+
+    Shared by ``fallback_scan`` and ``peek_latest_selection``. A loadable
+    candidate carrying the INST-08 marker is a typed refusal here — it can
+    never be skipped over in favour of an older ordinary file.
+    """
+    import torch
+
+    for path in fallback_candidates(root):
+        try:
+            payload = torch.load(path, weights_only=True)
+        except Exception:
+            continue
+        _refuse_diagnostic_payload(payload, path)
+        if _is_structurally_valid(payload):
+            return path, payload
+    raise NoValidCheckpointError(root)
+
+
+def peek_latest_selection(root: Path) -> tuple[Path, Any]:
+    """Read-only mirror of ``TorchSaveCheckpointStore.load_latest`` (65-03).
+
+    Returns ``(selected_path, payload)`` for exactly the selection
+    ``load_latest`` would make — ``latest.pt`` whenever it loads, otherwise
+    the newest structurally-valid step-*/stage-* candidate — and raises the
+    same refusals (``DiagnosticCheckpointRefused`` for a marked selection,
+    ``EmptyCheckpointStore`` for an empty store, ``NoValidCheckpointError``
+    when no candidate is valid). Plan 65-03's early resume admission uses
+    this to inspect a run's existing candidates WITHOUT constructing a store,
+    whose constructor creates its directory.
+    """
+    import torch
+
+    latest = root / "latest.pt"
+    if latest.is_file():
+        payload = None
+        try:
+            payload = torch.load(latest, weights_only=True)
+        except Exception:
+            payload = None  # corrupt / unreadable latest.pt → fallback
+        if payload is not None:
+            # Refusal is raised OUTSIDE any corrupt-file handler: a marked
+            # latest.pt can never be swallowed into a fallback scan.
+            _refuse_diagnostic_payload(payload, latest)
+            return latest, payload
+    candidates = fallback_candidates(root)
+    if not candidates and not latest.is_file():
+        raise EmptyCheckpointStore(
+            "load_latest on empty CheckpointStore (no successful save yet)"
+        )
+    return _scan_first_valid(root)
 
 
 class TorchSaveCheckpointStore:
@@ -348,24 +469,15 @@ class TorchSaveCheckpointStore:
         return cid
 
     def load_latest(self) -> Any:
-        """Load ``latest.pt`` under weights_only; fall through to fallback_scan."""
-        import torch
+        """Load ``latest.pt`` under weights_only; fall through to fallback_scan.
 
-        latest = self._root / "latest.pt"
-        if latest.is_file():
-            try:
-                return torch.load(latest, weights_only=True)
-            except Exception:
-                pass  # corrupt / unreadable → fallback
-        # Empty directory (no candidates) → EmptyCheckpointStore for Protocol
-        # compatibility with phase-40; fallback_scan raises NoValid when files
-        # exist but none are structurally valid.
-        candidates = self._fallback_candidates()
-        if not candidates and not latest.is_file():
-            raise EmptyCheckpointStore(
-                "load_latest on empty CheckpointStore (no successful save yet)"
-            )
-        return self.fallback_scan()
+        The INST-08 diagnostic refusal is applied inside the shared
+        ``peek_latest_selection`` — outside any corrupt-file handler — so a
+        marked ``latest.pt`` (or marked selected candidate) is a typed
+        refusal, never a silent fallback (Plan 65-03 / T-65-08).
+        """
+        _selected_path, payload = peek_latest_selection(self._root)
+        return payload
 
     def rollback(self) -> Any:
         """RECOVER target — same resolution as load_latest."""
@@ -427,54 +539,27 @@ class TorchSaveCheckpointStore:
     # ------------------------------------------------------------------
 
     def _fallback_candidates(self) -> list[Path]:
-        """Enumerate step-* and stage-* candidates; EXCLUDE failure-* (LOW-2).
-
-        Ordering: step-* files by step index (desc); stage anchors by mtime
-        (desc) after all step files of equal rank. Practically, higher step
-        index is preferred; among pure stage anchors, newest mtime wins.
-        """
-        if not self._root.is_dir():
-            return []
-        # sort key: (kind_rank, primary, mtime) — higher is newer.
-        # kind_rank 1 = step-* (primary = step index); kind_rank 0 = stage-*.
-        candidates: list[tuple[tuple[int, int, float], Path]] = []
-        for path in self._root.iterdir():
-            if not path.is_file() or path.suffix != ".pt":
-                continue
-            name = path.name
-            if name.startswith("failure-"):
-                continue  # LOW-2: never auto-resume from a failure state
-            if name in ("latest.pt", "best.pt"):
-                continue
-            mtime = path.stat().st_mtime
-            step_idx = _parse_step_index(name)
-            if step_idx is not None:
-                candidates.append(((1, step_idx, mtime), path))
-                continue
-            if _STAGE_ANCHOR_RE.match(name):
-                candidates.append(((0, 0, mtime), path))
-                continue
-        candidates.sort(key=lambda item: item[0], reverse=True)
-        return [p for _, p in candidates]
+        """Module-level ``fallback_candidates`` over this store's root."""
+        return fallback_candidates(self._root)
 
     def fallback_scan(self) -> Any:
-        """Newest structurally-valid step-*/stage-* checkpoint, or raise."""
-        import torch
+        """Newest structurally-valid step-*/stage-* checkpoint, or raise.
 
-        for path in self._fallback_candidates():
-            try:
-                payload = torch.load(path, weights_only=True)
-            except Exception:
-                continue
-            if _is_structurally_valid(payload):
-                return payload
-        raise NoValidCheckpointError(self._root)
+        A loadable candidate carrying the INST-08 marker is a typed
+        ``DiagnosticCheckpointRefused`` — never skipped in favour of an older
+        ordinary file (Plan 65-03).
+        """
+        _selected_path, payload = _scan_first_valid(self._root)
+        return payload
 
     def load_checkpoint(self, path: PathLike) -> Any:
         """Exact-path load for ``--resume <specific-file>`` (cycle-3 HIGH).
 
         Validates path containment inside the store root, schema_version, and
-        CTX-53 required keys. Never consults latest.pt.
+        CTX-53 required keys. Never consults latest.pt. A payload carrying the
+        INST-08 marker is a typed diagnostic refusal (Plan 65-03), checked
+        BEFORE the structural test so marker presence — not key absence —
+        supplies the refusal.
         """
         import torch
 
@@ -504,6 +589,7 @@ class TorchSaveCheckpointStore:
         except Exception as exc:
             raise NoValidCheckpointError(path) from exc
 
+        _refuse_diagnostic_payload(payload, resolved)
         if not _is_structurally_valid(payload):
             raise NoValidCheckpointError(path)
         return payload
