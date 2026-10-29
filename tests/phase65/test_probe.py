@@ -81,9 +81,11 @@ def _scripted_model(rows_per_boundary, output_rows, *, omega_values=(0.3, 1.1, 2
 def _samples(count=4, variation=1.0):
     generator = torch.Generator().manual_seed(65)
     X = torch.randn((count, 14), generator=generator, dtype=torch.float64)
+    times = torch.arange(count, dtype=torch.float64) * 0.01
+    # Mirror the loader's window transform so tau and physical time correspond.
+    X[:, 0] = 2.0 * times / T - 1.0
     targets = (torch.randn((count, 3, 3), generator=generator, dtype=torch.float64) * variation)
     masses = torch.rand((count, 3), generator=generator, dtype=torch.float64) + 0.5
-    times = torch.arange(count, dtype=torch.float64) * 0.01
     return X, masses, targets, times
 
 
@@ -136,8 +138,10 @@ class MeasurementSemanticsTests(unittest.TestCase):
         measurement = measure_time_signal(model, X, masses, targets, times)
         self.assertTrue(math.isfinite(measurement.output_movement))
         self.assertTrue(math.isfinite(measurement.output_rate_ratio))
-        self.assertEqual(measurement.frequency_median, float(0.5 * 30.0 / math.pi))
-        self.assertEqual(measurement.frequency_max, float(2.5 * 30.0 / math.pi))
+        # The scripted input boundary runs at omega_0 = 0.3 with tau-column
+        # weights [0.5, 1.5, 2.5], so the frequency is |w| * omega_0 / pi.
+        self.assertEqual(measurement.frequency_median, float(1.5 * 0.3 / math.pi))
+        self.assertEqual(measurement.frequency_max, float(2.5 * 0.3 / math.pi))
         # Physical spacing (0.01) and normalized-tau spacing are recorded separately.
         self.assertAlmostEqual(measurement.physical_dt_median, 0.01, places=15)
         tau_spacings = [
@@ -180,7 +184,7 @@ class MeasurementRefusalTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._refused(X, masses, targets, times, model=model)
         self.assertEqual(model.input_layer.calls, 0)
-        self.assertEqual([layer.calls for layer in model.hidden_layers], [0])
+        self.assertTrue(all(layer.calls == 0 for layer in model.hidden_layers))
 
     def test_fewer_than_two_samples_are_refused_before_the_forward(self):
         for count in (0, 1):

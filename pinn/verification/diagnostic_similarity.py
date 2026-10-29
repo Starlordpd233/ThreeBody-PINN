@@ -131,16 +131,19 @@ def measure_time_signal(model, tau_ic13, masses, targets, times_physical):
         raise MeasurementRefused(
             f"targets must hold one row per sample; got {tuple(targets.shape)}"
         )
-    Y = targets.reshape(targets.shape[0], -1)
     count = int(X.shape[0])
-    if int(Y.shape[0]) != count:
+    if int(targets.shape[0]) != count:
         raise MeasurementRefused(
-            f"tau_ic13 and targets must hold the same number of samples; got {count} and {int(Y.shape[0])}"
+            f"tau_ic13 and targets must hold the same number of samples; got {count} "
+            f"and {int(targets.shape[0])}"
         )
     if count < 2:
         raise MeasurementRefused(
             f"at least two samples are needed for a neighbour measurement; got {count}"
         )
+    Y = targets.reshape(count, -1)
+    if times_physical is None:
+        raise MeasurementRefused("times_physical is None")
     if not isinstance(times_physical, torch.Tensor):
         times = torch.as_tensor(times_physical, dtype=torch.float64)
     else:
@@ -150,12 +153,31 @@ def measure_time_signal(model, tau_ic13, masses, targets, times_physical):
             f"times_physical must be 1-D with one entry per sample ({count}); "
             f"got {tuple(times.shape)}"
         )
+    if masses is None:
+        raise MeasurementRefused("masses is None")
     masses_tensor = masses if isinstance(masses, torch.Tensor) else torch.as_tensor(masses)
     if masses_tensor.dim() not in (1, 2) or (
         masses_tensor.dim() == 2 and int(masses_tensor.shape[0]) != count
     ):
         raise MeasurementRefused(
             f"masses must be (3,) or (N, 3) matching the samples; got {tuple(masses_tensor.shape)}"
+        )
+
+    # All value validation happens before the forward: samples are never sorted,
+    # merged or dropped, so a non-finite or non-increasing time coordinate is a
+    # refusal, never a reordered success (E-INST-empty / E-INST-precision).
+    for tensor, what in (
+        (X, "tau_ic13"),
+        (Y, "targets"),
+        (times, "times_physical"),
+        (masses_tensor, "masses"),
+    ):
+        if not bool(torch.isfinite(tensor).all()):
+            raise MeasurementRefused(f"{what} holds a non-finite value; refusing the measurement")
+    if not bool((times.diff() > 0).all()):
+        raise MeasurementRefused(
+            "times_physical must be strictly increasing; non-increasing times are "
+            "refused, never sorted"
         )
 
     tau = X[:, 0]
@@ -166,6 +188,12 @@ def measure_time_signal(model, tau_ic13, masses, targets, times_physical):
         raise MeasurementRefused(
             "zero target variation: the centred gold norm is 0, so output movement "
             "and the rate comparator are undefined"
+        )
+    gold_rate = torch.gradient(flat_targets, spacing=(tau,), dim=0)[0]
+    rms_gold = _finite_float(gold_rate.pow(2).mean().sqrt(), "gold d/dtau RMS")
+    if not rms_gold > 0.0:
+        raise MeasurementRefused(
+            "the gold finite-difference rate is zero, so the rate comparator is undefined"
         )
 
     captured = []
@@ -212,13 +240,7 @@ def measure_time_signal(model, tau_ic13, masses, targets, times_physical):
         )[0][:, 0]
         columns.append(gradient.detach())
     network_rate = torch.stack(columns, dim=1)
-    gold_rate = torch.gradient(flat_targets, spacing=(tau,), dim=0)[0]
     rms_network = _finite_float(network_rate.pow(2).mean().sqrt(), "network d/dtau RMS")
-    rms_gold = _finite_float(gold_rate.pow(2).mean().sqrt(), "gold d/dtau RMS")
-    if not rms_gold > 0.0:
-        raise MeasurementRefused(
-            "the gold finite-difference rate is zero, so the rate comparator is undefined"
-        )
     rate_ratio = _finite_float(rms_network / rms_gold, "output rate ratio")
 
     differences = times[:-1].diff() if count > 1 else torch.zeros(0, dtype=torch.float64)
