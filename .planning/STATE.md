@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 66
 current_phase_name: Small-Network Control
 status: ready_to_plan
-stopped_at: "Phase 65 closed under delegated technical review; Phase 66 ready for discussion/planning"
-last_updated: "2026-10-31T17:14:40Z"
+stopped_at: Phase 66 context gathered
+last_updated: "2026-10-31T19:04:29.163Z"
 last_activity: 2026-10-31
-last_activity_desc: Phase 65 closed; four technical decisions resolved under owner delegation
-state_head: bc52030c
+state_head: ae6206525d523dcf6412cdb250c1ac3cd1031c0d
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
   completed_plans: 6
-  percent: 100
+  percent: 20
+last_activity_desc: Phase 66 context gathered; EXP-01 positive-control design set under delegation, owner compute window recorded
 ---
 
 # Project State
@@ -1026,11 +1026,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/66-small-network-control/66-CONTEXT.md
 
-Last session: 2026-10-31T17:14:40Z
-Stopped at: Phase 65 complete, ready to discuss/plan Phase 66.
-Next action: $gsd-discuss-phase 66 or $gsd-plan-phase 66. Use 65-CLOSEOUT.md for technical rulings, historical evidence and reuse conditions. No Phase 66 experiment has started. Technical choices remain delegated; overall direction and reserved owner checkpoints remain with the owner.
+Last session: 2026-10-31T19:04:29.008Z
+Stopped at: Phase 66 context gathered
+Next action: $gsd-plan-phase 66 from 66-CONTEXT.md (D-01..D-12). Use 65-CLOSEOUT.md for technical rulings, historical evidence and reuse conditions. No Phase 66 experiment has started; training runs only on AC power, at weekends (owner, 2026-10-31). Technical choices remain delegated; overall direction and reserved owner checkpoints remain with the owner.
 
 ## Operator Next Steps
 
