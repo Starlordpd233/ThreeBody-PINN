@@ -75,7 +75,7 @@ YARD-01 finds is recorded and routed (see the pivot rule, SCOPE-49).
 
 ### Diagnostics (DIAG)
 
-- [ ] **DIAG-09**: **The 2026-10-27 probe, on the record.** The informal probe is committed as a read-only script and re-run on the seven Phase 60 arms' committed weights, at initialization and after training. For each layer it records:
+- [x] **DIAG-09**: **The 2026-10-27 probe, on the record.** The informal probe is committed as a read-only script and re-run on the seven Phase 60 arms' committed weights, at initialization and after training. For each layer it records:
   - how alike the centred hidden state is at times 0.01 apart (cosine similarity);
   - how much the output moves, as a share of the orbit's own variation;
   - the output's rate of change against the true orbit's;
@@ -89,7 +89,7 @@ YARD-01 finds is recorded and routed (see the pivot rule, SCOPE-49).
 
 ### Instrumentation (INST)
 
-- [ ] **INST-08**: **A minute-scale diagnostic fit harness.** Committed, tested tooling under `pinn/verification/` that builds on INST-05. It trains one named network variant, data-only, on one Stage-0 training orbit's gold record. It scores each run with the frozen FEAS-01 scorer, beside the two-Kepler formula and the constant predictor. It logs DIAG-09's per-layer neighbour similarity at a fixed cadence during training.
+- [x] **INST-08**: **A minute-scale diagnostic fit harness.** Committed, tested tooling under `pinn/verification/` that builds on INST-05. It trains one named network variant, data-only, on one Stage-0 training orbit's gold record. It scores each run with the frozen FEAS-01 scorer, beside the two-Kepler formula and the constant predictor. It logs DIAG-09's per-layer neighbour similarity at a fixed cadence during training.
   - **Variants** are named entries in a registry, written into the run record: depth, width, time-input features, learning rate and window length.
   - **The locked variant** (12 layers, the locked settings) is the v2.4 network.
   - **Run records** are marked diagnostic and keep their budget and measured seconds per step.
@@ -239,8 +239,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DIAG-09 | Phase 65 | Pending |
-| INST-08 | Phase 65 | Pending |
+| DIAG-09 | Phase 65 | Complete |
+| INST-08 | Phase 65 | Complete |
 | EXP-01 | Phase 66 | Pending |
 | EXP-02 | Phase 67 | Pending |
 | EXP-03 | Phase 67 | Pending |
@@ -260,4 +260,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-10-27*
-*Last updated: 2026-10-27 at the v2.5 roadmap creation: traceability filled for Phases 65–69*
+*Last updated: 2026-10-31 at Phase 65 closeout: DIAG-09 and INST-08 Complete; 2/13 requirements complete. Traceability mappings unchanged.*

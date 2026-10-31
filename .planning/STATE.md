@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 milestone: v2.5
 milestone_name: Root-Cause Confirmation
-current_phase: 65
-current_phase_name: Probe on the Record & Fit Harness
-status: executing
-stopped_at: "Completed 65-06-PLAN.md (the registered smoke fit and measured cost)"
-last_updated: "2026-10-29T21:50:00Z"
-last_activity: 2026-10-29
-last_activity_desc: Plan 65-06 executed (Wave 6)
-state_head: 3caf4869
+current_phase: 66
+current_phase_name: Small-Network Control
+status: ready_to_plan
+stopped_at: "Phase 65 closed under delegated technical review; Phase 66 ready for discussion/planning"
+last_updated: "2026-10-31T17:14:40Z"
+last_activity: 2026-10-31
+last_activity_desc: Phase 65 closed; four technical decisions resolved under owner delegation
+state_head: bc52030c
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
   completed_plans: 6
   percent: 100
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Phase 65 — Probe on the Record & Fit Harness (all 6 plans executed; phase verification next)
+**Current focus:** Phase 66, Small-Network Control, ready for discussion/planning. Phase 65 closed 2026-10-31 with 204 tests passing and both requirements Complete.
 
 ## Current Position
 
-Phase: 65 (Probe on the Record & Fit Harness) — EXECUTING
-Plan: 6 of 6 (executed)
-Status: Executing Phase 65 (Wave 6 complete; phase verification is next)
-Last activity: 2026-10-29 — Plan 65-06 executed (Wave 6)
+Phase: 66 (Small-Network Control)
+Plan: Not started
+Status: Ready to plan. Phase 65 Complete, 6/6 plans, 4/4 delegated reviews resolved.
+Last activity: 2026-10-31, Phase 65 closeout (65-CLOSEOUT.md).
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
 v2.4 time-constant failure before any redesign (the redesign is v2.6), on
@@ -52,6 +52,13 @@ mutating verbs have corrupted it before (the full note is in this file at
 commit `b8632832`). The v2.5 start was written by hand and its diff reviewed.
 
 Phase 64 record (kept for reference): Phase 64 complete 2026-10-26; planned 2026-10-25 and executed in 7 waves. The verdict is RETHINK-REPRESENTATION; at owner checkpoint ① the owner decided `change-course` (ruling `64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`), and every charter row C-1 to C-14 was recorded `open`, so PROJECT.md and the twelve skipped-phase requirement statuses are unchanged. FEAS-06, FEAS-10 and VER-22 are complete, and VER-22 was re-verified at close on the final text: 24 defined, 24 in the traceability table, 24 in the roadmap. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`); Phases 61–63 skipped at G2.
+
+### Phase 65 closeout decisions (2026-10-31)
+
+- The owner reaffirmed delegation of all four outstanding technical items. Codex approved probe association-only framing and smoke mechanics/exact-configuration cost framing, supported by independent reviews. These are delegated judgments, not claimed personal owner signoffs. No scope change or scientific threshold was introduced.
+- The probe registration remains immutable historical evidence. Its result binds exact registration bytes and the run-commit dependencies; updating hashes would break that evidence. The content test now checks historical dependency provenance, registration identity and ancestry; live source/frozen/arm checks and new-run drift refusals remain. The full suite passes 204/204. Both historical result verifiers pass; the smoke registration admits current code; live probe admission correctly refuses the old registration.
+- Historical probe renderer/summary defects and its missing standalone parity command are accepted with explicit reuse conditions. Repair and regression tests plus fresh registration are required before another probe execution; the actual logger receipt already proves parity. The separate WR-01 nested-marker guard limitation must be fixed before any graded/evaluation use. All review warnings/info have dispositions in `65-CLOSEOUT.md`; no defect is mislabelled repaired. These rulings supersede the owner-pending notes in the dated execution history below.
+- DIAG-09 and INST-08 are Complete; Phase 65 is closed (6/6 plans, 7/7 verified truths, 4/4 reviews). Phase 66 is ready for discussion/planning only. Original predictions, registrations and evidence remain unchanged, with hashes recorded in `65-CLOSEOUT.md`; no new real training or held-out evaluation ran. GAP-59-08 remains open for Phase 68, and one-hour diagnostics remain refused until governed controls are proven.
 
 ### Decisions from 65-06 (2026-10-29)
 
@@ -1019,13 +1026,15 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/65-probe-on-the-record-fit-harness/65-01-PLAN.md
+**Resume file:** None
 
-Last session: 2026-10-29T02:09:10.856Z
-Stopped at: Phase 65 planning complete: six plans in six waves, 15 tasks; independent plan check passed
-Next action: Execute Phase 65 via $gsd-execute-phase 65, starting with 65-01-PLAN.md. Six plans and 15 tasks passed independent planning verification. Probe and smoke execution remain gated on their committed registrations; no run has started. Any roadmap pivot, merge to master or protected push remains owner-controlled. All computation is on this Mac.
+Last session: 2026-10-31T17:14:40Z
+Stopped at: Phase 65 complete, ready to discuss/plan Phase 66.
+Next action: $gsd-discuss-phase 66 or $gsd-plan-phase 66. Use 65-CLOSEOUT.md for technical rulings, historical evidence and reuse conditions. No Phase 66 experiment has started. Technical choices remain delegated; overall direction and reserved owner checkpoints remain with the owner.
 
 ## Operator Next Steps
+
+- **Phase 65 closed, Phase 66 next.** Discuss/plan the small-network control under the existing roadmap. Carry the defect-reuse conditions from `65-CLOSEOUT.md`; technical decisions stay delegated, with high-level direction and reserved checkpoints owner-controlled.
 
 - ~~Finish `trainex-r4`~~ — done 2026-10-07: consolidated (`53b7c008`) and ruled under owner delegation (`trainex-r4-ruling.md`, `c4bea18a`; Key Decision in `PROJECT.md`). The four disputes were settled by making the next run the corrected control with an observe-only guard and plateau handoff, Adam-only, on seeds 42, 41 and 43.
 - ~~Open the next milestone~~ — v2.4 Stage-0 Feasibility Checkpoint started 2026-10-09 (`0b400dfa`; branch `milestone/v2.4`). It keeps the ruling's order of work and adds the learnability ladder in front of the corrected control.

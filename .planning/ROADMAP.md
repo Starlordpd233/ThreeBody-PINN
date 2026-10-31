@@ -42,7 +42,7 @@
 2. **the metrics are too harsh:** known-answer checks of every metric, then the owner sets the bars;
 3. **the training pipeline is wrong:** a learning-rate ladder for the training settings; the physics half waits for v2.6, because it cannot be judged until a network fits one orbit.
 
-The lead is the 2026-10-27 probe. After training, the network's hidden states at neighbouring times are unrelated from layer 2–3 onward, so it can only predict the average.
+The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper hidden states while the trained networks predicted average positions. Phase 65 reproduced that association; a cause has not been established.
 
 **What this milestone deliberately does not do:**
 
@@ -92,7 +92,7 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 
 **Phase Numbering:** integer phases 65–69 continue from v2.4's Phase 64 (numbering does not reset). Decimal phases, such as 66.1, are for insertions under SCOPE-49. The phase folders 53–60 and 64 stay in `.planning/phases/` beside them.
 
-- [ ] **Phase 65: Probe on the Record & Fit Harness** — The 2026-10-27 probe re-run as a committed, read-only step on the seven v2.4 networks, with its earlier figures as the predictions. Then the minute-scale harness that trains one named network variant, data-only, on one training orbit and logs, layer by layer, how alike the network's state is at neighbouring times. (DIAG-09, INST-08)
+- [x] **Phase 65: Probe on the Record & Fit Harness** — The 2026-10-27 probe re-run as a committed, read-only step on the seven v2.4 networks, with its earlier figures as the predictions. Then the minute-scale harness that trains one named network variant, data-only, on one training orbit and logs, layer by layer, how alike the network's state is at neighbouring times. (DIAG-09, INST-08)
 - [ ] **Phase 66: Small-Network Control** — The cheapest, most decisive test first: does a smaller, shallower network fit orbit 1632 from time alone? Reaching Tier 1 refutes "too small" for one orbit. The result is reviewed against the plan before anything else runs. **Owner checkpoint ①.** (EXP-01)
 - [ ] **Phase 67: Design & Settings Ladders** *(provisional until Phase 66's review)* — Four experiments on the locked layer types, each with its own prediction page:
   - depth: 2, 4, 6, 8 and 12 layers;
@@ -123,7 +123,7 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
   3. A short run on orbit 1632 completes and is scored. Its measured seconds per step is recorded, and sets the budgets for Phases 66–67.
   4. No training step ran in the probe, and no test-split file was opened. The tooling asserts this.
 
-**Plans**: TBD
+**Plans**: 6/6 complete. Closed 2026-10-31 under delegated technical review; see `65-CLOSEOUT.md` and `65-VERIFICATION.md`.
 **Wave 1**
 
 - [x] 65-01-PLAN.md
@@ -214,7 +214,7 @@ The lead is the 2026-10-27 probe. After training, the network's hidden states at
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 65. Probe on the Record & Fit Harness | 6/6 | In Progress|  |
+| 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
 | 66. Small-Network Control | 0/TBD | Not started | - |
 | 67. Design & Settings Ladders | 0/TBD | Not started | - |
 | 68. Yardstick | 0/TBD | Not started | - |

@@ -4,9 +4,15 @@
 registered reproduction returned **`retained`** (every required historical
 figure reproduced), and INST-08's harness is built, tested and proven by one
 registered real fit. This page states what is now known, what the measured
-cost is and on what basis, and what remains owner-routed. Every claim cites
+cost is and on what basis, and the limitations retained at closeout. Every claim cites
 committed evidence. Nothing here amends the roadmap, the framework specs, the
 frozen scorecard or any owner pass bar.
+
+**Closeout, 2026-10-31.** Phase 65 is complete under the owner's technical
+delegation. The two reporting reviews are approved, the probe registration
+is preserved as historical, and its runner defects have explicit dispositions
+and reuse conditions in `65-CLOSEOUT.md`. The full suite now passes 204 tests.
+The original predictions and evidence are unchanged.
 
 ## 1. The reproduction branch (DIAG-09): `retained`, association only
 
@@ -121,23 +127,18 @@ power-compatibility is demonstrated (the smoke's cap refuses 3600 s before
 data access), and Phase 60's wrappers are not claimed compatible — D-11
 records that their compatibility is unverified.
 
-## 5. What the smoke is not — the two reporting prohibitions, flagged for review
+## 5. Reporting reviews resolved under delegated authority
 
-This plan's determinstic gates can prove mechanics; they cannot judge prose.
-Two bespoke scientific-reporting prohibitions therefore travel with this page
-**flagged for reviewer/owner review, not adjudicated by any test**:
+Codex approved both scientific-reporting constraints on 2026-10-31 under
+D-01 and the owner's explicit closeout delegation, supported by independent
+reviews. This is a prose judgment, not an assertion that a deterministic test
+can decide scientific interpretation, or that the owner personally reviewed it.
 
-1. **The plan's unresolved prohibition:** "The short 1632 smoke must not be
-   presented as learnability, cause confirmation or measured cost for an
-   unmeasured variant." Every statement in this page and in
-   `65-SMOKE-PREDICTION.md` is written under it; a human reviewer should
-   confirm the phrasing keeps mechanics and cost separate from inference.
-2. **The probe lead's association discipline (D-07):** the `retained`
-   reproduction is a measured association only — it must not be read as
-   information loss, a capacity limit, or the cause of the v2.4 failure, and
-   no tolerance or reading rule was widened or edited. The prose in
-   `65-PROBE-RESULT.md` and Section 1 here should be reviewed under the same
-   discipline.
+The smoke remains a mechanics check with exact-configuration timing only.
+The reproduced probe remains an association without discovery, information-loss,
+capacity-limit or causal claims. `65-UAT.md` records both passes;
+`65-CLOSEOUT.md` records their rationale. The original pre-run prediction
+pages remain unchanged.
 
 ## 6. The energy-metric limitation, carried explicitly (GAP-59-08)
 
@@ -154,40 +155,31 @@ and leaves the velocity-source and pass-bar decisions to Phase 68. The smoke's
 comparable to the finite-difference production figures without Phase 68's
 adjudication.
 
-## 7. Known consequences and owner-only items
+## 7. Closeout decisions and retained limitations
 
-- **The probe registration's pinned digests drifted for exactly the two
-  files this plan was mandated to edit.** The 65-05 probe registration
-  (`evidence/probe/expectations.json`, commit `f469e003`) pins
-  `diagnostic_fit.py` (`2e2c06eb5bb2` → now `b00e45b460b8`) and
-  `diagnostic_guard.py` (`d164bc4d1302` → now `8dd577a263c2`); every other
-  pinned artifact matches. This is the consequence 65-05 pre-routed to the
-  orchestrator/owner ("any runner edit changes the pinned dependency
-  digests — decide whether the probe registration is amended/re-committed or
-  left historical"). The probe itself needs no further runs, and its
-  committed result remains verifiable: the probe runner's `verify-result`
-  still prints `VERIFY-RESULT-OK` (exit 0) because it verifies historical
-  dependencies against the recorded run commit, not current bytes. One
-  content test (`tests/phase65/test_probe.py::RegistrationContentTests::
-  test_the_recorded_dependency_and_source_digests_match_disk`) now fails on
-  exactly those two entries; it is left untouched — the test is correct
-  about its subject, and the amendment decision is the owner's. **Owner
-  decision requested:** amend/re-commit the probe registration's two
-  dependency digests, or leave it historical (the smoke registration pins
-  the current implementation independently).
-- **The 65-05 routed runner defects are unchanged** (the
-  `diagnostic_probe.py` stdout-renderer `KeyError` on `preserved_only`, the
-  empty `reading_rule.new_measurements` field, the missing standalone
-  `logger-parity` subcommand and the stdout-rendering suite gap). They are
-  out of this plan's scope by the dispatch; this plan's own runner
-  (`diagnostic_fit.py`) is a different module and carries none of them.
-- **Longer diagnostics:** refused at an hour or more until the governed
-  pause/resume/power path is proven (D-11, SCOPE-48). Nothing here claims
-  wrapper compatibility for `scripts/phase60-*`.
-- **No learnability, causal, representation or experiment-selection claim is
-  made anywhere in this phase's committed evidence.** Phases 66–67 run under
-  their own prediction pages; the yardstick and findings decisions remain
-  Phases 68–69's.
+- Preserve `evidence/probe/expectations.json` unchanged. Its result binds its
+  exact hash and the code at the recorded run commit. The planned 65-06 edits
+  changed two dependencies, `diagnostic_fit.py` and `diagnostic_guard.py`.
+  Historical result verification passes; live admission correctly refuses.
+  The content test now checks historical dependency bytes, registration
+  identity and ancestry, while preserved-source/frozen/arm checks remain live.
+  No production gate was relaxed. A future probe needs a new registration.
+- Accept the probe's stdout-renderer failure and empty redundant summary as
+  historical defects. All 130 new measurements remain in the top-level JSON;
+  the regenerated stdout retains its provenance label. The actual logger
+  receipt plus `verify-result --logger-parity` satisfies INST-08(c), despite
+  the missing standalone command. Repair the renderer and summary, add
+  regression tests and register the changed code before any new probe run.
+- `65-CLOSEOUT.md` dispositions every warning and info item in `65-REVIEW.md`.
+  WR-01's list-nested-marker limitation is live and requires repair and
+  production-entry regression tests before any graded run or held-out
+  evaluation. This is separate from accepting historical probe defects.
+- Longer diagnostics remain refused at an hour or more until governed
+  pause/resume/power compatibility is proven. No Phase 60 wrapper compatibility
+  is asserted. GAP-59-08 remains open for Phase 68.
+- No learnability, causal, representation or experiment-selection conclusion
+  follows from these records. Phases 66-67 need their own pre-run predictions
+  and registrations; yardstick and redesign decisions remain in Phases 68-69.
 
 ## 8. Evidence index
 
@@ -197,7 +189,7 @@ adjudication.
 | Logger parity (INST-08c) | `evidence/probe/logger-parity.json` (`484ea30c`); `verify-result` exit 0 re-run this plan |
 | Smoke settings frozen before the run | `65-SMOKE-PREDICTION.md` + `evidence/fit/smoke-registration.json` (`ac4358cb`, re-pinned `b1dcacc4`) |
 | The registered smoke run | `evidence/fit/1632-smoke/record.json`, `diagnostic.weights`, `attempt.json` (`84128fe2`), record sha256 `f6faee77d527…` |
-| Harness tests (TDD, 131 gate tests; 202/203 full discovery) | `f7007b5e` (RED), `59647328` (GREEN), `b1dcacc4` (receipt-check fix); the one failing test is the owner-routed digest-drift item above |
+| Harness tests (TDD, 131 gate tests; 204/204 closeout discovery) | `f7007b5e` (RED), `59647328` (GREEN), `b1dcacc4` (receipt-check fix); historical dependency-test correction and fresh closeout checks in `65-CLOSEOUT.md` |
 | 33 frozen source digests unchanged | `load_protocol()` revalidation, `PROTOCOL-OK`; `record.json#source_sha256` == committed modules |
 
 *Phase: 65-probe-on-the-record-fit-harness · Written 2026-10-29 by

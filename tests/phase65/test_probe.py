@@ -1425,7 +1425,43 @@ class RegistrationContentTests(unittest.TestCase):
         self.assertEqual(adam["spike_h12"]["formatter"], ".4f")
         self.assertEqual(adam["skip_siren_h1"]["formatter"], ".1f")
 
-    def test_the_recorded_dependency_and_source_digests_match_disk(self):
+    def test_recorded_dependencies_match_the_historical_run_commit(self):
+        doc = self._registration()
+        root = Path(__file__).resolve().parents[2]
+        result = json.loads(
+            (self._phase_dir() / "evidence/probe/reproduction.json").read_text()
+        )
+        registration_path = self._phase_dir() / "evidence/probe/expectations.json"
+        relative = registration_path.relative_to(root).as_posix()
+
+        def git(*args):
+            return subprocess.run(
+                ["git", *args], cwd=root, capture_output=True, check=True,
+            ).stdout
+
+        self.assertEqual(result["registration"]["path"], relative)
+        self.assertEqual(
+            hashlib.sha256(registration_path.read_bytes()).hexdigest(),
+            result["registration"]["sha256"],
+        )
+        registration_commit = git(
+            "log", "-n1", "--format=%H", "--diff-filter=A", "--", relative,
+        ).decode().strip()
+        self.assertTrue(registration_commit)
+        run_commit = result["run_commit"]
+        git("merge-base", "--is-ancestor", registration_commit, run_commit)
+        git("merge-base", "--is-ancestor", run_commit, "HEAD")
+        self.assertEqual(
+            git("show", f"{run_commit}:{relative}"), registration_path.read_bytes(),
+        )
+        # This registration is historical. Later tooling edits must not rewrite
+        # the dependency identity of the computation already on the record.
+        for entry in doc["code_dependencies"]:
+            with self.subTest(path=entry["path"]):
+                committed = git("show", f"{run_commit}:{entry['path']}")
+                self.assertEqual(hashlib.sha256(committed).hexdigest(), entry["sha256"])
+
+    def test_preserved_source_and_frozen_artifact_digests_match_disk(self):
         doc = self._registration()
         root = Path(__file__).resolve().parents[2]
 
@@ -1433,8 +1469,6 @@ class RegistrationContentTests(unittest.TestCase):
             return hashlib.sha256((root / relative).read_bytes()).hexdigest()
 
         for entry in doc["source"]["scripts"]:
-            self.assertEqual(sha(entry["path"]), entry["sha256"], entry["path"])
-        for entry in doc["code_dependencies"]:
             self.assertEqual(sha(entry["path"]), entry["sha256"], entry["path"])
         for entry in doc["frozen"]:
             self.assertEqual(sha(entry["path"]), entry["sha256"], entry["path"])
