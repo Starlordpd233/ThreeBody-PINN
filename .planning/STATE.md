@@ -5,16 +5,16 @@ milestone_name: Root-Cause Confirmation
 current_phase: 66
 current_phase_name: Small-Network Control
 status: executing
-stopped_at: "66-02 complete (weekend-window launch gate, reading rule + improvement check + run readers, time-bound budget + design block; harness frozen); next is 66-03-PLAN.md"
-last_updated: "2026-11-01T17:50:00.000Z"
+stopped_at: "66-03 complete (frozen timing page and registration, timing calibration through the AC gate with its score unread, measured budget and three experiment registrations in ORDER-OK evidence order); next is 66-04-PLAN.md"
+last_updated: "2026-11-01T18:35:00.000Z"
 last_activity: 2026-11-01
-last_activity_desc: "66-02 executed: the Phase 66 harness finished and frozen with its seven digests recorded"
-state_head: 85952105
+last_activity_desc: "66-03 executed: EXP-01's scientific rules frozen before any run, the timing rate measured, and the budget-derived experiment registrations committed"
+state_head: 2e20360c
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 9
   percent: 20
 ---
 
@@ -30,9 +30,60 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 66 (Small-Network Control) — EXECUTING
-Plan: 3 of 5 (66-01 and 66-02 complete; next is 66-03-PLAN.md)
+Plan: 4 of 5 (66-01 through 66-03 complete; next is 66-04-PLAN.md)
 Status: Executing Phase 66
-Last activity: 2026-11-01 — 66-02 executed (RED/GREEN pairs 24bad2ae→9c8e28dc, 86a35ec8→3fbba72d, 9fbac07d→734cb7da; SUMMARY 85952105)
+Last activity: 2026-11-01 — 66-03 executed (4eab280b timing page + registration, a564ea35 timing evidence, 3f4d0a85 prediction page + three registrations, SUMMARY 2e20360c)
+
+### Decisions from 66-03 (2026-11-01)
+
+- **The scientific rules of EXP-01 are committed before any Phase 66 run of
+  any kind.** `66-TIMING-PREDICTION.md` (page sha256 `ec54a05e…`) and
+  `evidence/timing/timing-registration.json` (sha256 `794daa6e…`, admitting
+  with registration-commit `4eab280b`) were committed together at `4eab280b`
+  before the timing run. The page freezes the design block (equal to
+  `exp01_design()`), the first_omega_0 = 1000 bandwidth case, the suspect
+  table with the under-training row, the reading rule (improvement check:
+  output-movement growth over 0.01 from the last cadence entry at or before
+  three quarters of the run; unsettled label; setting-check table; no
+  extension rule), repeats and confirmation, the budget rule with the
+  100,000-step sanity stop, and the retry/setting-problem rules. The page is
+  never amended (admission re-checks its digest).
+- **The timing calibration is committed evidence (`a564ea35`) and its score
+  was never read.** One run of exp01-d1-w384-o1000 on
+  `hierarchical/gold/1632` seed 42 MPS float32, launched detached through the
+  AC gate after the survival test passed (detached child PID 69455, PGID
+  69455; the test's child kept PGID == own PID and survived a group SIGTERM
+  to the simulated agent subshell 69274). Receipt: AC Power, Sunday
+  11:57 America/Chicago (inside the window), checked_utc 17:57:03Z before the
+  attempt's started_utc 17:57:04Z. Mechanical facts: 5200/5200 finite updates
+  (200 warmup, 5000 measured), cadence 0/1300/2600/3900/5200, stride 1 with
+  5200 entries, one train open / zero validation / test_split_opened 0,
+  record 564,082 bytes. **Measured rate 0.004238129693630617 s/step** (inside
+  A2's 3-6 ms projection); launch wall 28.0 s. verify-result
+  VERIFY-RESULT-OK; check-run EXP01-CHECK-OK with empty problem lists; no
+  read-run was ever issued on this directory.
+- **The budget is mechanical from the committed timing evidence**
+  (`EXP01-BUDGET steps=465000 loss_trace_stride=47 cap=3300.0`): N = 465000
+  (200 warmup, 464800 measured), 14-entry cadence ending at 465000, projected
+  worker wall 2470.2 s of the 2475 s target, projected record 1,304,114 bytes
+  against the 1,307,538-byte N-independent ceiling. N is far above the
+  sanity stop, so nothing was re-sized.
+- **The full prediction page and the three experiment registrations are
+  committed (`3f4d0a85`) in a git-verifiable order.** `66-PREDICTION.md`
+  (sha256 `7ec16fe9…`) repeats the timing page's sections 1-5 and 7 verbatim
+  and adds the budget, the three-run table with exact launch commands, the
+  record readout and the what-a-longer-run-would-need section. The three
+  registrations (main-1632-s42 `b0d79585…`, repeat-851-s42 `40754fb9…`,
+  repeat-1632-s41 `48a15ad6…`) all admit (CHECK-ALL-OK, each pinning the page
+  digest and the seven frozen code digests) and differ only in title,
+  orbit_key, orbit_note and seed. Evidence order ORDER-OK: page → registration
+  → timing record → prediction page → experiment registrations.
+- Tests: `tests/phase66/test_pages.py` gains TimingPageTests,
+  PredictionPageTests and ExperimentRegistrationTests; the phase 66 discovery
+  is **99 tests OK** and phase 65 stays at **204 tests OK** (31.883 s).
+  `git diff --check` clean over the plan range. No harness file changed
+  (the freeze at `734cb7da` holds). 66-04 runs the three registered
+  experiments, each launch still gated on AC power inside the weekend window.
 
 ### Decisions from 66-02 (2026-11-01)
 
