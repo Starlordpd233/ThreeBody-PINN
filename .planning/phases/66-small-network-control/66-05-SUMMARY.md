@@ -1,27 +1,31 @@
 ---
 phase: 66-small-network-control
 plan: "05"
-status: halted
+status: complete
 requires:
   - phase: 66-small-network-control (plan 04)
     provides: "the three verified EXP-01 run records under evidence/exp01/ (main-1632-s42, repeat-851-s42, repeat-1632-s41), each 465,000 steps, check-run-clean, committed at a546016b / 3dc3646a / 277c25ce, with no score read in 66-04"
 provides:
   - "66-RESULT.md (89045a7f): the EXP-01 branch derived mechanically by diagnostic_phase66 review over the three committed run directories — all three runs tier1, confirmation confirmed, route phase67-as-planned — in plain language with every number cited to a committed record by path and SHA-256, the frozen reading, the SCOPE-49 proposal (none), the identifiability limits, harness provenance and the evidence index; RESULT-PAGE-OK"
-affects: [owner-checkpoint-1, 66-05-continuation, phase-67]
+  - "66-CHECKPOINT-1-RULING.md (e40ebca2): the owner's checkpoint 1 answer recorded verbatim (accept) beside the exact result page it answers by SHA-256, with the CP1-EXP01 row and the SCOPE-49 disposition (no plan change; Phase 67 runs as planned); RULING-OK"
+affects: [phase-66-verification, phase-67]
 actuals:
-  tokens: 8000
-  tasks: 1
-  commits: 3
+  tokens: 12000
+  tasks: 3
+  commits: 6
 tech-stack:
   added: []
   patterns:
     - "mechanical branch derivation: every label, the confirmation, the route and every number copied from read-run/review/check-run output over the committed directories; the only computed figures are the plan-mandated band edges (0.95/1.05 x the record's own E_const), the loss quarter change, wall times and machine hours, each scripted and cited"
+    - "owner ruling protocol: the checkpoint answer is held verbatim in one never-parsed owner-quote block, restated only as the chosen option in a Recorded answers row, and cited beside the reviewed page's SHA-256"
 key-files:
   created:
     - .planning/phases/66-small-network-control/66-RESULT.md
+    - .planning/phases/66-small-network-control/66-CHECKPOINT-1-RULING.md
   modified: []
 key-decisions:
-  - "None - followed the plan as specified: the branch was derived mechanically from the review tool output only (all three runs tier1, confirmed, phase67-as-planned, which proposes no plan change); the owner checkpoint was not pre-answered and 66-CHECKPOINT-1-RULING.md was not written"
+  - "Task 66-05-01: none - followed the plan as specified: the branch was derived mechanically from the review tool output only (all three runs tier1, confirmed, phase67-as-planned, which proposes no plan change); the owner checkpoint was not pre-answered and 66-CHECKPOINT-1-RULING.md was not written"
+  - "Tasks 66-05-02/03: the owner's checkpoint 1 answer was recorded verbatim (accept) with no interpretation, and the accepted proposal proposes no plan change, so this plan edited no roadmap, requirement, spec or registration; ROADMAP.md, REQUIREMENTS.md, pinn/ and tests/ are unchanged from PLAN_START_SHA 2b5d0df7 (the plan's acceptance diff is empty)"
 requirements-completed: [EXP-01]
 coverage:
   - id: SC2
@@ -49,26 +53,29 @@ coverage:
         status: pass
     human_judgment: false
   - id: CP1
-    description: "Owner checkpoint 1 (D-01, D-12) is one blocking-human decision presented only after 66-RESULT.md was committed; it is never auto-selected. The plan is HALTED awaiting the owner's answer; 66-CHECKPOINT-1-RULING.md is not written and no ruling content was invented"
+    description: "Owner checkpoint 1 (D-01, D-12) was one blocking-human decision presented only after 66-RESULT.md was committed and never auto-selected; the owner answered 2026-11-01 (America/Chicago) — verbatim: accept the recorded proposal — and the answer is recorded verbatim in 66-CHECKPOINT-1-RULING.md (one owner-quote block, the CP1-EXP01 row, the reviewed page's SHA-256 and the three record digests)"
     requirement: EXP-01
     verification:
-      - kind: judgment
-        ref: "structured checkpoint returned to the orchestrator with the committed page's branch, reading, proposal, options and the awaited owner answer; task 66-05-03 outstanding for the continuation agent"
+      - kind: cli
+        ref: "RULING-OK (the plan's automated verify: status ratified, the four sections, exactly one non-empty owner-quote block, the cited result digest, the CP1-EXP01 accept row)"
+        status: pass
+      - kind: cli
+        ref: "acceptance diff: git diff --stat 2b5d0df7..HEAD -- .planning/ROADMAP.md .planning/REQUIREMENTS.md pinn tests prints nothing; git diff --check over the range clean"
         status: pass
     human_judgment: true
-duration: 20min
+duration: about 35 min across two sessions (execution 20:05Z-20:25Z; continuation after the owner's answer 20:31Z-20:45Z)
 completed: 2026-11-01
 ---
 
 # Phase 66: Small-Network Control — Plan 05 Summary
 
-**The three committed EXP-01 runs were read mechanically against the pre-registered rule: all three landed tier1 (E 0.0114 / 0.0172 / 0.0790, each settled), the branch is confirmed and the pre-registered route is phase67-as-planned (no plan change proposed); the result page is committed and owner checkpoint ① is posed — this plan is HALTED at that blocking-human checkpoint with the ruling (task 66-05-03) outstanding.**
+**The three committed EXP-01 runs were read mechanically against the pre-registered rule — all three landed tier1 (E 0.0114 / 0.0172 / 0.0790, each settled), the branch is confirmed and the pre-registered route is phase67-as-planned — the result page was committed, the owner answered checkpoint ① with accept (no plan change; Phase 67 runs as planned), and the answer is recorded verbatim in the ruling page beside the exact result page it answers.**
 
 ## Performance
-- **Duration:** about 20 minutes (20:05Z–20:25Z)
+- **Duration:** about 35 minutes across two sessions (task 66-05-01 20:05Z–20:25Z; the continuation after the owner's answer 20:31Z–20:45Z)
 - **Started:** 2026-11-01T20:05Z (PLAN_START_SHA `2b5d0df73dd9ae3f22d3ee4e1712979d1d67deec`)
-- **Tasks:** 1 of 3 complete (66-05-01); 66-05-02 presented as the blocking checkpoint; 66-05-03 outstanding
-- **Files modified:** 1 created (66-RESULT.md); this SUMMARY and the hand-maintained STATE.md update are the docs commits
+- **Tasks:** 3 of 3 complete (66-05-01; 66-05-02 checkpoint presented and answered; 66-05-03 ruling committed)
+- **Files modified:** 2 created (66-RESULT.md, 66-CHECKPOINT-1-RULING.md); this SUMMARY and the hand-maintained STATE.md update are the docs commits
 
 ## Accomplishments
 - Task 66-05-01: ran the review once over the three committed run directories
@@ -101,76 +108,98 @@ completed: 2026-11-01
   once the owner answers checkpoint ①; Phases 67–69 stay provisional until
   this review (SCOPE-49), and Phase 68 does not depend on the experiments
   (D-12).
+- Task 66-05-02: the checkpoint was presented after the result page was
+  committed (plain-language reading, branch table, proposal and what it
+  blocks, machine hours, that nothing graded ran and the held-out evaluation
+  is unspent, the page path), with the three options accept / change / hold.
+  The owner answered the same day, 2026-11-01 (America/Chicago), verbatim:
+  **"Accept the recorded proposal"**.
+- Task 66-05-03: `66-CHECKPOINT-1-RULING.md` written in the plan's format
+  (frontmatter `status: ratified`, "Authority and boundary", one never-parsed
+  `owner-quote` block with the owner's message verbatim, the Recorded answers
+  row `CP1-EXP01 | accept`, and "The result reviewed" citing the committed
+  page's SHA-256 `bf143995…8d26a9` at `89045a7f` plus the three record
+  digests, re-verified with `shasum -a 256`). The plan's automated check
+  printed `RULING-OK`.
 
 ## Task Commits
 1. **Task 66-05-01: derive the branch mechanically and commit the plain-language result page** - `89045a7f` (docs) — `.planning/phases/66-small-network-control/66-RESULT.md` only; RESULT-PAGE-OK.
-2. **Task 66-05-02: owner checkpoint ① (blocking-human)** - presented, no commit; the owner answers in chat. **Awaiting the owner's answer.**
-3. **Task 66-05-03: write and commit the checkpoint ① ruling** - **outstanding**; the continuation agent writes `66-CHECKPOINT-1-RULING.md` from the owner's verbatim words (owner-quote block, CP1-EXP01 row, the SHA-256 of the committed 66-RESULT.md) and passes RULING-OK.
-4. Docs commits: this SUMMARY (status: halted) and a separate hand-maintained STATE.md update (the gsd-tools mutating verbs stay off this checkout, per the 66-03/66-04 precedent). ROADMAP.md is deliberately untouched: the plan's verification requires ROADMAP.md, REQUIREMENTS.md, `pinn/` and `tests/` unchanged between PLAN_START_SHA and HEAD, and any accepted SCOPE-49 change is applied by the orchestrator's separate command after the phase.
+2. **Task 66-05-02: owner checkpoint ① (blocking-human)** - presented and answered in chat; no commit by design (the answer is recorded by task 66-05-03). **Answered: "Accept the recorded proposal" (2026-11-01, America/Chicago).**
+3. **Task 66-05-03: write and commit the checkpoint ① ruling** - `e40ebca2` (evidence) — `.planning/phases/66-small-network-control/66-CHECKPOINT-1-RULING.md` only; RULING-OK; recorded answer CP1-EXP01: accept.
+4. Docs commits: this SUMMARY (status: complete) and a separate hand-maintained STATE.md update (the gsd-tools mutating verbs stay off this checkout, per the 66-03/66-04 precedent). ROADMAP.md is deliberately untouched: the plan's verification requires ROADMAP.md, REQUIREMENTS.md, `pinn/` and `tests/` unchanged between PLAN_START_SHA and HEAD (the acceptance diff is empty), and the accepted proposal itself proposes no roadmap change — Phase 67 runs as planned, with any follow-up bookkeeping applied by the orchestrator's separate command after the phase.
 
 ## Files Created/Modified
 - `.planning/phases/66-small-network-control/66-RESULT.md` - the EXP-01 result page presented to the owner (new; commit `89045a7f`)
+- `.planning/phases/66-small-network-control/66-CHECKPOINT-1-RULING.md` - the owner's checkpoint ① answer, verbatim, ratified (new; commit `e40ebca2`)
 
 ## Decisions Made
-- None - followed the plan as specified. The branch derivation was mechanical
-  (review tool output only); no number was re-derived by hand. The only
-  computed figures are the plan-mandated ones (band edges as 0.95/1.05 x the
-  record's own E_const, the loss quarter change, wall times from the attempt
-  timestamps, machine hours), each scripted and cited. No ruling content was
-  invented; `66-CHECKPOINT-1-RULING.md` was not written.
+- Task 66-05-01: none - followed the plan as specified. The branch derivation
+  was mechanical (review tool output only); no number was re-derived by hand.
+  The only computed figures are the plan-mandated ones (band edges as
+  0.95/1.05 x the record's own E_const, the loss quarter change, wall times
+  from the attempt timestamps, machine hours), each scripted and cited.
+- Tasks 66-05-02/03: the owner's words were held verbatim and never parsed;
+  the table restates only the chosen option (accept). No ruling content was
+  invented, and nothing was applied on the answer's strength inside this
+  plan — the accepted proposal is the recorded one for route
+  `phase67-as-planned`: no plan change; Phase 67 runs as planned.
 
 ## Deviations from Plan
-- None - plan executed exactly as written through the checkpoint. No retry
-  directory replaced any role (66-04 recorded none), so the review received
-  the first-launch directories as registered.
+- None - plan executed exactly as written. No retry directory replaced any
+  role (66-04 recorded none), so the review received the first-launch
+  directories as registered; the checkpoint was presented and answered per
+  the plan; the ruling follows the plan's format and commit protocol.
 
 ## Issues Encountered
 - None. All three read-run outputs were clean (`EXP01-RUN-OK`, exit 0, empty
-  problem lists), the review exited 0, and the timing check-run printed
-  `EXP01-CHECK-OK` without showing any score.
+  problem lists), the review exited 0, the timing check-run printed
+  `EXP01-CHECK-OK` without showing any score, and both page checks
+  (RESULT-PAGE-OK, RULING-OK) passed.
 
-## Checkpoint state (owner checkpoint ①, blocking-human)
-- **What the owner is asked (D-01, D-12, SCOPE-49):** having seen the EXP-01
-  result, accept the proposal recorded on 66-RESULT.md (here: proceed — no
-  plan change; Phase 67 runs as planned), direct a different plan change (an
-  inserted phase, a dropped phase, re-aimed later phases, a new requirement,
-  or proceeding unchanged, in the owner's own words), or hold.
-- **Awaited:** the owner's answer in their own words. A question, a compute
-  go-ahead, or a restatement of the D-08 budget answer is not a checkpoint ①
-  answer; an item the reply does not address is recorded as not answered.
-- **Next step:** a continuation agent records `66-CHECKPOINT-1-RULING.md`
-  (status ratified, one owner-quote block, the CP1-EXP01 row, the SHA-256 of
-  the committed 66-RESULT.md — `shasum -a 256` at ruling time), passes
-  RULING-OK, and re-summarizes this plan as `status: complete`. The
-  orchestrator handles any SCOPE-49 follow-up command and the hand-maintained
-  STATE.md entry after the ruling.
-- **Boundary:** this plan edits no roadmap, requirement, spec or registration;
-  the held-out evaluation is unspent; nothing graded ran.
+## Checkpoint resolution (owner checkpoint ①)
+- **Asked (2026-11-01, America/Chicago, after `66-RESULT.md` was committed):**
+  "having seen the EXP-01 result (confirmed Tier 1, route
+  phase67-as-planned), do you accept the recorded proposal, direct a
+  different plan change, or hold?"
+- **Owner's answer, verbatim:** "Accept the recorded proposal".
+- **Recorded answer:** CP1-EXP01 — accept — applied by the separate step named
+  in the ruling (here: no plan change to apply; Phase 67 runs as planned).
+  The owner's message made no further request, so the ruling's table has one
+  row and nothing is listed as not acted on in Phase 66.
+- **Boundary held:** the plan edited no roadmap, requirement, spec or
+  registration; ROADMAP.md, REQUIREMENTS.md, `pinn/` and `tests/` are
+  unchanged from PLAN_START_SHA `2b5d0df7`; the held-out evaluation is
+  unspent and nothing graded ran.
 
 ## Next Phase Readiness
-- The result page the owner reviews is
-  `.planning/phases/66-small-network-control/66-RESULT.md` (commit `89045a7f`;
-  its SHA-256 is computed from the committed bytes at ruling time and cited by
-  the ruling).
-- If the owner accepts the recorded proposal, Phase 67 (the ladders) is set up
-  as planned — the branch refutes "too small" for one orbit, so EXP-02..05 run
-  as planned to find which part of the locked design fails.
-- The held-out evaluation remains unspent; nothing beyond the three runs'
-  Stage-0 TRAIN-only access was opened.
+- The owner accepted the recorded proposal, and it proposes no plan change:
+  Phase 67 (the ladders, EXP-02..05) runs as planned. Setting it up is the
+  orchestrator's separate step after this phase — this plan writes no
+  roadmap.
+- The SCOPE-49 review after EXP-01 is done and accepted; Phases 67–69 are no
+  longer blocked on this phase's review. Phase 68 (the yardstick) never
+  depended on the experiments (D-12).
+- The EXP-01 requirement mark follows the phase verification act, as in
+  Phase 65; the held-out evaluation remains unspent, machine time stands at
+  5,750 s ≈ 1.60 h, and the harness freeze at `734cb7da` held throughout.
 
 ## Self-Check: PASSED
 
 `66-RESULT.md` exists on disk and is committed at `89045a7f` (366 insertions,
-that path only); RESULT-PAGE-OK re-printed against a fresh review; all 22
-evidence-index digests equal `shasum -a 256` of the committed files;
-`66-CHECKPOINT-1-RULING.md` correctly does not exist (the ruling awaits the
-owner). The working tree after the plan's commits shows only the pre-existing
-user-owned changes (`.planning/config.json`, the milestone_v2.2 brief, and the
-untracked `.agents/`, `.gsd/`, `.planning/agent-history.json`,
-`.planning/milestone.lock`, `.planning/state.json`, `.planning/tmp/`,
-cross_cutting docs, `phase-40-plan-04-grok.md`), identical to the start
-status.
+that path only), unchanged since (working-tree `shasum -a 256`
+`bf143995410ae48a57845b5cf7f5500dc059c4fd0af96486a1b43801b88d26a9`).
+`66-CHECKPOINT-1-RULING.md` exists on disk and is committed at `e40ebca2`
+(69 insertions, that path only); RESULT-PAGE-OK and RULING-OK both printed;
+the three record digests cited by the ruling equal `shasum -a 256` of the
+committed files; `git diff --stat 2b5d0df7..HEAD -- .planning/ROADMAP.md
+.planning/REQUIREMENTS.md pinn tests` prints nothing and `git diff --check`
+over the range is clean. The working tree after the plan's commits shows only
+the pre-existing user-owned changes (`.planning/config.json`, the
+milestone_v2.2 brief, and the untracked `.agents/`, `.gsd/`,
+`.planning/agent-history.json`, `.planning/milestone.lock`,
+`.planning/state.json`, `.planning/tmp/`, cross_cutting docs,
+`phase-40-plan-04-grok.md`), identical to the start status.
 
 ---
 *Phase: 66-small-network-control*
-*Completed: 2026-11-01 (halted at owner checkpoint ①; the continuation agent closes the plan)*
+*Completed: 2026-11-01*
