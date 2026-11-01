@@ -3,9 +3,9 @@ phase: "66"
 slug: "small-network-control"
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-10-31"
 ---
 
@@ -93,13 +93,23 @@ code-review artifact.
 
 ---
 
+## Validation Audit 2026-11-01
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Audit basis (post-execution, State A): all 14 tasks' automated commands ran green during execution (per-task module runs plus both whole-suite discoveries, measured 12.5–19.4 s for the phase 66 discovery and 29.2–35.9 s for the accepted 32.8 s phase 65 exception) and were independently re-run live by `66-VERIFICATION.md` (VERIFY-RESULT-OK, EXP01-CHECK-OK, ORDER-OK, CHECK-RUNS-OK, RUN-ORDER-OK, RESULT-PAGE-OK, RULING-OK on the committed artifacts). The two manual-only verifications were realized: the owner answered checkpoint ① (accept, recorded in `66-CHECKPOINT-1-RULING.md`), and every real launch passed the AC-power and weekend-window gate (receipts on disk). The 2 critical / 4 warning / 4 info findings in `66-REVIEW.md` are documented known-accepted debt against the frozen harness, not validation gaps. No new tests were required.
+
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s per task module (Phase 65 discovery accepted at 32.8 s)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s per task module (Phase 65 discovery accepted at 32.8 s)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending (set by validate-phase)
+**Approval:** verified 2026-11-01 (set by validate-phase)
