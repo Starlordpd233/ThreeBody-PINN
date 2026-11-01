@@ -227,5 +227,235 @@ class TimingPageTests(unittest.TestCase):
             self.assertEqual(doc[key], smoke[key], key)
 
 
+class PredictionPageTests(unittest.TestCase):
+    """The full prediction page repeats the frozen design and adds the budget.
+
+    Real-file tests (plan 66-03 task 3): the design blocks of both pages are
+    byte-identical and equal ``exp01_design()``, the timing page's sections
+    1-5 (and its section 7, the retry rule) appear verbatim, the budget
+    section's numbers equal ``exp01_budget`` recomputed from the committed
+    timing evidence, and the cited timing-record digest equals the file's.
+    """
+
+    @classmethod
+    def _timing_text(cls):
+        return _TIMING_PAGE.read_text()
+
+    @classmethod
+    def _prediction_text(cls):
+        return (_PHASE_DIR / "66-PREDICTION.md").read_text()
+
+    @classmethod
+    def _recomputed_budget(cls):
+        """exp01_budget recomputed from the committed timing evidence."""
+        import json as json_module
+
+        timing_dir = _PHASE_DIR / "evidence/timing/1632-s42"
+        record = json_module.loads(
+            (timing_dir / "record.json").read_bytes().decode("utf-8")
+        )
+        receipt = json_module.loads(
+            (timing_dir / "power-gate.json").read_bytes().decode("utf-8")
+        )
+        attempt = json_module.loads(
+            (timing_dir / "attempt.json").read_bytes().decode("utf-8")
+        )
+        raw = (timing_dir / "record.json").read_bytes()
+        wall = p66.launch_wall_seconds(receipt, attempt)
+        return p66.exp01_budget(record, record_bytes=len(raw), launch_wall_seconds=wall)
+
+    def test_the_design_blocks_are_byte_identical_and_equal_exp01_design(self):
+        timing_block = extract_block(self._timing_text(), "exp01-design")
+        prediction_block = extract_block(self._prediction_text(), "exp01-design")
+        self.assertEqual(timing_block, prediction_block)
+        self.assertEqual(json.loads(prediction_block), p66.exp01_design())
+
+    def test_the_timing_pages_sections_1_to_5_and_7_appear_verbatim(self):
+        timing = self._timing_text()
+        prediction = self._prediction_text()
+        sections_1_to_5 = timing[
+            timing.index("## 1. The frozen design"):timing.index(
+                "## 6. This page's run"
+            )
+        ].rstrip("\n")
+        self.assertIn(sections_1_to_5, prediction)
+        section_7 = timing[
+            timing.index("## 7. Incomplete, retry and out-of-branch"):timing.index(
+                "## 8. Harness provenance"
+            )
+        ].rstrip("\n")
+        self.assertIn(section_7, prediction)
+        for heading in (
+            "The frozen design",
+            "Budget from the measured rate",
+            "The three runs",
+            "Mechanical failure and retry",
+            "Record readout",
+            "What a longer run would need",
+        ):
+            self.assertIn(heading, prediction)
+
+    def test_the_budget_numbers_equal_the_recomputed_budget(self):
+        budget = self._recomputed_budget()
+        prediction = self._prediction_text()
+        self.assertTrue(
+            has_number(prediction, budget["optimizer_steps"]),
+            "missing N",
+        )
+        self.assertTrue(
+            has_number(prediction, budget["loss_trace_stride"]),
+            "missing loss_trace_stride",
+        )
+        self.assertTrue(
+            has_number(prediction, budget["whole_run_cap_seconds"]),
+            "missing cap",
+        )
+        self.assertTrue(has_number(prediction, budget["warmup_steps"]))
+        self.assertTrue(has_number(prediction, budget["measured_steps"]))
+        for entry in budget["similarity_cadence"]:
+            self.assertTrue(has_number(prediction, entry), f"missing cadence {entry}")
+        self.assertIn(
+            "[0, 100, 300, 1000, 3000, 10000, 30000, 100000, 160833, 221666, "
+            "282500, 343333, 404166, 465000]",
+            prediction,
+        )
+        self.assertTrue(has_number(prediction, budget["projected_wall_seconds"]))
+        self.assertTrue(has_number(prediction, budget["projected_record_bytes"]))
+
+    def test_the_cited_timing_record_sha256_equals_the_file(self):
+        import hashlib as hashlib_module
+
+        record_bytes = (
+            _PHASE_DIR / "evidence/timing/1632-s42/record.json"
+        ).read_bytes()
+        digest = hashlib_module.sha256(record_bytes).hexdigest()
+        prediction = self._prediction_text()
+        self.assertIn(digest, prediction)
+        self.assertIn("evidence/timing/1632-s42/record.json", prediction)
+
+
+class ExperimentRegistrationTests(unittest.TestCase):
+    """The three experiment registrations pin the prediction page and budget.
+
+    Real-file tests (plan 66-03 task 3): each registration pins the
+    prediction page by SHA-256, carries the EXP-01 variant under the phase66
+    registry with its pre-registered orbit and seed, the recomputed budget's
+    steps, cadence, stride and cap (below 3,600), the seven live code
+    digests, the smoke registration's copied blocks, and differs from the
+    other two only in title, orbit_key, orbit_note and seed.
+    """
+
+    REGISTRATION_STEMS = ("main-1632-s42", "repeat-851-s42", "repeat-1632-s41")
+
+    @classmethod
+    def _registration(cls, stem):
+        path = _PHASE_DIR / f"evidence/exp01/{stem}-registration.json"
+        return json.loads(path.read_bytes().decode("utf-8"))
+
+    @classmethod
+    def _budget(cls):
+        return PredictionPageTests._recomputed_budget()
+
+    def test_each_registration_pins_the_page_budget_and_preregistered_run(self):
+        budget = self._budget()
+        page_sha = hashlib.sha256(
+            (_PHASE_DIR / "66-PREDICTION.md").read_bytes()
+        ).hexdigest()
+        for stem in self.REGISTRATION_STEMS:
+            with self.subTest(registration=stem):
+                doc = self._registration(stem)
+                role = doc["settings"]["orbit_key"]
+                spec = next(
+                    entry for entry in p66.EXP01_RUNS
+                    if entry["orbit_key"] == role
+                    and entry["seed"] == doc["settings"]["seed"]
+                )
+                self.assertEqual(doc["page"]["sha256"], page_sha)
+                self.assertEqual(
+                    doc["page"]["path"],
+                    ".planning/phases/66-small-network-control/66-PREDICTION.md",
+                )
+                self.assertEqual(
+                    doc["settings"]["variant"], p66.EXP01_VARIANT.to_json_dict()
+                )
+                self.assertEqual(doc["settings"]["variant_registry"], "phase66")
+                self.assertEqual(
+                    doc["settings"]["orbit_key"], spec["orbit_key"]
+                )
+                self.assertEqual(doc["settings"]["seed"], spec["seed"])
+                self.assertEqual(
+                    doc["settings"]["optimizer_steps"], budget["optimizer_steps"]
+                )
+                self.assertEqual(doc["settings"]["warmup_steps"], 200)
+                self.assertEqual(
+                    doc["settings"]["measured_steps"], budget["measured_steps"]
+                )
+                self.assertEqual(
+                    doc["settings"]["measured_steps"],
+                    doc["settings"]["optimizer_steps"] - doc["settings"]["warmup_steps"],
+                )
+                self.assertEqual(
+                    doc["settings"]["similarity_cadence"],
+                    budget["similarity_cadence"],
+                )
+                self.assertEqual(
+                    doc["settings"]["loss_trace_stride"],
+                    budget["loss_trace_stride"],
+                )
+                self.assertEqual(
+                    doc["settings"]["whole_run_cap_seconds"],
+                    budget["whole_run_cap_seconds"],
+                )
+                self.assertLess(doc["settings"]["whole_run_cap_seconds"], 3600)
+                for key in ("mechanical_pass", "incomplete", "out_of_branch"):
+                    self.assertTrue(doc["settings"]["reading_rule"][key], key)
+                self.assertIn("classify_exp01", doc["settings"]["reading_rule"]["branch_rule"])
+
+    def test_the_seven_code_digests_equal_the_live_files(self):
+        expected_paths = [
+            "pinn/verification/diagnostic_fit.py",
+            "pinn/verification/diagnostic_guard.py",
+            "pinn/verification/diagnostic_data.py",
+            "pinn/verification/diagnostic_variants.py",
+            "pinn/verification/diagnostic_similarity.py",
+            "pinn/verification/diagnostic_phase66.py",
+            "pinn/verification/diagnostic_power.py",
+        ]
+        for stem in self.REGISTRATION_STEMS:
+            with self.subTest(registration=stem):
+                doc = self._registration(stem)
+                self.assertEqual(
+                    [entry["path"] for entry in doc["code_dependencies"]],
+                    expected_paths,
+                )
+                for entry in doc["code_dependencies"]:
+                    live = hashlib.sha256(
+                        (_REPO_ROOT / entry["path"]).read_bytes()
+                    ).hexdigest()
+                    self.assertEqual(live, entry["sha256"], entry["path"])
+
+    def test_the_copied_blocks_equal_the_smoke_registration(self):
+        smoke = json.loads(_SMOKE_REGISTRATION.read_bytes().decode("utf-8"))
+        for stem in self.REGISTRATION_STEMS:
+            with self.subTest(registration=stem):
+                doc = self._registration(stem)
+                for key in ("logger_parity", "context", "frozen", "pinned"):
+                    self.assertEqual(doc[key], smoke[key], key)
+
+    def test_the_three_differ_only_in_the_four_named_keys(self):
+        def masked(doc):
+            body = json.loads(json.dumps(doc))  # deep copy
+            body.pop("title")
+            settings = body["settings"]
+            settings.pop("orbit_key")
+            settings.pop("orbit_note")
+            settings.pop("seed")
+            return body
+
+        main = masked(self._registration("main-1632-s42"))
+        for stem in ("repeat-851-s42", "repeat-1632-s41"):
+            self.assertEqual(masked(self._registration(stem)), main, stem)
+
+
 if __name__ == "__main__":
     unittest.main()
