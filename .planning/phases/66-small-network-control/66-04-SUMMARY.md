@@ -165,6 +165,10 @@ LAUNCH-EXIT=0
 - Machine time consumed by EXP-01 end to end: 5,750 s ≈ 1.60 h (timing run 25 s + the three 465,000-step runs 5,725 s). The owner's weekend AC window was used for about 2 h 12 min wall (18:12Z–20:14Z ≈ 12:12–15:14 America/Chicago, inside the Sunday-before-22:00 window).
 - The held-out evaluation remains unspent; nothing beyond each run's registered Stage-0 training gold record was opened.
 
+## Self-Check: PASSED
+
+All 12 created evidence files exist on disk (four per run directory); all five plan commits (`a546016b`, `3dc3646a`, `277c25ce`, `8fd1b131`, `6722b794`) are in `git log`. The working tree afterwards shows only the pre-existing user-owned changes (`.planning/config.json`, the milestone_v2.2 brief, and the untracked `.agents/`, `.gsd/`, `.planning/agent-history.json`, `.planning/milestone.lock`, `.planning/state.json`, `.planning/tmp/`, cross_cutting docs, `phase-40-plan-04-grok.md`), identical to the start status.
+
 ---
 *Phase: 66-small-network-control*
 *Completed: 2026-11-01*
