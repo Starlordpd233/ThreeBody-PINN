@@ -5,16 +5,16 @@ milestone_name: Root-Cause Confirmation
 current_phase: 66
 current_phase_name: Small-Network Control
 status: executing
-stopped_at: "66-01 complete (harness admission, AC gate, loss-trace stride, phase 66 test package); next is 66-02-PLAN.md"
-last_updated: "2026-11-01T16:55:00.000Z"
+stopped_at: "66-02 complete (weekend-window launch gate, reading rule + improvement check + run readers, time-bound budget + design block; harness frozen); next is 66-03-PLAN.md"
+last_updated: "2026-11-01T17:50:00.000Z"
 last_activity: 2026-11-01
-last_activity_desc: "66-01 executed: EXP-01 admitted through a phase 66 registry end to end on synthetic data"
-state_head: cb2c463b
+last_activity_desc: "66-02 executed: the Phase 66 harness finished and frozen with its seven digests recorded"
+state_head: 85952105
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 7
+  completed_plans: 8
   percent: 20
 ---
 
@@ -30,9 +30,56 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 66 (Small-Network Control) — EXECUTING
-Plan: 2 of 5 (66-01 complete; next is 66-02-PLAN.md)
+Plan: 3 of 5 (66-01 and 66-02 complete; next is 66-03-PLAN.md)
 Status: Executing Phase 66
-Last activity: 2026-11-01 — 66-01 executed (RED ca4147cc, GREEN 332bd963, contracts 32e7409d, SUMMARY cb2c463b)
+Last activity: 2026-11-01 — 66-02 executed (RED/GREEN pairs 24bad2ae→9c8e28dc, 86a35ec8→3fbba72d, 9fbac07d→734cb7da; SUMMARY 85952105)
+
+### Decisions from 66-02 (2026-11-01)
+
+- The harness is finished and **frozen at `734cb7da`**: `diagnostic_fit.py`,
+  `diagnostic_phase66.py` and `diagnostic_power.py` do not change for the rest
+  of Phase 66. The seven digests every registration pins are recorded in
+  `66-02-SUMMARY.md` (fit `4884a1a5…`, guard `8dd577a2…`, data `47b9d99d…`,
+  variants `ad8ed66c…`, similarity `e80079b6…`, phase66 `cb0577fe…`, power
+  `7e2f00e2…`). A later fix retires every registration that pins them and
+  forces fresh pages and registrations. The four other Phase 65 smoke-pinned
+  modules stay byte-identical.
+- The launch gate enforces the owner's verbatim weekend window in code
+  (D-08): `require_weekend_window` passes only on Saturday or Sunday before
+  22:00 America/Chicago, refusing a naive clock or an unloadable zone;
+  `launch` runs AC power → window → repository resolution → output-exists
+  precheck → the metadata-only `check_fit_registration` precheck → the
+  exclusive receipt (now carrying the `window` block) → `POWER-OK …` → the
+  caffeinate child, and every earlier refusal prints `POWER-REFUSED` and
+  creates nothing. The read-only `check` subcommand is the live verdict; its
+  recorded line is `POWER-OK source=AC Power isoweekday=7` (exit 0), agreeing
+  with pmset and the Chicago clock.
+- The reading rule is mechanical: five labels (`tier1`, `near`, `between`,
+  `other`, `unsettled` plus the `out-of-branch` refusal label), the
+  improvement check on the DIAG-09 output movement (reference at or before
+  0.75 of the final step, strict 0.01 growth; never the loss), the record and
+  run-directory readers with value-free mechanical/setting problems (a branch
+  is never read from a run with a mechanical problem, or a setting problem on
+  a Tier-1 fit), `confirm` restricted to three runs sharing tier1 or near,
+  and `route` (confirmed tier1 → phase67-as-planned, confirmed near →
+  propose-66.1, otherwise owner). `check-run` prints no score value, so the
+  timing run can be verified blind; `review` keys runs by the (orbit_key,
+  seed, registration_sha256) triple and refuses duplicates and wrong roles.
+- Time alone sets N (checker blocker 2): the largest multiple of 1,000 whose
+  projected wall (fixed cost from the timing run's launch wall, the warmup,
+  the measured steps at the timing rate with a 25 percent margin, the cadence
+  logging cost) stays within 0.75 of the 3,300-second cap. The record is
+  bounded at its source (14-entry cadence, ceil-to-10,000 stride, Site F
+  trace length) so no record exceeds the commit limit at any length; the
+  record-size ceiling does not depend on N and can refuse a broken input but
+  never shorten a run. `exp01_design()` is the frozen JSON-normal design
+  block the pages embed (DESIGN-OK round trip).
+- Tests: tests/phase66 is 84 tests green (test_power 22, test_reading_rule
+  20, test_budget 9, test_pages 3 plus the `extract_block`/`has_number`
+  helpers 66-03 reuses); the full phase65 discovery still reports 204 tests
+  OK (29.227 s at the freeze); `PROTOCOL-OK`; the three RED evidence records
+  were machine-verified `RED_EVIDENCE_OK`. Three test defects and one missing
+  module entry guard were auto-fixed during GREEN (documented in the SUMMARY).
 
 ### Decisions from 66-01 (2026-11-01)
 
