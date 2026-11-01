@@ -5,16 +5,16 @@ milestone_name: Root-Cause Confirmation
 current_phase: 66
 current_phase_name: Small-Network Control
 status: executing
-stopped_at: "66-03 complete (frozen timing page and registration, timing calibration through the AC gate with its score unread, measured budget and three experiment registrations in ORDER-OK evidence order); next is 66-04-PLAN.md"
-last_updated: "2026-11-01T18:35:00.000Z"
+stopped_at: "66-04 complete (the three pre-registered EXP-01 runs through the AC gate, each 465000 steps under its cap, verified and committed in RUN-ORDER-OK order, no score read); next is 66-05-PLAN.md"
+last_updated: "2026-11-01T20:16:00.000Z"
 last_activity: 2026-11-01
-last_activity_desc: "66-03 executed: EXP-01's scientific rules frozen before any run, the timing rate measured, and the budget-derived experiment registrations committed"
-state_head: 2e20360c
+last_activity_desc: "66-04 executed: the three EXP-01 runs (main 1632/s42, repeat 851/s42, repeat 1632/s41) ran once each through the AC gate and their evidence is committed with no score read"
+state_head: 8fd1b131
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 20
 ---
 
@@ -30,9 +30,36 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 66 (Small-Network Control) — EXECUTING
-Plan: 4 of 5 (66-01 through 66-03 complete; next is 66-04-PLAN.md)
+Plan: 5 of 5 (66-01 through 66-04 complete; next is 66-05-PLAN.md)
 Status: Executing Phase 66
-Last activity: 2026-11-01 — 66-03 executed (4eab280b timing page + registration, a564ea35 timing evidence, 3f4d0a85 prediction page + three registrations, SUMMARY 2e20360c)
+Last activity: 2026-11-01 — 66-04 executed (a546016b main run, 3dc3646a 851 repeat, 277c25ce seed-41 repeat, SUMMARY 8fd1b131)
+
+### Decisions from 66-04 (2026-11-01)
+
+- **The three pre-registered EXP-01 runs exist as complete, verified, committed
+  records, and no score was read in this plan.** Each ran once, detached
+  through the AC gate in the owner's Sunday window (receipts AC Power, Sunday,
+  each checked_utc before its attempt's started_utc), completed its registered
+  465,000 steps (200 warmup, 464,800 measured) with the 14-entry cadence and
+  loss-trace stride 47, and stayed under its 3,300 s cap (attempt walls 1957 s,
+  1734 s, 2034 s). `VERIFY-RESULT-OK` and `EXP01-CHECK-OK` with empty problem
+  lists on all three; check-run printed no score, so branch reading is untouched
+  for 66-05. Stage-0 TRAIN-only access held (one train open, zero validation
+  opens, `test_split_opened` 0 on each).
+- **Commits and order:** main-1632-s42 `a546016b` (record 1,250,910 B, sha256
+  `774a5a45…`), repeat-851-s42 `3dc3646a` (1,251,193 B, `91663112…`),
+  repeat-1632-s41 `277c25ce` (1,251,013 B, `4146675b…`), each registered at
+  `3f4d0a85` before it ran — `RUN-ORDER-OK` via `git merge-base --is-ancestor`.
+  `CHECK-RUNS-OK` on all three directories. No retry was used: no
+  `<role>-retry1` registration or directory exists.
+- **Wave gate:** tests/phase65 discovery 204 tests OK (35.371 s) and
+  tests/phase66 discovery 99 tests OK (19.363 s), run after the last run with
+  nothing in progress. `git diff --check` clean on each plan commit. The
+  harness freeze at `734cb7da` held — every file this plan created is
+  harness-written evidence; no code, page, test or registration changed.
+- **Machine time:** 5,750 s ≈ 1.60 h (timing attempt 25 s + the three 465,000-step
+  attempts 5,725 s). The owner's Sunday window was used 18:12Z–20:14Z
+  (12:12–15:14 America/Chicago), inside the window.
 
 ### Decisions from 66-03 (2026-11-01)
 
