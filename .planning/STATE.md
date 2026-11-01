@@ -5,11 +5,11 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: planning
-stopped_at: Phase 66 complete, ready to plan Phase 67
-last_updated: "2026-11-01T21:30:15.877Z"
+stopped_at: Phase 67 context gathered, ready for research and planning
+last_updated: "2026-11-01T23:33:47.547Z"
 last_activity: 2026-11-01
 last_activity_desc: Phase 66 complete, transitioned to Phase 67
-state_head: 5da8cb056e6914dd23f5e8e10dfbb230553383ab
+state_head: 3afe4704c9b904bc38dd99f102b1b9f8c143712b
 progress:
   total_phases: 5
   completed_phases: 2
@@ -25,7 +25,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Phase 66 — Small-Network Control
+**Current focus:** Phase 67 - Design & Settings Ladders
 
 ## Current Position
 
@@ -1227,11 +1227,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/66-small-network-control/66-01-PLAN.md
+**Resume file:** .planning/phases/67-design-settings-ladders/67-CONTEXT.md
 
-Last session: 2026-11-01T02:01:52.261Z
-Stopped at: Phase 66 complete, ready to plan Phase 67
-Next action: Execute Phase 66 via $gsd-execute-phase 66, starting with 66-01-PLAN.md. Five plans in five waves, 14 tasks. They went through three plan-check rounds; the last found no blockers and five warnings, all fixed in the plans. Run it inline on this checkout, not in worktree-isolated executors, because the Stage-0 data is gitignored. Plans 66-01 and 66-02 are code and tests and can run any day. The timing run (66-03) and the three EXP-01 runs (66-04) launch only on AC power, Saturday or Sunday before 22:00 America/Chicago (owner, 2026-10-31). 66-05 ends at owner checkpoint 1. No Phase 66 run has started. Technical choices remain delegated; overall direction and reserved owner checkpoints remain with the owner.
+Last session: 2026-11-01T23:33:47.483Z
+Stopped at: Phase 67 context gathered, ready for research and planning
+Next action: Research and plan Phase 67 with $gsd-plan-phase 67 from the trainex worktree. Read 67-CONTEXT.md first. Technical and scientific decisions remain delegated; training has not been authorized by context capture and retains the weekend AC-power gate.
 
 ## Operator Next Steps
 
