@@ -168,7 +168,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 **Plans**: 5 plans in 5 waves (planned 2026-10-31). 66-03 and 66-04 run only in the owner's weekend AC window.
 **Wave 1**
 
-- [ ] 66-01-PLAN.md
+- [x] 66-01-PLAN.md
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 66
 current_phase_name: Small-Network Control
 status: executing
-stopped_at: "Phase 66 planning complete: five plans in five waves, 14 tasks; three plan-check rounds, last-round warnings fixed"
-last_updated: "2026-11-01T02:01:52.261Z"
-last_activity: 2026-10-31
-state_head: 7ac4da77c2149df0e181f3bad3ebf76a6df7bf20
+stopped_at: "66-01 complete (harness admission, AC gate, loss-trace stride, phase 66 test package); next is 66-02-PLAN.md"
+last_updated: "2026-11-01T16:55:00.000Z"
+last_activity: 2026-11-01
+last_activity_desc: "66-01 executed: EXP-01 admitted through a phase 66 registry end to end on synthetic data"
+state_head: cb2c463b
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 6
+  completed_plans: 7
   percent: 20
-last_activity_desc: Phase 66 planned; five EXP-01 plans committed, compute gated on the owner's weekend AC window
 ---
 
 # Project State
@@ -25,14 +25,47 @@ last_activity_desc: Phase 66 planned; five EXP-01 plans committed, compute gated
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Phase 66, Small-Network Control, planned and ready to execute. Phase 65 closed 2026-10-31 with 204 tests passing and both requirements Complete.
+**Current focus:** Phase 66 — Small-Network Control
 
 ## Current Position
 
-Phase: 66 (Small-Network Control) — READY TO EXECUTE
-Plan: 0 of 5 complete; next is 66-01-PLAN.md
-Status: Ready to execute. Phase 65 Complete, 6/6 plans, 4/4 delegated reviews resolved.
-Last activity: 2026-10-31, Phase 66 planning (66-01..05-PLAN.md).
+Phase: 66 (Small-Network Control) — EXECUTING
+Plan: 2 of 5 (66-01 complete; next is 66-02-PLAN.md)
+Status: Executing Phase 66
+Last activity: 2026-11-01 — 66-01 executed (RED ca4147cc, GREEN 332bd963, contracts 32e7409d, SUMMARY cb2c463b)
+
+### Decisions from 66-01 (2026-11-01)
+
+- The EXP-01 harness admission shipped TDD-first in one task pair: RED `ca4147cc`
+  (machine-verified `RED_EVIDENCE_OK` — the phase 66 fixture registration
+  refuses at the sealed-catalog door with `unknown diagnostic variant
+  'exp01-d1-w384-o1000'`), GREEN `332bd963` — `diagnostic_phase66.py`
+  (`EXP01_VARIANT` depth 1 width 384 first_omega_0 1000, `PHASE66_REGISTRY`,
+  `REGISTRIES`, `tier1_e_max`, `classify_exp01`), `diagnostic_power.py`
+  (fail-closed first-line pmset AC gate, exclusive `power-gate.json` receipt,
+  fixed-argv caffeinate child), and the six-site `diagnostic_fit.py` extension
+  (registry-aware `validate_smoke_settings`, record/verify registry fields, the
+  registration-declared `loss_trace_stride` that thins only the recorded
+  trace). Contract tests `32e7409d` (28 tests) and the tracer (2 tests) make
+  the `tests/phase66` package 30 tests; the full phase65 discovery still
+  reports 204 tests OK (34.970 s and 31.060 s measured). `PROTOCOL-OK`.
+- **The Phase 65 smoke registration is historical from `332bd963`** (the
+  harness commit that first changed `diagnostic_fit.py`, live digest
+  `4884a1a5…`): its live `check-registration` and `verify-result` now exit 2
+  naming only `pinn/verification/diagnostic_fit.py`, recorded with the last
+  live passes (at `c919194d`, both OK) in `66-01-SUMMARY.md`. The identity is
+  proven at the smoke-record commit by `tests/phase66/test_historical.py`; the
+  four other smoke-pinned modules stay byte-identical; the probe registration
+  (`evidence/probe/expectations.json`, fit pin `2e2c06eb…`) was already
+  historical and is untouched. No Phase 65 artifact changed.
+- Reuse-condition stance (as planned): WR-01 is a graded-use precondition only;
+  WR-03/WR-04 stay deferred (verify-result runs only on records this harness
+  wrote at registered paths); the schema literal and window endpoints are
+  unchanged and the two new settings keys are validated strictly.
+- **Freeze rule for 66-02:** any further edit to `diagnostic_fit.py`,
+  `diagnostic_phase66.py` or `diagnostic_power.py` after the first Phase 66
+  registration is written retires that registration's live admission. Finish
+  all harness work (66-02) before the first page/registration pair (66-03).
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
 v2.4 time-constant failure before any redesign (the redesign is v2.6), on
