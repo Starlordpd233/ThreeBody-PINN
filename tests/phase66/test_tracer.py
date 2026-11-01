@@ -20,6 +20,7 @@ import tempfile
 import unittest
 from contextlib import ExitStack
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 import pinn.verification.diagnostic_fit as fit_module
@@ -119,6 +120,23 @@ class Phase66TracerTests(unittest.TestCase):
             tempfile.TemporaryDirectory(prefix="phase66-tracer-")
         ))
         spec, context, _scorecard, data = _loaded(fixture)
+        # The verify gate requires access evidence: give the fixture context a
+        # summary-capable attestation and a Stage-0 style reader summary, the
+        # VerifyResultTests.setUp pattern.
+        if context.attestation is None:
+            context = SimpleNamespace(
+                **{
+                    **vars(context),
+                    "attestation": SimpleNamespace(
+                        summary=lambda: {"test_split_opens": 0, "withheld_refusals": 0}
+                    ),
+                }
+            )
+        if not hasattr(context.reader, "access_summary"):
+            context.reader.access_summary = lambda: {
+                "requested": [], "opened": [], "refused_before_open": 0,
+                "actual_opens": 1,
+            }
         root, _commit = phase66_fixture_registration(tmp / "repo", loss_trace_stride=3)
         registration = root / "reg/smoke-registration.json"
         output = root / "evidence/ac/record.json"
@@ -144,8 +162,8 @@ class Phase66TracerTests(unittest.TestCase):
                 argv,
                 ["/usr/bin/caffeinate", "-is", sys.executable, "-B", "-m",
                  "pinn.verification.diagnostic_fit", "run",
-                 "--registration", str(registration),
-                 "--output", str(output)],
+                 "--registration", str(registration.resolve()),
+                 "--output", str(output.resolve())],
             )
             patch_data_seam(stack, context, data, spec)
             return fit_module.main(

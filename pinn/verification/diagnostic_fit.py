@@ -78,11 +78,11 @@ from pinn.verification.diagnostic_guard import (
     read_diagnostic_weights,
     require_committed_registration,
 )
+from pinn.verification.diagnostic_phase66 import REGISTRIES
 from pinn.verification.diagnostic_similarity import measure_time_signal
 from pinn.verification.diagnostic_variants import (
     REGISTRY,
     DiagnosticVariant,
-    VariantRefused,
     build_variant,
     resolve_variant,
 )
@@ -314,6 +314,23 @@ def _parse_orbit_key(text):
         ) from exc
 
 
+def _named_registry(name):
+    """The registry a registration's ``variant_registry`` name selects.
+
+    ``None`` — every Phase 65 registration — selects the sealed ``REGISTRY``
+    object itself, so Phase 65 behaviour is unchanged. A string key of
+    ``REGISTRIES`` selects that registry. Anything else refuses before any
+    data access, optimizer construction or attempt claim.
+    """
+    if name is None:
+        return REGISTRY
+    if isinstance(name, str) and name in REGISTRIES:
+        return REGISTRIES[name]
+    raise DiagnosticFitRefused(
+        f"unknown variant registry {name!r}; known registries: {list(REGISTRIES)}"
+    )
+
+
 def validate_smoke_settings(doc):
     """Validate the registration's settings block before any data access.
 
@@ -331,10 +348,13 @@ def validate_smoke_settings(doc):
     variant_block = settings.get("variant")
     if not isinstance(variant_block, Mapping) or not isinstance(variant_block.get("name"), str):
         raise DiagnosticFitRefused("the settings name no diagnostic variant")
-    try:
-        variant = resolve_variant(variant_block["name"])
-    except VariantRefused as exc:
-        raise DiagnosticFitRefused(str(exc)) from exc
+    registry = _named_registry(settings.get("variant_registry"))
+    variant_name = variant_block["name"]
+    if variant_name not in registry:
+        raise DiagnosticFitRefused(
+            f"unknown diagnostic variant {variant_name!r}; registered: {list(registry)}"
+        )
+    variant = registry[variant_name]
     for field, value in variant.to_json_dict().items():
         if variant_block.get(field) != value:
             raise DiagnosticFitRefused(
@@ -404,6 +424,14 @@ def validate_smoke_settings(doc):
     if any(c < 0 or c > steps for c in cadence):
         raise DiagnosticFitRefused(
             "the similarity cadence steps must lie in [0, optimizer_steps]"
+        )
+    stride = settings.get("loss_trace_stride")
+    if stride is not None and (
+        isinstance(stride, bool) or not isinstance(stride, int)
+        or not 1 <= stride <= steps
+    ):
+        raise DiagnosticFitRefused(
+            "the loss-trace stride must be an integer from 1 to optimizer_steps"
         )
     cap = settings.get("whole_run_cap_seconds")
     if isinstance(cap, bool) or not isinstance(cap, (int, float)) \
@@ -769,6 +797,8 @@ def fit_diagnostic(
     registration_provenance=None,
     logger_parity_provenance=None,
     run_context=None,
+    variant_registry=None,
+    loss_trace_stride=None,
 ):
     """Fit, measure, score and record one diagnostic variant on one orbit.
 
@@ -795,6 +825,16 @@ def fit_diagnostic(
             or not 0 <= warmup_steps < steps:
         raise DiagnosticFitRefused(
             f"warmup_steps must be an integer in [0, steps); got {warmup_steps!r}"
+        )
+    # The registry and the loss-trace stride are admitted before the model is
+    # built: a bad value refuses before any data access or optimizer work.
+    registry = _named_registry(variant_registry)
+    if loss_trace_stride is not None and (
+        isinstance(loss_trace_stride, bool) or not isinstance(loss_trace_stride, int)
+        or not 1 <= loss_trace_stride <= int(steps)
+    ):
+        raise DiagnosticFitRefused(
+            "the loss-trace stride must be an integer from 1 to optimizer_steps"
         )
     if cadence is None:
         cadence = [0, int(steps)]
@@ -969,13 +1009,30 @@ def fit_diagnostic(
     timing["end_to_end_seconds_per_completed_step"] = (
         timing["total_wall_seconds"] / len(losses)
     )
+    # Only the recorded loss trace is thinned: the full in-memory losses list,
+    # and every count taken from it, are unchanged. A stride s keeps the loss
+    # after every s-th step, then the final step's loss when the step count is
+    # not a multiple of s.
+    if loss_trace_stride is None:
+        loss_trace = list(losses)
+    else:
+        loss_trace = [
+            losses[index]
+            for index in range(int(loss_trace_stride) - 1, len(losses), int(loss_trace_stride))
+        ]
+        if len(losses) % int(loss_trace_stride):
+            loss_trace.append(losses[-1])
+    loss_block = {"final": losses[-1], "trace": loss_trace}
+    if loss_trace_stride is not None:
+        loss_block["trace_stride"] = int(loss_trace_stride)
     record = {
         **diagnostic_marker(schema=DIAGNOSTIC_SCHEMA),
         "status": "complete",
         "run_id": diagnostic_run_id(resolved, data),
         "variant": {
             **resolved.to_json_dict(),
-            "registered": resolved.name in REGISTRY,
+            "registered": resolved.name in registry,
+            "registry": variant_registry,
         },
         "seed": int(seed),
         "runtime": {"dtype": str(runtime[0]), "device": str(runtime[1])},
@@ -1005,7 +1062,7 @@ def fit_diagnostic(
             "polish": None,
         },
         "similarity": {"cadence": list(cadence), "entries": entries},
-        "loss": {"final": losses[-1], "trace": losses},
+        "loss": loss_block,
         "timing": timing,
         "scores": {"network": score.to_json_dict()},
         "comparisons": comparisons,
@@ -1157,6 +1214,8 @@ def run_registered_smoke(registration_path, output_path, *, repo_root=None, cloc
             deadline_seconds=float(settings["whole_run_cap_seconds"]),
             times_physical=None,
             seed=int(settings["seed"]),
+            variant_registry=settings.get("variant_registry"),
+            loss_trace_stride=settings.get("loss_trace_stride"),
             # The 33 pinned source digests describe the RUNNING implementation,
             # never the registration's repository (which may be a fixture).
             repo_root=None,
@@ -1315,6 +1374,35 @@ def verify_fit_result(registration_path, result_path, *, repo_root=None):
             variant_block.get(field) == value,
             f"the result's variant field {field} disagrees with the registration",
         )
+    check(
+        variant_block.get("registry") == settings.get("variant_registry"),
+        "the result's variant registry disagrees with the registration",
+    )
+    loss_block = record.get("loss") or {}
+    trace = loss_block.get("trace")
+    stride = settings.get("loss_trace_stride")
+    if stride is None:
+        check(
+            loss_block.get("trace_stride") is None,
+            "the result's loss block names a trace_stride the registration does not declare",
+        )
+        expected_trace_length = settings["optimizer_steps"]
+    else:
+        check(
+            loss_block.get("trace_stride") == stride,
+            "the result's loss trace_stride disagrees with the registration",
+        )
+        expected_trace_length = settings["optimizer_steps"] // stride + (
+            1 if settings["optimizer_steps"] % stride else 0
+        )
+    check(
+        isinstance(trace, list) and len(trace) == expected_trace_length,
+        "the result's loss trace length disagrees with the registration",
+    )
+    check(
+        isinstance(trace, list) and bool(trace) and trace[-1] == loss_block.get("final"),
+        "the result's last loss trace entry disagrees with loss.final",
+    )
     check(record.get("seed") == settings["seed"], "the result's seed disagrees with the registration")
     runtime = record.get("runtime") or {}
     check(
