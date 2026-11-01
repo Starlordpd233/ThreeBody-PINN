@@ -5,16 +5,16 @@ milestone_name: Root-Cause Confirmation
 current_phase: 66
 current_phase_name: Small-Network Control
 status: executing
-stopped_at: "66-05 halted at owner checkpoint 1 (the EXP-01 branch read mechanically from the three committed runs: all three tier1, confirmed, route phase67-as-planned, 66-RESULT.md committed 89045a7f); the ruling 66-CHECKPOINT-1-RULING.md awaits the owner's answer"
-last_updated: "2026-11-01T20:26:00.000Z"
+stopped_at: "66-05 complete: owner checkpoint 1 answered (accept — no plan change, Phase 67 runs as planned), ruling 66-CHECKPOINT-1-RULING.md ratified at e40ebca2; Phase 66 plans 5 of 5 complete, the phase verification act and the EXP-01 requirement mark are next"
+last_updated: "2026-11-01T20:41:26.000Z"
 last_activity: 2026-11-01
-last_activity_desc: "66-05 executed to checkpoint 1: the branch read mechanically (all three runs tier1, confirmed, phase67-as-planned), 66-RESULT.md committed at 89045a7f, owner checkpoint 1 posed"
-state_head: 456fa1ac
+last_activity_desc: "66-05 completed: the owner accepted the recorded proposal at checkpoint 1 (accept, no plan change), the ruling committed at e40ebca2, the plan re-summarized complete at 877239d7"
+state_head: 877239d7
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 20
 ---
 
@@ -30,11 +30,11 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 66 (Small-Network Control) — EXECUTING
-Plan: 5 of 5 (66-01 through 66-04 complete; 66-05 in progress, HALTED at owner checkpoint 1)
-Status: Executing Phase 66 — halted at owner checkpoint 1 (blocking-human, D-01/D-12; never auto-selected)
-Last activity: 2026-11-01 — 66-05 executed to checkpoint 1 (89045a7f result page, 456fa1ac halted SUMMARY; ruling outstanding)
+Plan: 5 of 5 (66-01 through 66-05 complete)
+Status: Phase 66 plans complete — owner checkpoint 1 answered (accept: no plan change, Phase 67 as planned); the phase verification act and the EXP-01 requirement mark are next (orchestrator)
+Last activity: 2026-11-01 — 66-05 complete (89045a7f result page, e40ebca2 ruling, 877239d7 completed SUMMARY; the owner's verbatim answer is in the ruling)
 
-### Decisions from 66-05 (2026-11-01, task 66-05-01 only — checkpoint 1 open)
+### Decisions from 66-05 (2026-11-01, tasks 66-05-01 to 66-05-03 — checkpoint 1 answered)
 
 - **The EXP-01 branch was read mechanically from the three committed runs, and
   it is the pre-registered pass branch: all three runs tier1, confirmation
@@ -48,17 +48,33 @@ Last activity: 2026-11-01 — 66-05 executed to checkpoint 1 (89045a7f result pa
   Tier 1 (E <= 0.1) and settled (still_improving false, output movement about
   1.0). `EXP01-REVIEW confirmation=confirmed route=phase67-as-planned`;
   RESULT-PAGE-OK.
-- **The result page is committed and the owner checkpoint 1 is posed; no
-  ruling exists yet.** `66-RESULT.md` at `89045a7f` carries the plain-language
+- **The result page is committed and the owner checkpoint 1 was posed on it
+  (now answered — see below).** `66-RESULT.md` at `89045a7f` carries the plain-language
   reading (tier1: a network one-fifth the size, with one hidden layer, fits
   the orbit, so size is not what stopped v2.4; the data and scoring path can
   produce a passing fit), every number cited by path and SHA-256, the
   GAP-59-08 sentence, the identifiability limits and the evidence index. The
   SCOPE-49 proposal for this route is none: Phase 67 runs as planned once the
   owner answers checkpoint 1 (accept / direct a different change / hold).
-  `66-CHECKPOINT-1-RULING.md` is NOT written; the continuation agent records
-  it from the owner's verbatim words. Machine time stands at 5,750 s ≈ 1.60 h
+  Machine time stands at 5,750 s ≈ 1.60 h
   (unchanged — this plan ran no training).
+- **The owner answered checkpoint 1: accept.** Asked 2026-11-01
+  (America/Chicago), only after the result page was committed, with the
+  question "having seen the EXP-01 result (confirmed Tier 1, route
+  phase67-as-planned), do you accept the recorded proposal, direct a
+  different plan change, or hold?", the owner replied verbatim: "Accept the
+  recorded proposal". The answer is held verbatim (never parsed) in
+  `66-CHECKPOINT-1-RULING.md` (sha256 `cc9c7e7a426c15fa4a5e1ea3d01a253c5b616902875cef335e9505534e884f59`, commit `e40ebca2`) beside the exact page it
+  answers (`66-RESULT.md`, sha256 `bf143995410ae48a57845b5cf7f5500dc059c4fd0af96486a1b43801b88d26a9`, commit `89045a7f`) with the CP1-EXP01 row and the
+  three record digests re-verified; RULING-OK.
+- **Disposition: no plan change; Phase 67 runs as planned.** The accepted
+  proposal is the recorded one for route phase67-as-planned; the ruling edits
+  no roadmap, requirement, spec or registration by itself (ROADMAP.md,
+  REQUIREMENTS.md, `pinn/` and `tests/` are unchanged from PLAN_START_SHA
+  `2b5d0df7` — the plan's acceptance diff is empty and `git diff --check` is
+  clean over the range). Any follow-up bookkeeping is the orchestrator's
+  separate command; the EXP-01 requirement mark follows the phase
+  verification, as in Phase 65, and the held-out evaluation remains unspent.
 
 ### Decisions from 66-04 (2026-11-01)
 
