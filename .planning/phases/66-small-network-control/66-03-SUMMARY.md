@@ -179,6 +179,10 @@ LAUNCH-EXIT=0
 - The timing record's rate (0.004238129693630617 s/step measured) sits inside 66-RESEARCH.md A2's 3-6 ms projection; the sanity stop did not trip.
 - Reading path for 66-04/66-05 is unchanged: `read-run`/`check-run`/`review` on the three run directories, `confirm`/`route` for the pre-registered branches, checkpoint ① for the owner. The held-out evaluation remains unspent; no experiment run has started in this plan.
 
+## Self-Check: PASSED
+
+All 11 created/modified plan files exist on disk; all five commits (`4eab280b`, `a564ea35`, `3f4d0a85`, `2e20360c`, `f6de4aa1`) are in `git log`; the working tree afterwards shows only the pre-existing user-owned changes (`.planning/config.json`, the milestone_v2.2 brief, and the untracked `.agents/`, `.gsd/`, `.planning/state.json`, `.planning/milestone.lock`, `.planning/tmp/`, cross_cutting docs, `phase-40-plan-04-grok.md`), identical to the start status.
+
 ---
 *Phase: 66-small-network-control*
 *Completed: 2026-11-01*
