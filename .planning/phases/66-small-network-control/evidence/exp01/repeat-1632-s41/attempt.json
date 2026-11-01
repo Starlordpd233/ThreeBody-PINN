@@ -1,0 +1,15 @@
+{
+  "completed_steps": 465000,
+  "ended_utc": "2026-11-01T20:04:34+00:00",
+  "output": "record.json",
+  "pid": 26882,
+  "record_sha256": "4146675b56990ca145fa9db777f7922476b1d64ab4cf8f708acb1acec2137c2a",
+  "registration": {
+    "path": ".planning/phases/66-small-network-control/evidence/exp01/repeat-1632-s41-registration.json",
+    "sha256": "48a15ad60f4a018c17eab10211153a48df577a292f9853d68eccd4e38592a8f1"
+  },
+  "schema": "phase65-fit-attempt/v1",
+  "started_utc": "2026-11-01T19:30:40+00:00",
+  "status": "published",
+  "whole_run_cap_seconds": 3300.0
+}
