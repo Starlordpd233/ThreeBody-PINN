@@ -10,9 +10,17 @@ output record through the harness's exclusive, canonical, redacted JSON writer
 the interpreter path is never recorded), and only then starts the fit CLI as a
 child: ``caffeinate -is <interpreter> -B -m pinn.verification.diagnostic_fit
 run`` over a fixed argv list with no shell and the repository root as the
-child's working directory. The gate checks at launch only; the receipt makes
-compliance auditable. Plan 66-02 adds the check subcommand, the
-output-exists and admission prechecks, and the full refusal matrix.
+child's working directory.
+
+Plan 66-02 completes the gate (D-08): launch also enforces the owner's verbatim
+compute window in code — ``require_weekend_window`` passes only on Saturday or
+on Sunday before 22:00 in ``WINDOW_TIMEZONE``, refusing a naive clock or an
+unloadable zone — and runs, before the receipt, the output-exists precheck and
+the metadata-only ``check_fit_registration`` admission precheck, so a spent
+directory or an inadmissible registration creates nothing. The read-only
+``check`` subcommand prints the gate's verdict and writes nothing. The gate
+checks at launch only; the receipt (which now records the window) makes
+compliance auditable.
 """
 
 from __future__ import annotations
@@ -24,6 +32,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from pinn.verification.learnability_arms import FirstResultExists, write_record_exclusive
 
@@ -35,10 +44,13 @@ __all__ = [
     "RECEIPT_NAME",
     "RECEIPT_SCHEMA",
     "PowerRefused",
+    "WINDOW_SUNDAY_LAST_HOUR",
+    "WINDOW_TIMEZONE",
     "launch",
     "main",
     "power_source",
     "require_ac_power",
+    "require_weekend_window",
 ]
 
 PMSET = "/usr/bin/pmset"
@@ -47,6 +59,15 @@ AC_SOURCE = "AC Power"
 RECEIPT_NAME = "power-gate.json"
 RECEIPT_SCHEMA = "phase66-power-gate/v1"
 FIT_MODULE = "pinn.verification.diagnostic_fit"
+
+#: The owner's compute window (D-08, verbatim: plugged in "for the weekend
+#: only. not weekdays"), checked in code as the conservative reading.
+WINDOW_TIMEZONE = "America/Chicago"
+#: Sunday's last admitted local hour: the window ends at 22:00. Every admitted
+#: registration's whole-run cap is strictly below 3,600 seconds, so a run
+#: launched before Sunday 22:00 ends before Sunday 23:00 even at the full cap
+#: plus termination grace — no run spills into a weekday.
+WINDOW_SUNDAY_LAST_HOUR = 22
 
 #: The only acceptable pmset first line: an anchored positive match, first
 #: line only, so a later-line mention never reads as safe.
@@ -106,25 +127,66 @@ def require_ac_power(read_power=None):
     return text.splitlines()[0]
 
 
+def require_weekend_window(now=None):
+    """The owner's weekend compute window (D-08): Saturday, Sunday to 22:00.
+
+    ``now`` is an injected clock: a zero-argument callable returning an aware
+    ``datetime``. The default clock is ``datetime.now(ZoneInfo(WINDOW_TIMEZONE))``.
+    The instant — whichever clock gave it — is converted to
+    ``WINDOW_TIMEZONE`` before the check, so a UTC instant reads as its Chicago
+    local time. It passes on isoweekday 6 (Saturday) and on isoweekday 7
+    (Sunday) before ``WINDOW_SUNDAY_LAST_HOUR``:00 local, returning the local
+    datetime. A naive datetime, a failed zone lookup, or any time outside the
+    window raises :class:`PowerRefused` naming the local time; nothing is
+    written or run by the caller on a refusal.
+    """
+    try:
+        zone = ZoneInfo(WINDOW_TIMEZONE)
+    except Exception as exc:  # ZoneInfoNotFoundError and friends: fail closed
+        raise PowerRefused(
+            f"the window time zone {WINDOW_TIMEZONE!r} cannot be loaded: "
+            f"{type(exc).__name__}: {exc}"
+        ) from exc
+    moment = datetime.now(zone) if now is None else now()
+    if moment.tzinfo is None or moment.tzinfo.utcoffset(moment) is None:
+        raise PowerRefused(
+            "the window clock gave a naive datetime; refusing to launch"
+        )
+    local = moment.astimezone(zone)
+    weekday = local.isoweekday()
+    if weekday == 6 or (weekday == 7 and local.hour < WINDOW_SUNDAY_LAST_HOUR):
+        return local
+    raise PowerRefused(
+        f"the local time {local.isoformat(timespec='seconds')} is outside the "
+        "owner's weekend window (Saturday, or Sunday before "
+        f"{WINDOW_SUNDAY_LAST_HOUR:02d}:00 in {WINDOW_TIMEZONE}); refusing to launch"
+    )
+
+
 def _default_run(argv, *, cwd):
     """The default runner: a fixed argv child under caffeinate, no shell."""
     return subprocess.run(argv, cwd=str(cwd), check=False).returncode
 
 
-def launch(registration, output, *, repo_root=None, read_power=None, run=None):
-    """Gate, write the receipt, then start the fit CLI; return its exit code.
+def launch(registration, output, *, repo_root=None, read_power=None, run=None, now=None):
+    """Gate, precheck, write the receipt, then start the fit CLI.
 
-    Order is fixed: the AC check first; then the registration and output are
-    resolved against the repository root (the directory three levels above
-    this file by default) and refused if they resolve outside it; then the
-    receipt is written exclusively beside the declared record; only then the
-    runner starts the fit CLI with the repository root as its cwd. Any refusal
-    before the runner prints ``POWER-REFUSED: <reason>`` to stderr and returns
-    2, having created nothing (on battery nothing at all is created).
+    The order is fixed (D-08): 1 the AC check; 2 the weekend window; 3 the
+    registration and output are resolved against the repository root (the
+    directory three levels above this file by default) and refused if they
+    resolve outside it; 4 the output-exists precheck; 5 the metadata-only
+    ``check_fit_registration`` admission precheck; 6 the receipt is written
+    exclusively beside the declared record (a ``FirstResultExists`` means the
+    directory is spent); 7 ``POWER-OK`` is printed; 8 the runner starts the
+    fit CLI with the repository root as its cwd. Any refusal before step 8
+    prints ``POWER-REFUSED: <reason>`` to stderr and returns 2, having created
+    nothing. The gate never converts a refusal into a different run: no CPU
+    fallback, no other output and no retry.
     """
     try:
         first_line = require_ac_power(read_power=read_power)
         source = power_source(first_line)
+        local = require_weekend_window(now)
         root = (
             Path(repo_root) if repo_root is not None
             else Path(__file__).resolve().parents[2]
@@ -145,8 +207,29 @@ def launch(registration, output, *, repo_root=None, read_power=None, run=None):
                 "the registration and output must resolve inside the repository; "
                 f"got {registration_path} and {output_path}"
             ) from exc
+        if output_path.exists():
+            raise PowerRefused(
+                f"an output record already exists at {output_relative}; the first "
+                "completed run is the result and a second run never replaces it"
+            )
+        # Deferred: the metadata-only admission precheck runs before the
+        # receipt, so an inadmissible registration creates nothing.
+        from pinn.verification.diagnostic_fit import (
+            DiagnosticFitRefused,
+            check_fit_registration,
+        )
+        from pinn.verification.diagnostic_guard import DiagnosticRegistrationRefused
+
+        try:
+            check_fit_registration(registration_path, repo_root=root)
+        except (DiagnosticFitRefused, DiagnosticRegistrationRefused) as exc:
+            raise PowerRefused(
+                f"the registration does not admit a launch: {exc}"
+            ) from exc
+        receipt_path = output_path.parent / RECEIPT_NAME
+        receipt_relative = receipt_path.relative_to(root).as_posix()
         write_record_exclusive(
-            output_path.parent / RECEIPT_NAME,
+            receipt_path,
             {
                 "schema": RECEIPT_SCHEMA,
                 "checked_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -155,12 +238,21 @@ def launch(registration, output, *, repo_root=None, read_power=None, run=None):
                 "registration": registration_relative,
                 "output": output_relative,
                 "load_average": [float(value) for value in os.getloadavg()],
-                "launch": {"module": FIT_MODULE, "subcommand": "run"},
+                "launched": {"module": FIT_MODULE, "subcommand": "run"},
+                "window": {
+                    "timezone": WINDOW_TIMEZONE,
+                    "local_time": local.isoformat(timespec="seconds"),
+                    "isoweekday": int(local.isoweekday()),
+                },
             },
         )
     except (PowerRefused, FirstResultExists) as exc:
         print(f"POWER-REFUSED: {exc}", file=sys.stderr)
         return 2
+    print(
+        f"POWER-OK source={source} isoweekday={local.isoweekday()} "
+        f"receipt={receipt_relative}"
+    )
     runner = _default_run if run is None else run
     argv = [
         CAFFEINATE,
@@ -178,25 +270,43 @@ def launch(registration, output, *, repo_root=None, read_power=None, run=None):
     return int(runner(argv, cwd=str(root)))
 
 
-def main(argv=None, *, repo_root=None, read_power=None, run=None):
-    """The launcher CLI: ``launch --registration R --output O`` (exit 0 or 2)."""
+def main(argv=None, *, repo_root=None, read_power=None, run=None, now=None):
+    """The launcher CLI: ``launch --registration R --output O`` and ``check``.
+
+    ``check`` is read-only: it runs the AC check and the weekend window only,
+    prints the verdict token, and returns 0 or 2 (the gate's live verdict).
+    An unknown command or missing flags return 2, mirroring the
+    ``diagnostic_fit`` CLI's required-flags convention.
+    """
     parser = argparse.ArgumentParser(
         prog="diagnostic_power",
         description=(
-            "AC-power launch gate: refuse on battery, write the power-gate "
-            "receipt, then start the registered diagnostic fit."
+            "AC-power launch gate: refuse on battery or outside the weekend "
+            "window, write the power-gate receipt, then start the registered "
+            "diagnostic fit; check prints the read-only verdict."
         ),
     )
     commands = parser.add_subparsers(dest="command")
     launch_command = commands.add_parser("launch")
     launch_command.add_argument("--registration", required=False)
     launch_command.add_argument("--output", required=False)
+    commands.add_parser("check")
     try:
         args = parser.parse_args(argv)
     except SystemExit as exc:  # argparse's own usage error carries exit code 2
         return int(exc.code) if isinstance(exc.code, int) else 2
+    if args.command == "check":
+        try:
+            first_line = require_ac_power(read_power=read_power)
+            source = power_source(first_line)
+            local = require_weekend_window(now)
+        except PowerRefused as exc:
+            print(f"POWER-REFUSED: {exc}", file=sys.stderr)
+            return 2
+        print(f"POWER-OK source={source} isoweekday={local.isoweekday()}")
+        return 0
     if args.command != "launch":
-        print("POWER-REFUSED: choose launch", file=sys.stderr)
+        print("POWER-REFUSED: choose launch or check", file=sys.stderr)
         return 2
     missing = [
         f"--{name}"
@@ -215,6 +325,7 @@ def main(argv=None, *, repo_root=None, read_power=None, run=None):
         repo_root=repo_root,
         read_power=read_power,
         run=run,
+        now=now,
     )
 
 

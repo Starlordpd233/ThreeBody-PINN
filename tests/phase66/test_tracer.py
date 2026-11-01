@@ -108,6 +108,18 @@ def fake_pmset(first_line):
     return read_power
 
 
+def fake_clock(iso_text):
+    """An injectable weekend-window clock giving the aware datetime in ``iso_text``.
+
+    The tracer runs on every weekday, so both launch cases inject a Saturday
+    in America/Chicago (plan 66-02's weekend window, D-08).
+    """
+    from datetime import datetime
+
+    moment = datetime.fromisoformat(iso_text)
+    return lambda: moment
+
+
 class Phase66TracerTests(unittest.TestCase):
     """The tracer: the AC case runs one synthetic EXP-01 run end to end and a
     battery reading refuses before anything is created."""
@@ -173,6 +185,7 @@ class Phase66TracerTests(unittest.TestCase):
         code = power.launch(
             registration, output, repo_root=root,
             read_power=fake_pmset("Now drawing from 'AC Power'"), run=runner,
+            now=fake_clock("2026-10-31T12:00:00-05:00"),
         )
         self.assertEqual(code, 0)
         self.assertEqual(len(argv_seen), 1)
@@ -226,6 +239,7 @@ class Phase66TracerTests(unittest.TestCase):
         code = power.launch(
             registration, output, repo_root=root,
             read_power=fake_pmset("Now drawing from 'Battery Power'"), run=runner,
+            now=fake_clock("2026-10-31T12:00:00-05:00"),
         )
         self.assertEqual(code, 2)
         self.assertFalse(output.parent.exists())
