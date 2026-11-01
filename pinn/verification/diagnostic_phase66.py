@@ -41,22 +41,31 @@ from pinn.verification.diagnostic_variants import (
 )
 
 __all__ = [
+    "BUDGET_RULE",
     "BRANCHES",
     "E_CONST_PREDICTED",
     "E_CONST_TOLERANCE",
+    "EXP01_PARAMETERS",
     "EXP01_RUNS",
     "EXP01_VARIANT",
     "FIRST_LAYER_INPUTS",
     "FREQUENCY_CHECK",
     "IMPROVEMENT_RULE",
+    "LOCKED_12_PARAMETERS",
     "NEAR_BAND",
     "PHASE66_REGISTRY",
     "REGISTRIES",
     "ROUTES",
     "classify_exp01",
     "confirm",
+    "exp01_budget",
+    "exp01_cadence",
+    "exp01_design",
+    "exp01_loss_trace_stride",
     "first_layer_frequency_bound",
     "improvement_check",
+    "launch_wall_seconds",
+    "loss_trace_entries",
     "main",
     "read_exp01_record",
     "read_run_directory",
@@ -141,6 +150,39 @@ BRANCHES = ("tier1", "near", "between", "other", "unsettled")
 
 #: The pre-registered routes (D-09, RESEARCH Pattern 5 item 6, SCOPE-47).
 ROUTES = ("phase67-as-planned", "propose-66.1", "owner")
+
+#: The EXP-01 variant's exact parameter count (CPU float64 seed-42 build) and
+#: the sealed locked-12 network's, for the design block and the pages.
+EXP01_PARAMETERS = 157065
+LOCKED_12_PARAMETERS = 795657
+
+#: The one budget rule (checker blocker 2): time alone sets the run length —
+#: the largest step count, a multiple of ``step_quantum``, whose projected
+#: wall at the ``rate_margin`` stays within ``time_fraction`` of the
+#: ``cap_seconds`` (strictly below the harness's 3,600-second refusal). The
+#: record size is bounded at its source (the stride and the cadence), so the
+#: staged-blob limit appears only in the N-independent record-size ceiling
+#: guard: it can refuse a broken input but can never shorten a run. The
+#: timing-run settings are registered here too.
+BUDGET_RULE = MappingProxyType({
+    "cap_seconds": 3300.0,
+    "time_fraction": 0.75,
+    "rate_margin": 0.25,
+    "size_limit_bytes": 10485760,
+    "size_fraction": 0.9,
+    "loss_entry_bytes": 32,
+    "similarity_margin": 1.15,
+    "warmup_steps": 200,
+    "step_quantum": 1000,
+    "cadence_head": (0, 100, 300, 1000, 3000, 10000, 30000, 100000),
+    "cadence_tail_entries": 6,
+    "loss_trace_entries_max": 10000,
+    "timing_steps": 5200,
+    "timing_warmup": 200,
+    "timing_cadence": (0, 1300, 2600, 3900, 5200),
+    "timing_cap_seconds": 600,
+    "timing_loss_trace_stride": 1,
+})
 
 
 def tier1_e_max(card):
@@ -279,6 +321,238 @@ def route(main_branch, confirmation):
     if main_branch == "near" and confirmation == "confirmed":
         return "propose-66.1"
     return "owner"
+
+
+def exp01_cadence(n):
+    """The bounded EXP-01 similarity cadence for an ``n``-step run.
+
+    The registered head entries strictly below ``n``, then ``n`` itself when
+    ``n`` is at most the head's last entry; above it, the
+    ``cadence_tail_entries`` evenly floored points from the head's end to
+    ``n``, duplicates dropped. The last tail entry is always ``n``, so a
+    cadence never has more than ``len(cadence_head) + cadence_tail_entries``
+    (14) entries — the record's similarity weight is bounded at every length.
+    """
+    head = list(BUDGET_RULE["cadence_head"])
+    tail_entries = int(BUDGET_RULE["cadence_tail_entries"])
+    below = [step for step in head if step < n]
+    if n <= head[-1]:
+        return sorted(set(below + [int(n)]))
+    tail = [
+        head[-1] + (k * (n - head[-1])) // tail_entries
+        for k in range(1, tail_entries + 1)
+    ]
+    return sorted(set(below + tail))
+
+
+def exp01_loss_trace_stride(n):
+    """The Site F loss-trace stride: ceil(n / loss_trace_entries_max)."""
+    maximum = int(BUDGET_RULE["loss_trace_entries_max"])
+    return (int(n) + maximum - 1) // maximum
+
+
+def loss_trace_entries(n, stride):
+    """The recorded trace length for ``n`` losses at stride ``stride``.
+
+    Exactly the length diagnostic_fit's Site F records: every stride-th loss,
+    then the final loss when ``n`` is not a multiple of the stride.
+    """
+    return int(n) // int(stride) + (1 if int(n) % int(stride) else 0)
+
+
+def launch_wall_seconds(receipt, attempt):
+    """The launch-to-end wall seconds, plus the 2-second timestamp margin.
+
+    The difference between the receipt's ``checked_utc`` and the attempt's
+    ``ended_utc`` covers process start, admission, data load, setup, scoring
+    and publication. Raises ``ValueError`` when a timestamp is missing or not
+    ISO 8601, or when the attempt ended before the receipt was written.
+    """
+    try:
+        checked_text = receipt["checked_utc"]
+        ended_text = attempt["ended_utc"]
+    except (KeyError, TypeError) as exc:
+        raise ValueError(f"the run is missing the {exc} timestamp") from exc
+    try:
+        checked = datetime.fromisoformat(str(checked_text))
+        ended = datetime.fromisoformat(str(ended_text))
+    except ValueError as exc:
+        raise ValueError(f"a run timestamp is not ISO 8601: {exc}") from exc
+    if ended < checked:
+        raise ValueError("the attempt ended before the receipt was written")
+    return (ended - checked).total_seconds() + 2.0
+
+
+def exp01_budget(timing_record, *, record_bytes, launch_wall_seconds, rule=BUDGET_RULE):
+    """The step count for one EXP-01 run, set by time alone (D-08).
+
+    ``timing_record`` is the registered timing run's record; ``record_bytes``
+    its record's byte length and ``launch_wall_seconds`` its
+    :func:`launch_wall_seconds` value. The projected wall for ``N`` steps is
+    the fixed cost (the launch wall minus the record's own warmup, measured
+    and logging seconds) plus the warmup, plus the measured steps at the
+    timing run's per-step rate with the ``rate_margin``, plus the cadence
+    logging cost. ``N`` is the largest multiple of ``step_quantum`` whose
+    wall stays within ``time_fraction`` of ``cap_seconds`` — the only bound.
+    The record-size ceiling (which does not depend on ``N``) refuses a broken
+    input above ``size_fraction`` of ``size_limit_bytes`` but can never
+    shorten a run. Raises ``ValueError`` for an incomplete record, a missing
+    timing field, a non-positive rate, a negative fixed cost, no feasible N
+    above the warmup, or an over-limit ceiling. Holds no score, similarity
+    value or loss value.
+    """
+    if timing_record.get("status") != "complete":
+        raise ValueError("the timing record is not complete")
+    timing = timing_record.get("timing") or {}
+    phases = timing.get("phases") or {}
+    try:
+        seconds_per_step = float(timing["seconds_per_step"])
+        warmup_seconds = float(timing["warmup_seconds"])
+        measured_seconds = float(timing["measured_seconds"])
+        logging_seconds = float(phases["logging_seconds"])
+    except KeyError as exc:
+        raise ValueError(f"the timing record carries no {exc} field") from exc
+    similarity = timing_record.get("similarity") or {}
+    entries = similarity.get("entries") or []
+    timing_entries = len(entries)
+    if timing_entries <= 0:
+        raise ValueError("the timing record carries no similarity entries")
+    entry_bytes = len(json.dumps(similarity, indent=2, sort_keys=True)) / timing_entries
+    loss_trace_length = len((timing_record.get("loss") or {}).get("trace") or [])
+    if seconds_per_step <= 0:
+        raise ValueError("the timing record's measured rate is not positive")
+    fixed_wall = float(launch_wall_seconds) - (
+        warmup_seconds + measured_seconds + logging_seconds
+    )
+    if fixed_wall < 0:
+        raise ValueError(
+            "the timing record's fixed cost is negative: the launch wall is "
+            "shorter than the record's own warmup, measured and logging seconds"
+        )
+    cap = float(rule["cap_seconds"])
+    target = float(rule["time_fraction"]) * cap
+    quantum = int(rule["step_quantum"])
+    warmup_steps = int(rule["warmup_steps"])
+    margin = float(rule["rate_margin"])
+    logging_per_entry = logging_seconds / timing_entries
+
+    def projected_wall(steps):
+        return (
+            fixed_wall
+            + warmup_seconds
+            + (steps - warmup_steps) * seconds_per_step * (1.0 + margin)
+            + len(exp01_cadence(steps)) * logging_per_entry
+        )
+
+    low = 1
+    if projected_wall(low * quantum) > target:
+        raise ValueError(
+            "no feasible step count above the warmup stays within the time "
+            "fraction of the cap"
+        )
+    high = 2
+    while projected_wall(high * quantum) <= target:
+        low = high
+        high *= 2
+    while high - low > 1:
+        middle = (low + high) // 2
+        if projected_wall(middle * quantum) <= target:
+            low = middle
+        else:
+            high = middle
+    steps = low * quantum
+    stride = exp01_loss_trace_stride(steps)
+    cadence = exp01_cadence(steps)
+    cadence_max = len(BUDGET_RULE["cadence_head"]) + int(BUDGET_RULE["cadence_tail_entries"])
+    per_entry = math.ceil(float(rule["similarity_margin"]) * entry_bytes)
+    projected_bytes = int(record_bytes) + int(rule["loss_entry_bytes"]) * max(
+        0, loss_trace_entries(steps, stride) - loss_trace_length
+    ) + per_entry * max(0, len(cadence) - timing_entries)
+    ceiling = int(record_bytes) + int(rule["loss_entry_bytes"]) * max(
+        0,
+        int(rule["loss_trace_entries_max"]) + 1 - loss_trace_length,
+    ) + per_entry * max(0, cadence_max - timing_entries)
+    size_limit = int(rule["size_limit_bytes"])
+    size_fraction = float(rule["size_fraction"])
+    if ceiling > size_fraction * size_limit:
+        raise ValueError(
+            "the record-size ceiling exceeds the staged-blob limit "
+            f"({ceiling} > {size_fraction * size_limit} bytes): the timing "
+            "record's similarity block is too large for any run length"
+        )
+    return {
+        "optimizer_steps": int(steps),
+        "warmup_steps": warmup_steps,
+        "measured_steps": int(steps - warmup_steps),
+        "similarity_cadence": cadence,
+        "loss_trace_stride": int(stride),
+        "whole_run_cap_seconds": cap,
+        "projected_wall_seconds": projected_wall(steps),
+        "projected_record_bytes": projected_bytes,
+        "record_bytes_ceiling": ceiling,
+        "size_limit_bytes": size_limit,
+        "size_fraction": size_fraction,
+        "limit_source": "scripts/git_policy/validate_staged_paths.py",
+        "inputs": {
+            "seconds_per_step": seconds_per_step,
+            "warmup_seconds": warmup_seconds,
+            "measured_seconds": measured_seconds,
+            "logging_seconds": logging_seconds,
+            "similarity_entries": timing_entries,
+            "similarity_bytes_per_entry": entry_bytes,
+            "loss_trace_entries": loss_trace_length,
+            "record_bytes": int(record_bytes),
+            "launch_wall_seconds": float(launch_wall_seconds),
+            "fixed_wall_seconds": fixed_wall,
+            "time_fraction": float(rule["time_fraction"]),
+            "rate_margin": margin,
+            "step_quantum": quantum,
+        },
+    }
+
+
+def exp01_design():
+    """The frozen EXP-01 design block the pages embed (JSON-normal).
+
+    Every sequence is a list and every key a string, so
+    ``json.loads(json.dumps(exp01_design())) == exp01_design()`` and the
+    DESIGN-OK check and the page tests compare content. This block is fixed
+    before the timing run; the pages repeat it verbatim (SCOPE-47).
+    """
+    budget_rule = dict(BUDGET_RULE)
+    budget_rule["cadence_head"] = list(BUDGET_RULE["cadence_head"])
+    budget_rule["timing_cadence"] = list(BUDGET_RULE["timing_cadence"])
+    return {
+        "experiment": "EXP-01",
+        "variant": dict(EXP01_VARIANT.to_json_dict()),
+        "variant_registry": "phase66",
+        "parameters": EXP01_PARAMETERS,
+        "locked_12_parameters": LOCKED_12_PARAMETERS,
+        "first_layer_inputs": FIRST_LAYER_INPUTS,
+        "first_layer_frequency_bound": first_layer_frequency_bound(1000.0),
+        "runtime": {"dtype": "float32", "device": "mps"},
+        "optimizer": {"kind": "adam_constant_rate", "lr": 0.0001},
+        "loss": "data_only",
+        "physical_window": [0.0, 10.0],
+        "runs": [dict(spec) for spec in EXP01_RUNS],
+        "reading_rule": {
+            "tier1": "pinn/verification/artifacts/feasibility_scorecard_v1.json",
+            "near_band": NEAR_BAND,
+            "e_const_source": "comparisons[comparison=window_mean_constant].score.E",
+            "e_const_predicted": dict(E_CONST_PREDICTED),
+            "e_const_tolerance": E_CONST_TOLERANCE,
+            "frequency_check": list(FREQUENCY_CHECK),
+            "branches": list(BRANCHES),
+            "improvement": dict(IMPROVEMENT_RULE),
+            "confirmation": "confirmed only when all three runs share tier1 or near",
+            "routes": {
+                "confirmed tier1": "phase67-as-planned",
+                "confirmed near": "propose-66.1",
+                "otherwise": "owner",
+            },
+        },
+        "budget_rule": budget_rule,
+    }
 
 
 #: The value-free mechanical problem strings. None of them embeds a score
@@ -609,6 +883,29 @@ def _cmd_check_run(dir_path):
     return 0
 
 
+def _cmd_design():
+    print(json.dumps(exp01_design(), indent=2, sort_keys=True))
+    return 0
+
+
+def _cmd_budget(timing_dir):
+    """The timing directory's budget, without its score (warning 4)."""
+    directory = Path(timing_dir)
+    raw = (directory / "record.json").read_bytes()
+    record = json.loads(raw.decode("utf-8"))
+    receipt = json.loads((directory / "power-gate.json").read_bytes().decode("utf-8"))
+    attempt = json.loads((directory / "attempt.json").read_bytes().decode("utf-8"))
+    wall = launch_wall_seconds(receipt, attempt)
+    budget = exp01_budget(record, record_bytes=len(raw), launch_wall_seconds=wall)
+    print(json.dumps(budget, indent=2, sort_keys=True))
+    print(
+        f"EXP01-BUDGET steps={budget['optimizer_steps']} "
+        f"loss_trace_stride={budget['loss_trace_stride']} "
+        f"cap={budget['whole_run_cap_seconds']}"
+    )
+    return 0
+
+
 def _run_identity(reading):
     """A run's identity triple: (orbit_key, seed, registration_sha256)."""
     return (reading["orbit_key"], reading["seed"], reading["registration_sha256"])
@@ -679,18 +976,19 @@ def _cmd_review(main_dir, repeat_system_dir, repeat_seed_dir):
 
 
 def main(argv=None):
-    """The Phase 66 reading CLI: ``read-run``, ``check-run`` and ``review``.
+    """The Phase 66 CLI: ``read-run``, ``check-run``, ``review``, ``budget``.
 
-    Exit codes: 0 when the directories were readable (an owner route is a
-    valid review result), 2 for an unknown command, missing flags, or
-    unreadable, duplicated or wrong-role input. The scorecard is loaded here,
-    never at import.
+    ``design`` prints the frozen design block. Exit codes: 0 when the
+    directories were readable (an owner route is a valid review result), 2 for
+    an unknown command, missing flags, or unreadable, duplicated or
+    wrong-role input. The scorecard is loaded here, never at import.
     """
     parser = argparse.ArgumentParser(
         prog="diagnostic_phase66",
         description=(
             "The EXP-01 reading rule: read one run, check one run without its "
-            "score, or review the three pre-registered runs."
+            "score, review the three pre-registered runs, size the budget from "
+            "the timing run, or print the frozen design block."
         ),
     )
     commands = parser.add_subparsers(dest="command")
@@ -702,6 +1000,9 @@ def main(argv=None):
     review.add_argument("--main", required=False)
     review.add_argument("--repeat-system", required=False)
     review.add_argument("--repeat-seed", required=False)
+    budget = commands.add_parser("budget")
+    budget.add_argument("--timing-dir", required=False)
+    commands.add_parser("design")
     try:
         args = parser.parse_args(argv)
     except SystemExit as exc:  # argparse's own usage error carries exit code 2
@@ -710,10 +1011,12 @@ def main(argv=None):
         "read-run": ("dir",),
         "check-run": ("dir",),
         "review": ("main", "repeat_system", "repeat_seed"),
+        "budget": ("timing_dir",),
+        "design": (),
     }
     if args.command not in required:
         print(
-            "EXP01-REFUSED: choose read-run, check-run or review",
+            "EXP01-REFUSED: choose read-run, check-run, review, budget or design",
             file=sys.stderr,
         )
         return 2
@@ -733,6 +1036,10 @@ def main(argv=None):
             return _cmd_read_run(args.dir)
         if args.command == "check-run":
             return _cmd_check_run(args.dir)
+        if args.command == "budget":
+            return _cmd_budget(args.timing_dir)
+        if args.command == "design":
+            return _cmd_design()
         return _cmd_review(args.main, args.repeat_system, args.repeat_seed)
     except (OSError, ValueError) as exc:
         print(f"EXP01-REFUSED: {exc}", file=sys.stderr)

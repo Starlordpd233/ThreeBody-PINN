@@ -157,11 +157,13 @@ class Phase66BudgetTests(unittest.TestCase):
             budget["loss_trace_stride"], p66.exp01_loss_trace_stride(n)
         )
         self.assertEqual(budget["whole_run_cap_seconds"], 3300.0)
-        # Maximality: the bound holds at N and is violated at N + one quantum,
-        # since one more quantum costs at least 1000 * s_m * (1 + margin).
+        # Maximality: the bound holds at N, and the remaining headroom is
+        # smaller than one more quantum's measured cost (at least
+        # 1000 * s_m * (1 + margin), before the cadence term), so N + the
+        # quantum exceeds the bound.
         limit = 0.75 * 3300.0
         self.assertLessEqual(budget["projected_wall_seconds"], limit)
-        self.assertGreater(
+        self.assertLess(
             limit - budget["projected_wall_seconds"],
             0.004 * 1.25 * 1000,
         )
@@ -266,7 +268,12 @@ class Phase66BudgetTests(unittest.TestCase):
             },
         )
         budget_rule = design["budget_rule"]
-        self.assertEqual(budget_rule, dict(p66.BUDGET_RULE))
+        expected_rule = dict(p66.BUDGET_RULE)
+        # The design block is JSON-normal: the rule's cadence sequences are
+        # lists, never tuples.
+        expected_rule["cadence_head"] = list(p66.BUDGET_RULE["cadence_head"])
+        expected_rule["timing_cadence"] = list(p66.BUDGET_RULE["timing_cadence"])
+        self.assertEqual(budget_rule, expected_rule)
         self.assertEqual(budget_rule["size_limit_bytes"], 10485760)
         self.assertEqual(budget_rule["loss_trace_entries_max"], 10000)
         self.assertEqual(budget_rule["cadence_tail_entries"], 6)
