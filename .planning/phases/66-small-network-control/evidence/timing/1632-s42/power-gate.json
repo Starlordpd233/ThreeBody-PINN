@@ -1,0 +1,22 @@
+{
+  "checked_utc": "2026-11-01T17:57:03+00:00",
+  "launched": {
+    "module": "pinn.verification.diagnostic_fit",
+    "subcommand": "run"
+  },
+  "load_average": [
+    3.37158203125,
+    3.90869140625,
+    3.646484375
+  ],
+  "output": ".planning/phases/66-small-network-control/evidence/timing/1632-s42/record.json",
+  "pmset_first_line": "Now drawing from 'AC Power'",
+  "power_source": "AC Power",
+  "registration": ".planning/phases/66-small-network-control/evidence/timing/timing-registration.json",
+  "schema": "phase66-power-gate/v1",
+  "window": {
+    "isoweekday": 7,
+    "local_time": "2026-11-01T11:57:02-06:00",
+    "timezone": "America/Chicago"
+  }
+}
