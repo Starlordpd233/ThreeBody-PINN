@@ -231,31 +231,31 @@ class ReadingRuleTests(unittest.TestCase):
     def test_the_edges_of_the_reading_rule_are_inclusive_at_the_lines(self):
         for orbit_key, e_const in dict(p66.E_CONST_PREDICTED).items():
             with self.subTest(orbit_key=orbit_key):
-                self.assertIs(classify_exp01(0.1, e_const, tier1_max=0.1), "tier1")
-                self.assertIs(
+                self.assertEqual(classify_exp01(0.1, e_const, tier1_max=0.1), "tier1")
+                self.assertEqual(
                     classify_exp01(math.nextafter(0.1, math.inf), e_const, tier1_max=0.1),
                     "between",
                 )
-                self.assertIs(classify_exp01(0.95 * e_const, e_const, tier1_max=0.1), "near")
-                self.assertIs(classify_exp01(1.05 * e_const, e_const, tier1_max=0.1), "near")
-                self.assertIs(
+                self.assertEqual(classify_exp01(0.95 * e_const, e_const, tier1_max=0.1), "near")
+                self.assertEqual(classify_exp01(1.05 * e_const, e_const, tier1_max=0.1), "near")
+                self.assertEqual(
                     classify_exp01(math.nextafter(0.95 * e_const, -math.inf), e_const, tier1_max=0.1),
                     "between",
                 )
-                self.assertIs(
+                self.assertEqual(
                     classify_exp01(math.nextafter(1.05 * e_const, math.inf), e_const, tier1_max=0.1),
                     "other",
                 )
-                self.assertIs(classify_exp01(e_const, e_const, tier1_max=0.1), "near")
-                self.assertIs(classify_exp01(0.5, e_const, tier1_max=0.1), "between")
-                self.assertIs(classify_exp01(2.0, e_const, tier1_max=0.1), "other")
+                self.assertEqual(classify_exp01(e_const, e_const, tier1_max=0.1), "near")
+                self.assertEqual(classify_exp01(0.5, e_const, tier1_max=0.1), "between")
+                self.assertEqual(classify_exp01(2.0, e_const, tier1_max=0.1), "other")
                 for bad in (math.nan, math.inf, -math.inf):
-                    self.assertIs(classify_exp01(bad, e_const, tier1_max=0.1), "other")
+                    self.assertEqual(classify_exp01(bad, e_const, tier1_max=0.1), "other")
 
     def test_a_still_improving_run_is_unsettled_above_the_tier1_line(self):
         e_const = p66.E_CONST_PREDICTED["hierarchical/gold/1632"]
         # Tier 1 stays Tier 1 even while still improving.
-        self.assertIs(
+        self.assertEqual(
             classify_exp01(0.1, e_const, tier1_max=0.1, still_improving=True), "tier1"
         )
         for e in (
@@ -267,22 +267,22 @@ class ReadingRuleTests(unittest.TestCase):
             2.0,
         ):
             with self.subTest(e=e):
-                self.assertIs(
+                self.assertEqual(
                     classify_exp01(e, e_const, tier1_max=0.1, still_improving=True),
                     "unsettled",
                 )
         for bad in (math.nan, math.inf, -math.inf):
-            self.assertIs(
+            self.assertEqual(
                 classify_exp01(bad, e_const, tier1_max=0.1, still_improving=True),
                 "other",
             )
 
     def test_confirm_returns_confirmed_only_for_tier1_or_near_tripled(self):
-        self.assertIs(p66.confirm("tier1", "tier1", "tier1"), "confirmed")
-        self.assertIs(p66.confirm("near", "near", "near"), "confirmed")
+        self.assertEqual(p66.confirm("tier1", "tier1", "tier1"), "confirmed")
+        self.assertEqual(p66.confirm("near", "near", "near"), "confirmed")
         for branch in ("between", "other", "unsettled"):
             with self.subTest(branch=branch):
-                self.assertIs(p66.confirm(branch, branch, branch), "unconfirmed")
+                self.assertEqual(p66.confirm(branch, branch, branch), "unconfirmed")
         for main in ("tier1", "near", "between", "other", "unsettled"):
             for repeat_system in ("tier1", "near", "between", "other", "unsettled"):
                 for repeat_seed in ("tier1", "near", "between", "other", "unsettled"):
@@ -290,15 +290,15 @@ class ReadingRuleTests(unittest.TestCase):
                     agrees = main == repeat_system == repeat_seed
                     expected = "confirmed" if agrees and main in ("tier1", "near") else "unconfirmed"
                     with self.subTest(values=values):
-                        self.assertIs(p66.confirm(*values), expected)
+                        self.assertEqual(p66.confirm(*values), expected)
         for out_of_branch in ("out-of-branch", None):
             with self.subTest(out_of_branch=out_of_branch):
-                self.assertIs(p66.confirm(out_of_branch, "tier1", "tier1"), "unconfirmed")
-                self.assertIs(p66.confirm("near", out_of_branch, "near"), "unconfirmed")
+                self.assertEqual(p66.confirm(out_of_branch, "tier1", "tier1"), "unconfirmed")
+                self.assertEqual(p66.confirm("near", out_of_branch, "near"), "unconfirmed")
 
     def test_route_sends_confirmed_tier1_and_near_and_everything_else_to_the_owner(self):
-        self.assertIs(p66.route("tier1", "confirmed"), "phase67-as-planned")
-        self.assertIs(p66.route("near", "confirmed"), "propose-66.1")
+        self.assertEqual(p66.route("tier1", "confirmed"), "phase67-as-planned")
+        self.assertEqual(p66.route("near", "confirmed"), "propose-66.1")
         for main in ("tier1", "near", "between", "other", "unsettled", "out-of-branch"):
             for confirmation in ("confirmed", "unconfirmed"):
                 expected = {
@@ -306,10 +306,10 @@ class ReadingRuleTests(unittest.TestCase):
                     ("near", "confirmed"): "propose-66.1",
                 }.get((main, confirmation), "owner")
                 with self.subTest(main=main, confirmation=confirmation):
-                    self.assertIs(p66.route(main, confirmation), expected)
+                    self.assertEqual(p66.route(main, confirmation), expected)
         for branch in ("tier1", "near", "between", "other", "unsettled"):
             with self.subTest(branch=branch):
-                self.assertIs(p66.route(branch, "unconfirmed"), "owner")
+                self.assertEqual(p66.route(branch, "unconfirmed"), "owner")
 
 
 class ImprovementTests(unittest.TestCase):
@@ -369,7 +369,8 @@ class ImprovementTests(unittest.TestCase):
             {"step": step, "output_movement": {"value": 0.5}}
             for step in CADENCE
         ]
-        del missing_at_reference[9]["output_movement"]  # step 184000: the reference
+        reference_index = CADENCE.index(184000)  # the reference entry
+        del missing_at_reference[reference_index]["output_movement"]
         with self.assertRaises(ValueError):
             p66.improvement_check(missing_at_reference, final_step=268000)
         non_finite_final = self._entries([0.5] * (len(CADENCE) - 1) + [math.nan])
