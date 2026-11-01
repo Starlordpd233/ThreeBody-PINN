@@ -5,11 +5,11 @@ milestone_name: Root-Cause Confirmation
 current_phase: 66
 current_phase_name: Small-Network Control
 status: executing
-stopped_at: "66-04 complete (the three pre-registered EXP-01 runs through the AC gate, each 465000 steps under its cap, verified and committed in RUN-ORDER-OK order, no score read); next is 66-05-PLAN.md"
-last_updated: "2026-11-01T20:16:00.000Z"
+stopped_at: "66-05 halted at owner checkpoint 1 (the EXP-01 branch read mechanically from the three committed runs: all three tier1, confirmed, route phase67-as-planned, 66-RESULT.md committed 89045a7f); the ruling 66-CHECKPOINT-1-RULING.md awaits the owner's answer"
+last_updated: "2026-11-01T20:26:00.000Z"
 last_activity: 2026-11-01
-last_activity_desc: "66-04 executed: the three EXP-01 runs (main 1632/s42, repeat 851/s42, repeat 1632/s41) ran once each through the AC gate and their evidence is committed with no score read"
-state_head: 8fd1b131
+last_activity_desc: "66-05 executed to checkpoint 1: the branch read mechanically (all three runs tier1, confirmed, phase67-as-planned), 66-RESULT.md committed at 89045a7f, owner checkpoint 1 posed"
+state_head: 456fa1ac
 progress:
   total_phases: 5
   completed_phases: 1
@@ -30,9 +30,35 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 66 (Small-Network Control) — EXECUTING
-Plan: 5 of 5 (66-01 through 66-04 complete; next is 66-05-PLAN.md)
-Status: Executing Phase 66
-Last activity: 2026-11-01 — 66-04 executed (a546016b main run, 3dc3646a 851 repeat, 277c25ce seed-41 repeat, SUMMARY 8fd1b131)
+Plan: 5 of 5 (66-01 through 66-04 complete; 66-05 in progress, HALTED at owner checkpoint 1)
+Status: Executing Phase 66 — halted at owner checkpoint 1 (blocking-human, D-01/D-12; never auto-selected)
+Last activity: 2026-11-01 — 66-05 executed to checkpoint 1 (89045a7f result page, 456fa1ac halted SUMMARY; ruling outstanding)
+
+### Decisions from 66-05 (2026-11-01, task 66-05-01 only — checkpoint 1 open)
+
+- **The EXP-01 branch was read mechanically from the three committed runs, and
+  it is the pre-registered pass branch: all three runs tier1, confirmation
+  confirmed, route phase67-as-planned.** `read-run` on each directory and one
+  `review` (plus `check-run` on the timing directory, provenance only, its
+  score still unread) produced empty mechanical and setting problem lists and:
+  main 1632/s42 E 0.011431234453278821 (record's own E_const
+  1.1538408194255343, two-Kepler 0.9168487091299374), repeat-system 851/s42
+  E 0.01720558902801923 (E_const 1.233696866477104, two-Kepler
+  0.4312597209593449), repeat-seed 1632/s41 E 0.07898485527313073 — each
+  Tier 1 (E <= 0.1) and settled (still_improving false, output movement about
+  1.0). `EXP01-REVIEW confirmation=confirmed route=phase67-as-planned`;
+  RESULT-PAGE-OK.
+- **The result page is committed and the owner checkpoint 1 is posed; no
+  ruling exists yet.** `66-RESULT.md` at `89045a7f` carries the plain-language
+  reading (tier1: a network one-fifth the size, with one hidden layer, fits
+  the orbit, so size is not what stopped v2.4; the data and scoring path can
+  produce a passing fit), every number cited by path and SHA-256, the
+  GAP-59-08 sentence, the identifiability limits and the evidence index. The
+  SCOPE-49 proposal for this route is none: Phase 67 runs as planned once the
+  owner answers checkpoint 1 (accept / direct a different change / hold).
+  `66-CHECKPOINT-1-RULING.md` is NOT written; the continuation agent records
+  it from the owner's verbatim words. Machine time stands at 5,750 s ≈ 1.60 h
+  (unchanged — this plan ran no training).
 
 ### Decisions from 66-04 (2026-11-01)
 
