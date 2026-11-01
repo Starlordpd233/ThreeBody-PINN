@@ -4,18 +4,18 @@ milestone: v2.5
 milestone_name: Root-Cause Confirmation
 current_phase: 66
 current_phase_name: Small-Network Control
-status: ready_to_plan
-stopped_at: Phase 66 context gathered
-last_updated: "2026-10-31T19:04:29.163Z"
+status: executing
+stopped_at: "Phase 66 planning complete: five plans in five waves, 14 tasks; three plan-check rounds, last-round warnings fixed"
+last_updated: "2026-11-01T02:01:52.261Z"
 last_activity: 2026-10-31
-state_head: ae6206525d523dcf6412cdb250c1ac3cd1031c0d
+state_head: 7ac4da77c2149df0e181f3bad3ebf76a6df7bf20
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 6
+  total_plans: 11
   completed_plans: 6
   percent: 20
-last_activity_desc: Phase 66 context gathered; EXP-01 positive-control design set under delegation, owner compute window recorded
+last_activity_desc: Phase 66 planned; five EXP-01 plans committed, compute gated on the owner's weekend AC window
 ---
 
 # Project State
@@ -25,14 +25,14 @@ last_activity_desc: Phase 66 context gathered; EXP-01 positive-control design se
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Phase 66, Small-Network Control, ready for discussion/planning. Phase 65 closed 2026-10-31 with 204 tests passing and both requirements Complete.
+**Current focus:** Phase 66, Small-Network Control, planned and ready to execute. Phase 65 closed 2026-10-31 with 204 tests passing and both requirements Complete.
 
 ## Current Position
 
-Phase: 66 (Small-Network Control)
-Plan: Not started
-Status: Ready to plan. Phase 65 Complete, 6/6 plans, 4/4 delegated reviews resolved.
-Last activity: 2026-10-31, Phase 65 closeout (65-CLOSEOUT.md).
+Phase: 66 (Small-Network Control) — READY TO EXECUTE
+Plan: 0 of 5 complete; next is 66-01-PLAN.md
+Status: Ready to execute. Phase 65 Complete, 6/6 plans, 4/4 delegated reviews resolved.
+Last activity: 2026-10-31, Phase 66 planning (66-01..05-PLAN.md).
 
 v2.5 opened 2026-10-27 on the owner's direction to confirm the cause of the
 v2.4 time-constant failure before any redesign (the redesign is v2.6), on
@@ -1026,15 +1026,15 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/66-small-network-control/66-CONTEXT.md
+**Resume file:** .planning/phases/66-small-network-control/66-01-PLAN.md
 
-Last session: 2026-10-31T19:04:29.008Z
-Stopped at: Phase 66 context gathered
-Next action: $gsd-plan-phase 66 from 66-CONTEXT.md (D-01..D-12). Use 65-CLOSEOUT.md for technical rulings, historical evidence and reuse conditions. No Phase 66 experiment has started; training runs only on AC power, at weekends (owner, 2026-10-31). Technical choices remain delegated; overall direction and reserved owner checkpoints remain with the owner.
+Last session: 2026-11-01T02:01:52.261Z
+Stopped at: Phase 66 planning complete: five plans in five waves, 14 tasks; three plan-check rounds, last-round warnings fixed
+Next action: Execute Phase 66 via $gsd-execute-phase 66, starting with 66-01-PLAN.md. Five plans in five waves, 14 tasks. They went through three plan-check rounds; the last found no blockers and five warnings, all fixed in the plans. Run it inline on this checkout, not in worktree-isolated executors, because the Stage-0 data is gitignored. Plans 66-01 and 66-02 are code and tests and can run any day. The timing run (66-03) and the three EXP-01 runs (66-04) launch only on AC power, Saturday or Sunday before 22:00 America/Chicago (owner, 2026-10-31). 66-05 ends at owner checkpoint 1. No Phase 66 run has started. Technical choices remain delegated; overall direction and reserved owner checkpoints remain with the owner.
 
 ## Operator Next Steps
 
-- **Phase 65 closed, Phase 66 next.** Discuss/plan the small-network control under the existing roadmap. Carry the defect-reuse conditions from `65-CLOSEOUT.md`; technical decisions stay delegated, with high-level direction and reserved checkpoints owner-controlled.
+- **Phase 66 planned, execution next.** Five plans in five waves (2026-10-31). Plans 66-01 and 66-02 (harness extension, AC/weekend launch gate, reading rule, tests) can run any day. The timing run and the three EXP-01 runs (66-03, 66-04) launch only on AC power, Saturday or Sunday before 22:00 America/Chicago. 66-05 ends at owner checkpoint ①. Carry the defect-reuse conditions from `65-CLOSEOUT.md`; technical decisions stay delegated, with high-level direction and reserved checkpoints owner-controlled.
 
 - ~~Finish `trainex-r4`~~ — done 2026-10-07: consolidated (`53b7c008`) and ruled under owner delegation (`trainex-r4-ruling.md`, `c4bea18a`; Key Decision in `PROJECT.md`). The four disputes were settled by making the next run the corrected control with an observe-only guard and plateau handoff, Adam-only, on seeds 42, 41 and 43.
 - ~~Open the next milestone~~ — v2.4 Stage-0 Feasibility Checkpoint started 2026-10-09 (`0b400dfa`; branch `milestone/v2.4`). It keeps the ruling's order of work and adds the learnability ladder in front of the corrected control.

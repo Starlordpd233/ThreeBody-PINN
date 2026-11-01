@@ -165,7 +165,26 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
   2. The result on orbit 1632 is scored: tier, `E` against the constant predictor and the two-Kepler formula, and the neighbour-similarity trace. A confirming result is repeated on a second panel system and a second seed.
   3. The review is recorded: the branch taken, the plain-language reading, and any plan change proposed under SCOPE-49 with the owner's answer.
 
-**Plans**: TBD
+**Plans**: 5 plans in 5 waves (planned 2026-10-31). 66-03 and 66-04 run only in the owner's weekend AC window.
+**Wave 1**
+
+- [ ] 66-01-PLAN.md
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 66-02-PLAN.md
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 66-03-PLAN.md
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 66-04-PLAN.md
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 66-05-PLAN.md
 
 ### Phase 67: Design & Settings Ladders
 
@@ -215,7 +234,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
-| 66. Small-Network Control | 0/TBD | Not started | - |
+| 66. Small-Network Control | 0/5 | Planned | - |
 | 67. Design & Settings Ladders | 0/TBD | Not started | - |
 | 68. Yardstick | 0/TBD | Not started | - |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |
