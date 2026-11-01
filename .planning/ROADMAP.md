@@ -93,7 +93,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 **Phase Numbering:** integer phases 65–69 continue from v2.4's Phase 64 (numbering does not reset). Decimal phases, such as 66.1, are for insertions under SCOPE-49. The phase folders 53–60 and 64 stay in `.planning/phases/` beside them.
 
 - [x] **Phase 65: Probe on the Record & Fit Harness** — The 2026-10-27 probe re-run as a committed, read-only step on the seven v2.4 networks, with its earlier figures as the predictions. Then the minute-scale harness that trains one named network variant, data-only, on one training orbit and logs, layer by layer, how alike the network's state is at neighbouring times. (DIAG-09, INST-08)
-- [ ] **Phase 66: Small-Network Control** — The cheapest, most decisive test first: does a smaller, shallower network fit orbit 1632 from time alone? Reaching Tier 1 refutes "too small" for one orbit. The result is reviewed against the plan before anything else runs. **Owner checkpoint ①.** (EXP-01)
+- [x] **Phase 66: Small-Network Control** — The cheapest, most decisive test first: does a smaller, shallower network fit orbit 1632 from time alone? Reaching Tier 1 refutes "too small" for one orbit. The result is reviewed against the plan before anything else runs. **Owner checkpoint ①.** (EXP-01) (completed 2026-11-01)
 - [ ] **Phase 67: Design & Settings Ladders** *(provisional until Phase 66's review)* — Four experiments on the locked layer types, each with its own prediction page:
   - depth: 2, 4, 6, 8 and 12 layers;
   - learning rate: 10⁻³ down to 10⁻⁵;
@@ -184,7 +184,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 66-05-PLAN.md
+- [x] 66-05-PLAN.md
 
 ### Phase 67: Design & Settings Ladders
 
@@ -234,7 +234,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
-| 66. Small-Network Control | 3/5 | Executing | - |
+| 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
 | 67. Design & Settings Ladders | 0/TBD | Not started | - |
 | 68. Yardstick | 0/TBD | Not started | - |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |

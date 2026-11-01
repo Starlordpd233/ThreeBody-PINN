@@ -112,7 +112,7 @@ Each experiment has a committed prediction page before its first run (SCOPE-47).
 
 A result counts as confirming only if it repeats on a second panel system and a second seed. All five experiments use INST-08.
 
-- [ ] **EXP-01**: **The small-network control (tests "too small").** A network with fewer parameters than the locked one, and fewer layers, fits orbit 1632 from time alone. Its architecture is fixed on the prediction page.
+- [x] **EXP-01**: **The small-network control (tests "too small").** A network with fewer parameters than the locked one, and fewer layers, fits orbit 1632 from time alone. Its architecture is fixed on the prediction page.
 
   **Acceptance:**
   - Its tier, `E` against the constant predictor and the formula, and neighbour similarity are recorded.
@@ -241,7 +241,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | DIAG-09 | Phase 65 | Complete |
 | INST-08 | Phase 65 | Complete |
-| EXP-01 | Phase 66 | Pending |
+| EXP-01 | Phase 66 | Complete |
 | EXP-02 | Phase 67 | Pending |
 | EXP-03 | Phase 67 | Pending |
 | EXP-04 | Phase 67 | Pending |
@@ -254,6 +254,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VER-23 | Phase 69 | Pending |
 
 **Coverage:**
+
 - v2.5 requirements: 13 total
 - Mapped to phases: 13
 - Unmapped: 0 ✓

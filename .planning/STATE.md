@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v2.5
 milestone_name: Root-Cause Confirmation
-current_phase: 66
-current_phase_name: Small-Network Control
-status: executing
-stopped_at: "66-05 complete: owner checkpoint 1 answered (accept — no plan change, Phase 67 runs as planned), ruling 66-CHECKPOINT-1-RULING.md ratified at e40ebca2; Phase 66 plans 5 of 5 complete, the phase verification act and the EXP-01 requirement mark are next"
-last_updated: "2026-11-01T20:41:26.000Z"
+current_phase: 67
+current_phase_name: Design & Settings Ladders
+status: planning
+stopped_at: Phase 66 complete, ready to plan Phase 67
+last_updated: "2026-11-01T21:30:15.877Z"
 last_activity: 2026-11-01
-last_activity_desc: "66-05 completed: the owner accepted the recorded proposal at checkpoint 1 (accept, no plan change), the ruling committed at e40ebca2, the plan re-summarized complete at 877239d7"
-state_head: 877239d7
+last_activity_desc: Phase 66 complete, transitioned to Phase 67
+state_head: 5da8cb056e6914dd23f5e8e10dfbb230553383ab
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
   completed_plans: 11
-  percent: 20
+  percent: 40
 ---
 
 # Project State
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 
 ## Current Position
 
-Phase: 66 (Small-Network Control) — EXECUTING
-Plan: 5 of 5 (66-01 through 66-05 complete)
-Status: Phase 66 plans complete — owner checkpoint 1 answered (accept: no plan change, Phase 67 as planned); the phase verification act and the EXP-01 requirement mark are next (orchestrator)
-Last activity: 2026-11-01 — 66-05 complete (89045a7f result page, e40ebca2 ruling, 877239d7 completed SUMMARY; the owner's verbatim answer is in the ruling)
+Phase: 67 — Design & Settings Ladders
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-11-01 — Phase 66 complete, transitioned to Phase 67
 
 ### Decisions from 66-05 (2026-11-01, tasks 66-05-01 to 66-05-03 — checkpoint 1 answered)
 
@@ -885,7 +885,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 **Velocity:**
 
-- Total plans completed: 892 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 903 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -954,6 +954,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | 54 | 13 | 6 waves + 6 post-delivery waves | complete 2026-09-04 |
 | 56 | 6 | - | - |
 | 57 | 6 | - | - |
+| 66 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -1229,7 +1230,7 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** .planning/phases/66-small-network-control/66-01-PLAN.md
 
 Last session: 2026-11-01T02:01:52.261Z
-Stopped at: Phase 66 planning complete: five plans in five waves, 14 tasks; three plan-check rounds, last-round warnings fixed
+Stopped at: Phase 66 complete, ready to plan Phase 67
 Next action: Execute Phase 66 via $gsd-execute-phase 66, starting with 66-01-PLAN.md. Five plans in five waves, 14 tasks. They went through three plan-check rounds; the last found no blockers and five warnings, all fixed in the plans. Run it inline on this checkout, not in worktree-isolated executors, because the Stage-0 data is gitignored. Plans 66-01 and 66-02 are code and tests and can run any day. The timing run (66-03) and the three EXP-01 runs (66-04) launch only on AC power, Saturday or Sunday before 22:00 America/Chicago (owner, 2026-10-31). 66-05 ends at owner checkpoint 1. No Phase 66 run has started. Technical choices remain delegated; overall direction and reserved owner checkpoints remain with the owner.
 
 ## Operator Next Steps
