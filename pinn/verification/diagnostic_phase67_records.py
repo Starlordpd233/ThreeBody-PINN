@@ -149,12 +149,6 @@ _SETTING_SEED = "the run's seed is not the matrix row's seed"
 #: The three D-09 confirmation case roles a matrix row may name.
 _CASE_ROLES = ("main", "repeat-system", "repeat-seed")
 
-#: The registered final-quarter improvement threshold (D-08, through
-#: 67-RESEARCH's interpretation recommendation): strictly greater than five
-#: percent relative improvement from the three-quarter checkpoint to the end
-#: leaves the endpoint unsettled; exactly five percent is settled.
-_IMPROVEMENT_THRESHOLD = 0.05
-
 #: The registered EXP-05 window arm names (D-06); their variant declarations
 #: arrive with the window registration plans, so only the names bind here.
 _EXP05_WINDOW_ARMS = ("lap1", "lap2", "lap5", "lap10")
@@ -229,31 +223,23 @@ def _tier_consistent(score, card):
 
 
 def _improvement_unsettled(checkpoints):
-    """The final-quarter improvement rule over the three score checkpoints.
+    """The reading's ``unsettled`` field: the canonical registered rule.
 
-    Returns ``True`` (unsettled), ``False`` (settled) or ``None`` when the
-    checkpoints cannot settle the question. The improvement is
-    ``(E_at_3N/4 - E_at_N) / E_at_3N_over_4`` and strictly greater than the
-    five-percent threshold leaves the endpoint unsettled; exactly five
-    percent is settled. A zero reference is settled either way (a zero final
-    E is settled, a positive final E is a settled worsening); a negative or
-    nonfinite reference or final E cannot settle the question.
+    ``phase67_improvement_check`` (plan 67-05 task 2) is the single
+    implementation of the final-quarter improvement rule — strictly greater
+    than the five-percent threshold leaves the endpoint unsettled, exactly
+    five percent is settled, and a zero reference is settled either way. The
+    reader maps its verdict onto the reading's flag, and a refusal (a
+    negative, non-finite or malformed checkpoint E, a wrong count or
+    non-increasing steps) becomes ``None``: the reading records the
+    improvement problem instead of guessing a settlement.
     """
-    if not isinstance(checkpoints, list) or len(checkpoints) != 3:
+    from pinn.verification.diagnostic_phase67 import phase67_improvement_check
+
+    try:
+        return not phase67_improvement_check(checkpoints)["settled"]
+    except (ValueError, TypeError):
         return None
-    values = []
-    for checkpoint in checkpoints:
-        if not isinstance(checkpoint, Mapping):
-            return None
-        e_value = _finite_number((checkpoint.get("score") or {}).get("E"))
-        if e_value is None or e_value < 0.0:
-            return None
-        values.append(e_value)
-    reference, final = values[1], values[2]
-    if reference == 0.0:
-        return False
-    improvement = (reference - final) / reference
-    return improvement > _IMPROVEMENT_THRESHOLD
 
 
 def _matrix_row_problems(row, settings, variant):

@@ -230,12 +230,15 @@ class ContrastTests(unittest.TestCase):
             self.assertEqual(case["direction"], "worsening")
             self.assertEqual(case["tier_direction"], "worsened")
 
-    def test_an_opposing_tier_change_does_not_qualify_a_twenty_percent_effect(self):
+    def test_a_twenty_percent_effect_qualifies_even_against_an_opposing_tier(self):
+        # The registered rule is an OR: a nonzero E direction qualifies
+        # through a matching tier change OR a twenty-percent effect, so an
+        # opposing tier change cannot veto the effect side of the rule.
         result = self._contrast(_three_cases(4.0, 5.0, arm_tier=0, control_tier=1))
-        self.assertEqual(result["confirmation"], "ambiguous")
+        self.assertEqual(result["confirmation"], "confirmed-improvement")
         for case in result["cases"].values():
             self.assertEqual(case["tier_direction"], "worsened")
-            self.assertIs(case["qualifies_effect"], False)
+            self.assertIs(case["qualifies_effect"], True)
 
     def test_ties_small_effects_and_opposed_directions_are_ambiguous(self):
         tie = self._contrast(_three_cases(5.0, 5.0))

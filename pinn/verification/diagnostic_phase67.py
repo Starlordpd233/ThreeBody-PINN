@@ -57,9 +57,19 @@ from collections.abc import Mapping
 from types import MappingProxyType
 
 __all__ = [
+    "CONFIRMATION_LABELS",
+    "GAP_59_08_NOTE",
     "PHASE67_BUDGET_RULE",
+    "PHASE67_CASES",
+    "PHASE67_EFFECT_RULE",
+    "PHASE67_IMPROVEMENT_RULE",
+    "SIMILARITY_NOTE",
     "phase67_budget",
     "phase67_cadence",
+    "phase67_confirmation",
+    "phase67_contrast",
+    "phase67_control_arm",
+    "phase67_improvement_check",
     "phase67_loss_trace_entries",
     "phase67_loss_trace_stride",
     "phase67_score_cadence",
@@ -542,5 +552,523 @@ def phase67_budget(cost_rows, *, expected_identities, unmeasured=None):
                 }
                 for key in keys
             },
+        },
+    }
+
+
+# --------------------------------------------------------------------------
+# Plan 67-05 task 67-05-02: the prospective reading, contrast and confirmation
+# rules (D-08/D-09/D-10/D-11 through 67-RESEARCH's interpretation
+# recommendation), committed before any prediction page or real run exists.
+# --------------------------------------------------------------------------
+
+#: The three registered D-09 confirmation cases every declared contrast
+#: repeats on: the main comparison system and seed, the second panel system,
+#: and the second seed on the main system.
+PHASE67_CASES = MappingProxyType({
+    role: MappingProxyType(binding)
+    for role, binding in (
+        ("main", {"orbit_key": "hierarchical/gold/1632", "seed": 42}),
+        ("repeat-system", {"orbit_key": "hierarchical/gold/851", "seed": 42}),
+        ("repeat-seed", {"orbit_key": "hierarchical/gold/1632", "seed": 41}),
+    )
+})
+
+#: The final-quarter convergence rule (D-08): an endpoint whose E improves by
+#: strictly more than five percent relative to its three-quarter checkpoint
+#: is unsettled — a bounded-budget fit that is still improving says nothing
+#: about representational impossibility. Exactly five percent is settled.
+PHASE67_IMPROVEMENT_RULE = MappingProxyType({
+    "reference": "the three-quarter frozen-score checkpoint",
+    "final": "the final frozen-score checkpoint",
+    "definition": "(E_at_3N_over_4 - E_at_N) / E_at_3N_over_4",
+    "threshold": 0.05,
+    "comparison": "strictly_greater_is_unsettled",
+})
+
+#: The replicated-effect rule (D-09): a case qualifies when the E direction
+#: is nonzero and either the frozen tier changes in that same direction or
+#: the relative E effect reaches twenty percent. These are finite-budget
+#: diagnostic reading labels; they do not amend the frozen FEAS tiers.
+PHASE67_EFFECT_RULE = MappingProxyType({
+    "relative_effect": "abs(E_arm - E_control) / E_control",
+    "threshold": 0.20,
+    "comparison": "greater_or_equal_qualifies",
+    "tier_ordering": "higher tier number is better; the frozen scorecard levels 3, 2, 1 then otherwise 0",
+})
+
+#: The exact confirmation labels of the prospective branch table.
+CONFIRMATION_LABELS = (
+    "confirmed-improvement",
+    "confirmed-worsening",
+    "ambiguous",
+    "unsettled",
+    "inconclusive-mechanical",
+)
+
+#: GAP-59-08 stays explicit beside every contrast output (D-11).
+GAP_59_08_NOTE = (
+    "GAP-59-08: E is the frozen scorecard's position-error score; no energy "
+    "bar or scorer definition is adjudicated here"
+)
+
+#: Adjacent-time hidden-state similarity stays associated, descriptive
+#: evidence (D-02/D-11): no cosine threshold, no causal claim.
+SIMILARITY_NOTE = (
+    "adjacent-time hidden-state similarity is associated evidence only; no "
+    "cosine threshold and no causal claim"
+)
+
+
+def phase67_control_arm(experiment, arm):
+    """The registered control arm a noncontrol arm is contrasted with.
+
+    EXP-02 contrasts every depth arm with ``d12`` (the locked depth), EXP-03
+    every rate arm with ``lr1e-4`` (the locked rate), EXP-04 every encoded
+    arm with its own backbone's raw input, and EXP-05 every shorter prefix
+    with ``lap10``. Raises ``ValueError`` for an unknown experiment or arm.
+    """
+    if not isinstance(experiment, str) or not isinstance(arm, str):
+        raise ValueError(
+            f"the experiment and arm must be text; got {experiment!r}, {arm!r}"
+        )
+    depth_arms = ("d2", "d4", "d6", "d8", "d12")
+    rate_arms = ("lr1e-3", "lr3e-4", "lr1e-4", "lr3e-5", "lr1e-5")
+    if experiment == "exp02":
+        if arm not in depth_arms:
+            raise ValueError(
+                f"unknown exp02 depth arm {arm!r}; known: {depth_arms}"
+            )
+        return "d12"
+    if experiment == "exp03":
+        if arm not in rate_arms:
+            raise ValueError(
+                f"unknown exp03 rate arm {arm!r}; known: {rate_arms}"
+            )
+        return "lr1e-4"
+    if experiment == "exp05":
+        if arm in ("lap1", "lap2", "lap5", "lap10"):
+            return "lap10"
+        raise ValueError(
+            f"unknown exp05 window arm {arm!r}; known: lap1, lap2, lap5, lap10"
+        )
+    if experiment == "exp04":
+        if arm.startswith("locked-"):
+            return "locked-raw"
+        if arm.startswith("exp01-"):
+            return "exp01-raw"
+        raise ValueError(
+            f"unknown exp04 input arm {arm!r}; known backbones: locked-, exp01-"
+        )
+    raise ValueError(
+        f"unknown Phase 67 experiment {experiment!r}; known: exp02, exp03, "
+        "exp04, exp05"
+    )
+
+
+def _checkpoint_e(checkpoint, *, what):
+    """One score checkpoint's finite non-negative E, or a refusal."""
+    if not isinstance(checkpoint, Mapping):
+        raise ValueError(f"{what} must be a score-checkpoint mapping; got {checkpoint!r}")
+    score = checkpoint.get("score")
+    if not isinstance(score, Mapping):
+        raise ValueError(f"{what} names no score block")
+    e_value = score.get("E")
+    if isinstance(e_value, bool) or not isinstance(e_value, (int, float)) \
+            or not math.isfinite(float(e_value)):
+        raise ValueError(f"{what} names a non-finite or non-numeric E: {e_value!r}")
+    if float(e_value) < 0.0:
+        raise ValueError(f"{what} names a negative E: {e_value!r}")
+    return float(e_value)
+
+
+def phase67_improvement_check(checkpoints):
+    """The final-quarter improvement rule over the three score checkpoints.
+
+    ``checkpoints`` are the reading's recorded frozen-score checkpoints at
+    N/2, 3N/4 and N (each ``{"step", "score": {"E", ...}}``). The improvement
+    is ``(E_at_3N/4 - E_at_N) / E_at_3N/4``; strictly greater than the
+    five-percent threshold leaves the endpoint unsettled, exactly five
+    percent is settled, and a zero reference is settled either way (a zero
+    final E is settled and a positive final E is a settled worsening). A
+    negative, non-finite, boolean or string E, a wrong checkpoint count or
+    non-increasing steps refuse. Returns the reference/final steps, the
+    improvement (``None`` on a zero reference), the threshold and the
+    ``settled`` flag with a ``reason`` when one is needed.
+    """
+    if not isinstance(checkpoints, (list, tuple)) or len(checkpoints) != 3:
+        raise ValueError(
+            "the improvement check needs exactly the three registered score "
+            f"checkpoints; got {len(checkpoints) if hasattr(checkpoints, '__len__') else checkpoints!r}"
+        )
+    steps = []
+    for index, checkpoint in enumerate(checkpoints):
+        step = checkpoint.get("step") if isinstance(checkpoint, Mapping) else None
+        if isinstance(step, bool) or not isinstance(step, int):
+            raise ValueError(f"score checkpoint {index} names no integer step")
+        steps.append(int(step))
+    if not steps[0] < steps[1] < steps[2]:
+        raise ValueError(
+            f"the score checkpoint steps must be increasing; got {steps}"
+        )
+    reference = _checkpoint_e(checkpoints[1], what="the three-quarter checkpoint")
+    final = _checkpoint_e(checkpoints[2], what="the final checkpoint")
+    threshold = float(PHASE67_IMPROVEMENT_RULE["threshold"])
+    if reference == 0.0:
+        return {
+            "reference_step": steps[1],
+            "final_step": steps[2],
+            "improvement": None,
+            "threshold": threshold,
+            "settled": True,
+            "reason": (
+                "the reference E is zero: a zero final E is settled and a "
+                "positive final E is a settled worsening"
+            ),
+        }
+    improvement = (reference - final) / reference
+    settled = not improvement > threshold
+    return {
+        "reference_step": steps[1],
+        "final_step": steps[2],
+        "improvement": improvement,
+        "threshold": threshold,
+        "settled": settled,
+        "reason": None if settled else (
+            f"the final-quarter improvement {improvement!r} exceeds the "
+            f"registered {threshold} boundary: the endpoint is unsettled"
+        ),
+    }
+
+
+def _contrast_endpoint(reading, *, experiment, arm, role):
+    """One validated endpoint reading of a contrast case."""
+    if not isinstance(reading, Mapping):
+        raise ValueError(
+            f"the {role} {arm} reading must be a mapping; got {reading!r}"
+        )
+    problems = []
+    for field in ("mechanical_problems", "setting_problems"):
+        values = reading.get(field)
+        if not isinstance(values, list) or any(
+            not isinstance(value, str) for value in values
+        ):
+            raise ValueError(
+                f"the {role} {arm} reading names no {field} string list"
+            )
+        problems.extend(f"{field}: {value}" for value in values)
+    identity = reading.get("identity")
+    if not isinstance(identity, Mapping):
+        raise ValueError(f"the {role} {arm} reading names no identity")
+    registered = PHASE67_CASES[role]
+    for field, expected in (
+        ("experiment", experiment),
+        ("arm", arm),
+        ("orbit_key", registered["orbit_key"]),
+    ):
+        if identity.get(field) != expected:
+            raise ValueError(
+                f"the {role} {arm} reading's identity {field} is "
+                f"{identity.get(field)!r}; the registered contrast expects "
+                f"{expected!r}"
+            )
+    seed = identity.get("seed")
+    if isinstance(seed, bool) or not isinstance(seed, int) \
+            or int(seed) != int(registered["seed"]):
+        raise ValueError(
+            f"the {role} {arm} reading's seed is {seed!r}; the registered "
+            f"contrast expects {registered['seed']}"
+        )
+    scores = reading.get("scores")
+    network = scores.get("network") if isinstance(scores, Mapping) else None
+    if not isinstance(network, Mapping):
+        raise ValueError(f"the {role} {arm} reading names no network score")
+    e_value = _checkpoint_e({"score": network}, what=f"the {role} {arm} E")
+    tier = network.get("tier")
+    if isinstance(tier, bool) or not isinstance(tier, int) \
+            or not 0 <= int(tier) <= 3:
+        raise ValueError(
+            f"the {role} {arm} reading's tier must be an integer 0..3; got {tier!r}"
+        )
+    unsettled = reading.get("unsettled")
+    if not isinstance(unsettled, bool):
+        raise ValueError(
+            f"the {role} {arm} reading's unsettled flag must be a boolean; "
+            f"got {unsettled!r}"
+        )
+    trace = reading.get("layer_trace")
+    if not isinstance(trace, list):
+        trace = []
+    return {
+        "E": e_value,
+        "tier": int(tier),
+        "unsettled": unsettled,
+        "problems": problems,
+        "layer_trace": trace,
+    }
+
+
+def phase67_contrast(experiment, arm, readings):
+    """One declared matched contrast across the three registered cases.
+
+    ``readings`` maps each D-09 role to ``{"arm": reading, "control": reading}``
+    — mechanically clean :func:`read_phase67_run_directory` readings with
+    scores. The control arm is the registered control of ``arm``
+    (:func:`phase67_control_arm`); every reading's identity must match its
+    case's registered orbit and seed, its experiment, and its arm, and all
+    six run identities must be distinct. Per case the contrast records the
+    direction (exact E ordering; equal E is a tie), the relative E effect
+    ``abs(E_arm - E_control) / E_control`` (a positive control only — a zero
+    control retains the direction and flags the percentage inapplicable
+    rather than dividing by zero), the frozen tier direction, whether the
+    case qualifies (nonzero direction and either a matching tier change or a
+    relative effect of at least twenty percent), both endpoint statuses and
+    the observed fit. The confirmation label follows the registered table:
+    all three cases qualifying in the same direction with all six endpoints
+    settled and clean confirms improvement or worsening; any problematic
+    endpoint is inconclusive-mechanical; any unsettled endpoint is unsettled;
+    everything else (ties, small effects, opposed directions) is ambiguous
+    with reasons. Adjacent-time similarity and the loss stay descriptive
+    context and GAP-59-08 stays explicit. These labels describe finite-budget
+    diagnostic effects and never amend the frozen FEAS tiers.
+    """
+    if not isinstance(readings, Mapping):
+        raise ValueError(f"the contrast readings must be a mapping; got {readings!r}")
+    if set(readings) != set(PHASE67_CASES):
+        raise ValueError(
+            "a declared contrast repeats on exactly the three registered "
+            f"cases {sorted(PHASE67_CASES)}; got {sorted(map(str, readings))}"
+        )
+    control = phase67_control_arm(experiment, arm)
+    if arm == control:
+        raise ValueError(
+            f"the control arm {control!r} is not contrasted with itself"
+        )
+    endpoints = {}
+    seen = {}
+    for role in PHASE67_CASES:
+        pair = readings[role]
+        if not isinstance(pair, Mapping) or set(pair) != {"arm", "control"}:
+            raise ValueError(
+                f"the {role} case must map exactly arm and control readings"
+            )
+        endpoints[role] = {
+            "arm": _contrast_endpoint(
+                pair["arm"], experiment=experiment, arm=arm, role=role
+            ),
+            "control": _contrast_endpoint(
+                pair["control"], experiment=experiment, arm=control, role=role
+            ),
+        }
+        for kind, endpoint in endpoints[role].items():
+            key = (
+                PHASE67_CASES[role]["orbit_key"],
+                int(PHASE67_CASES[role]["seed"]),
+                pair[kind]["identity"]["arm"],
+            )
+            if key in seen:
+                raise ValueError(
+                    "two contrast readings share one run identity "
+                    f"{key}; an interrupted or duplicate attempt never counts "
+                    "as an additional replicate"
+                )
+            seen[key] = (role, kind)
+
+    threshold = float(PHASE67_EFFECT_RULE["threshold"])
+    cases = {}
+    reasons: list[str] = []
+    for role, pair in endpoints.items():
+        arm_end = pair["arm"]
+        control_end = pair["control"]
+        e_arm, e_control = arm_end["E"], control_end["E"]
+        if e_arm < e_control:
+            direction = "improvement"
+        elif e_arm > e_control:
+            direction = "worsening"
+        else:
+            direction = "tie"
+        applicable = e_control > 0.0
+        relative = abs(e_arm - e_control) / e_control if applicable else None
+        if arm_end["tier"] > control_end["tier"]:
+            tier_direction = "improved"
+        elif arm_end["tier"] < control_end["tier"]:
+            tier_direction = "worsened"
+        else:
+            tier_direction = "unchanged"
+        tier_matches = (
+            (direction == "improvement" and tier_direction == "improved")
+            or (direction == "worsening" and tier_direction == "worsened")
+        )
+        qualifies = direction != "tie" and (
+            tier_matches or (applicable and relative >= threshold)
+        )
+        case_reasons = []
+        if direction == "tie":
+            case_reasons.append("an exact E tie carries no direction")
+        if direction != "tie" and not tier_matches and not (
+            applicable and relative >= threshold
+        ):
+            case_reasons.append(
+                "the effect is below the registered twenty-percent line with "
+                "no matching tier change"
+            )
+        if not applicable:
+            case_reasons.append(
+                "the control E is zero: the percentage effect is inapplicable "
+                "and only a matching tier change can qualify"
+            )
+        cases[role] = {
+            "direction": direction,
+            "relative_E_effect": relative,
+            "percentage_applicable": applicable,
+            "tier_direction": tier_direction,
+            "qualifies_effect": qualifies,
+            "endpoint_status": {
+                "arm": "unsettled" if arm_end["unsettled"] else "settled",
+                "control": "unsettled" if control_end["unsettled"] else "settled",
+            },
+            "observed_fit": {
+                "arm": {"E": e_arm, "tier": arm_end["tier"]},
+                "control": {"E": e_control, "tier": control_end["tier"]},
+            },
+            "reasons": case_reasons,
+        }
+        reasons.extend(f"{role}: {reason}" for reason in case_reasons)
+
+    problem_endpoints = [
+        f"{role}/{kind}"
+        for role, pair in endpoints.items()
+        for kind, endpoint in pair.items()
+        if endpoint["problems"]
+    ]
+    unsettled_endpoints = [
+        f"{role}/{kind}"
+        for role, pair in endpoints.items()
+        for kind, endpoint in pair.items()
+        if endpoint["unsettled"]
+    ]
+    if problem_endpoints:
+        confirmation = "inconclusive-mechanical"
+        reasons = [
+            f"the {name} reading carries problems" for name in problem_endpoints
+        ]
+    elif unsettled_endpoints:
+        confirmation = "unsettled"
+        reasons = [
+            f"the {name} endpoint is unsettled" for name in unsettled_endpoints
+        ]
+    else:
+        directions = {cases[role]["direction"] for role in cases}
+        all_qualify = all(cases[role]["qualifies_effect"] for role in cases)
+        if all_qualify and directions == {"improvement"}:
+            confirmation = "confirmed-improvement"
+            reasons = []
+        elif all_qualify and directions == {"worsening"}:
+            confirmation = "confirmed-worsening"
+            reasons = []
+        else:
+            confirmation = "ambiguous"
+            if len(directions) > 1:
+                reasons.insert(
+                    0, "the registered cases disagree on the E direction"
+                )
+    return {
+        "experiment": experiment,
+        "arm": arm,
+        "control": control,
+        "cases": cases,
+        "confirmation": confirmation,
+        "reasons": reasons,
+        "descriptive": {
+            "adjacent_time_similarity": {
+                role: {
+                    kind: endpoints[role][kind]["layer_trace"]
+                    for kind in ("arm", "control")
+                }
+                for role in endpoints
+            },
+            "note": SIMILARITY_NOTE,
+            "gap_59_08": GAP_59_08_NOTE,
+            "loss": "context only",
+        },
+    }
+
+
+def phase67_confirmation(experiment, contrasts, *, declared_arms):
+    """The experiment-level confirmation over every declared contrast.
+
+    ``declared_arms`` is the experiment's complete declared arm set (the
+    prediction page's arms). Every declared noncontrol arm — each arm whose
+    registered control differs from itself — must carry exactly one contrast,
+    no control arm is contrasted, no undeclared arm appears, and every
+    contrast must belong to this experiment. The output persists every
+    declared paired contrast with its confirmation and nonconfirmation
+    reasons (T-67-15), separating the confirmed effects from the ambiguous,
+    unsettled and mechanically inconclusive ones beside the association and
+    GAP-59-08 notes. A favourable main run alone can never confirm anything:
+    each contrast already required all three registered cases.
+    """
+    if not isinstance(contrasts, (list, tuple)) or not contrasts:
+        raise ValueError("the confirmation needs the experiment's contrasts")
+    if not isinstance(declared_arms, (list, tuple)) or not declared_arms:
+        raise ValueError("the confirmation needs the complete declared arm set")
+    arms = []
+    for arm in declared_arms:
+        if not isinstance(arm, str) or not arm:
+            raise ValueError(f"a declared arm must be non-empty text; got {arm!r}")
+        if arm in arms:
+            raise ValueError(f"the declared arm {arm!r} appears twice")
+        arms.append(arm)
+    noncontrol = [
+        arm for arm in arms if phase67_control_arm(experiment, arm) != arm
+    ]
+    by_arm = {}
+    for contrast in contrasts:
+        if not isinstance(contrast, Mapping):
+            raise ValueError(f"a contrast must be a mapping; got {contrast!r}")
+        if contrast.get("experiment") != experiment:
+            raise ValueError(
+                f"a contrast of experiment {contrast.get('experiment')!r} "
+                f"cannot join the {experiment} confirmation"
+            )
+        arm = contrast.get("arm")
+        if not isinstance(arm, str) or not arm:
+            raise ValueError(f"a contrast arm must be non-empty text; got {arm!r}")
+        if arm not in noncontrol:
+            raise ValueError(
+                f"the contrast arm {arm!r} is not a declared noncontrol arm "
+                f"of {experiment}; the declared noncontrol arms are {noncontrol}"
+            )
+        if arm in by_arm:
+            raise ValueError(f"the contrast for {arm!r} appears twice")
+        by_arm[arm] = contrast
+    missing = sorted(set(noncontrol) - set(by_arm))
+    if missing:
+        raise ValueError(
+            "every declared noncontrol contrast is required before the "
+            f"experiment confirmation exists; missing: {', '.join(missing)}"
+        )
+    confirmed = []
+    unconfirmed = []
+    for arm in sorted(by_arm):
+        contrast = by_arm[arm]
+        confirmation = contrast.get("confirmation")
+        if confirmation in ("confirmed-improvement", "confirmed-worsening"):
+            confirmed.append({"arm": arm, "confirmation": confirmation})
+        else:
+            unconfirmed.append({
+                "arm": arm,
+                "confirmation": confirmation,
+                "reasons": list(contrast.get("reasons") or []),
+            })
+    return {
+        "experiment": experiment,
+        "contrasts": {arm: by_arm[arm] for arm in sorted(by_arm)},
+        "confirmed": confirmed,
+        "unconfirmed": unconfirmed,
+        "descriptive": {
+            "note": SIMILARITY_NOTE,
+            "gap_59_08": GAP_59_08_NOTE,
+            "loss": "context only",
         },
     }
