@@ -393,7 +393,23 @@ def validate_smoke_settings(doc):
     window = settings.get("physical_window")
     if not isinstance(window, Mapping):
         raise DiagnosticFitRefused("the settings name no physical window")
-    if float(window.get("t_start", float("nan"))) != 0.0:
+    if settings.get("variant_registry") == "phase67":
+        # Phase 67 (65-CLOSEOUT IN-01's affected-use hardening): both window
+        # endpoints must be finite numbers excluding booleans, and the start
+        # exactly zero — never a boolean, numeric string, null or list that
+        # merely survives a float coercion. Phase 65/66 registrations keep
+        # their existing check byte-for-byte.
+        for endpoint in ("t_start", "t_end"):
+            value = window.get(endpoint)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) \
+                    or not math.isfinite(float(value)):
+                raise DiagnosticFitRefused(
+                    f"the phase67 physical window {endpoint} must be a finite "
+                    f"number excluding booleans; got {value!r}"
+                )
+        if float(window["t_start"]) != 0.0:
+            raise DiagnosticFitRefused("the phase67 physical window must start at t = 0")
+    elif float(window.get("t_start", float("nan"))) != 0.0:
         raise DiagnosticFitRefused("the physical window must start at t = 0")
     t_end = window.get("t_end")
     if isinstance(t_end, bool) or not isinstance(t_end, (int, float)) \
