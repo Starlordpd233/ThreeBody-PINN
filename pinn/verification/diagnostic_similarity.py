@@ -102,10 +102,10 @@ class TimeSignalMeasurement:
     physical_dt_median: float
     n_points: int
     frequency_applicability: bool = True
-    frequency_reason: str = None
-    feature_frequency_cycles: tuple = None
-    feature_harmonics: tuple = None
-    internal_input_dimension: int = None
+    frequency_reason: str | None = None
+    feature_frequency_cycles: tuple | None = None
+    feature_harmonics: tuple | None = None
+    internal_input_dimension: int | None = None
 
     def to_json_dict(self) -> dict:
         applicable = bool(self.frequency_applicability)

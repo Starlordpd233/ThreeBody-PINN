@@ -93,7 +93,7 @@ class DiagnosticVariant:
     window_length: float
     first_omega_0: float = SIREN_FIRST_OMEGA_0
     hidden_omega_0: float = SIREN_HIDDEN_OMEGA_0
-    feature_frequency: float = None
+    feature_frequency: float | None = None
 
     def __post_init__(self):
         if not isinstance(self.name, str) or VARIANT_NAME_RE.fullmatch(self.name) is None:
