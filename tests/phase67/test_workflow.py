@@ -19,6 +19,7 @@ import contextlib
 import hashlib
 import io
 import json
+import math
 import re
 import subprocess
 import tempfile
@@ -134,7 +135,9 @@ def _build_chain():
         ],
     }
     (evidence / "harness-freeze.json").write_text(json.dumps(freeze, indent=2))
-    _git(root, "add", "evidence/harness-freeze.json")
+    freeze_rel = ".planning/phases/67-design-settings-ladders/evidence/" \
+        "harness-freeze.json"
+    _git(root, "add", freeze_rel)
     _git(root, "commit", "-q", "-m", "fixture harness freeze")
 
     execution = _execution(_ChainTestCase)
@@ -142,6 +145,20 @@ def _build_chain():
     rule_patch.start()
     arm_patch = mock.patch.object(execution, "ARM_ORDER", WORKFLOW_ARMS)
     arm_patch.start()
+    # The fixture repository supplies its own provenance registration and
+    # pinned harness files (the production paths live in the real repo).
+    provenance_patch = mock.patch.object(
+        execution, "PROVENANCE_REGISTRATION_REL", "reg/smoke-registration.json"
+    )
+    provenance_patch.start()
+    dependencies_patch = mock.patch.object(
+        execution, "PHASE67_DEPENDENCIES", ("fit_dep.py", "frozen/scorer.py")
+    )
+    dependencies_patch.start()
+    runtime_patch = mock.patch.object(
+        execution, "DEFAULT_RUNTIME", {"dtype": "float64", "device": "cpu"}
+    )
+    runtime_patch.start()
     orbit_data = {
         "hierarchical/gold/1632": _relabel(data, "hierarchical/gold/1632"),
         "hierarchical/gold/851": _relabel(data, "hierarchical/gold/851"),
@@ -228,7 +245,7 @@ def _stages(state):
         ["check-row", "--experiment", "exp02", "--kind", "timing",
          "--case", "main-1632-s42", "--arm", "d2"]
     )
-    assert "PHASE67-ROW-OK" in out, out
+    assert "PHASE67-ROW-OK" in out, f"check-row timing: {out}{_err}"
 
     # 7-8) The cost-only budget, its immutable pages and the science matrix.
     _patch_science_cap(state)
@@ -261,47 +278,83 @@ def _stages(state):
 def _patch_science_cap(state):
     """A rule cap that pins the budget's common N at the fixture scale.
 
-    The cap is derived from the committed timing row's own measured cost
-    fields — exactly the projection the budget performs — so the derived
-    common N is deterministically the 100-step timing scale.
+    The cap is probed through the real ``phase67_budget`` on the committed
+    timing rows' own cost fields: the smallest cap that admits any N gives
+    N at the 100-step floor, and the cap is set inside that N region so the
+    derived common N is deterministically 100.
     """
+    from pinn.verification.diagnostic_phase67 import phase67_budget
+
     execution = state["execution"]
-    row_dir = state["phase"] / "evidence/exp02/timing/main-1632-s42/d2"
-    record = json.loads((row_dir / "record.json").read_bytes())
-    receipt = json.loads((row_dir / "power-gate.json").read_bytes())
-    attempt = json.loads((row_dir / "attempt.json").read_bytes())
-    identity = {"experiment": "exp02", "arm": "d2",
-                "orbit_key": "hierarchical/gold/1632", "seed": 42,
-                "window": 10.0}
-    row = execution.phase67_cost_rows([
-        (identity, record, receipt, attempt,
-         len((row_dir / "record.json").read_bytes()))
-    ])[0]
-    rate = row["timing"]["seconds_per_step"]
-    warmup_seconds = row["timing"]["warmup_seconds"]
-    residual = max(
-        row["launch_wall_seconds"] - (
-            warmup_seconds + row["timing"]["measured_seconds"]
-            + sum(row["logger_event_seconds"]) + sum(row["scorer_event_seconds"])
-            + row["publication_io_seconds"]
-        ),
-        0.0,
-    )
-    events = (
-        5 * max(row["logger_event_seconds"])
-        + 3 * max(row["scorer_event_seconds"])
-        + row["publication_io_seconds"]
-    )
+    entries = []
+    identities = []
+    for row in state["timing_matrix"]["rows"]:
+        directory = state["phase"] / row["registration_path"]
+        directory = directory.parent
+        record = json.loads((directory / "record.json").read_bytes())
+        receipt = json.loads(
+            (directory / "power-gate.json").read_bytes()
+        )
+        attempt = json.loads((directory / "attempt.json").read_bytes())
+        identity = {
+            "experiment": row["experiment"], "arm": row["arm"],
+            "orbit_key": row["orbit_key"], "seed": row["seed"],
+            "window": row["t_end"],
+        }
+        entries.append((
+            identity, record, receipt, attempt,
+            len((directory / "record.json").read_bytes()),
+            len((directory / "diagnostic.weights").read_bytes()),
+        ))
+        identities.append(identity)
+    rows = execution.phase67_cost_rows(entries)
 
-    def projection(candidate):
-        return residual + warmup_seconds + (candidate - 20) * rate * 1.25 + events
+    def steps_at(cap):
+        rule = dict(WORKFLOW_RULE)
+        rule["cap_seconds"] = cap
+        with mock.patch.object(_RULE_MODULE, "PHASE67_BUDGET_RULE", rule):
+            try:
+                return phase67_budget(
+                    rows, expected_identities=identities
+                )["common_optimizer_steps"]
+            except ValueError:
+                return None
 
-    target = projection(100) + 0.8 * (projection(200) - projection(100))
+    def boundary(refuse_low, admit_high, admitted):
+        """Bisect the cap boundary between two known outcomes."""
+        for _ in range(60):
+            middle = 0.5 * (refuse_low + admit_high)
+            if admitted(middle):
+                admit_high = middle
+            else:
+                refuse_low = middle
+            if admit_high - refuse_low < 1e-4:
+                break
+        return admit_high
+
+    def any_steps(cap):
+        return steps_at(cap) is not None
+
+    def above_floor(cap):
+        return steps_at(cap) is not None and steps_at(cap) > 100
+
+    high = 8.0
+    while steps_at(high) is None:
+        high *= 2.0
+        assert high <= 512.0, "no admissible cap at the fixture scale"
+    first_admissible = boundary(0.5, high, any_steps)
+    upper = high
+    while not above_floor(upper):
+        upper *= 2.0
+        assert upper <= 512.0, "the floor region never ends"
+    floor_end = boundary(first_admissible, upper, above_floor)
+    best = math.sqrt(first_admissible * floor_end)
     rule = dict(WORKFLOW_RULE)
-    rule["cap_seconds"] = target / 0.75
+    rule["cap_seconds"] = best
     patch = mock.patch.object(_RULE_MODULE, "PHASE67_BUDGET_RULE", rule)
     patch.start()
     state.setdefault("patches", []).append(patch)
+    return rule
 
 
 class _ChainTestCase(unittest.TestCase):
@@ -334,7 +387,9 @@ class WorkflowChainTests(_ChainTestCase):
             self.assertTrue(path.is_file(), path)
         design = json.loads(design_json.read_bytes())
         self.assertEqual(design["schema"], "phase67-design/v1")
-        self.assertEqual(tuple(design["variants"]), ("d2", "d12"))
+        self.assertEqual(
+            [entry["arm"] for entry in design["variants"]], ["d2", "d12"]
+        )
         registration = json.loads(meta_registration.read_bytes())
         self.assertEqual(registration["schema"],
                          "phase67-metadata-registration/v1")

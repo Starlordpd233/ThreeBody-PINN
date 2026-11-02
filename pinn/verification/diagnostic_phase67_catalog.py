@@ -32,12 +32,23 @@ encoded declaration's frequency is resolved ONLY from that validated
 committed census row: ``phase67_registry`` rejects a settings block whose
 orbit's census row disagrees with the declaration the settings name
 (T-67-04).
+
+Plan 67-06 materializes the repeat-system (851) encoded registrations as
+fresh orbit-specific declarations (D-09: the same encoded designs at 851's
+own census frequency, so the encoded arms run identically encoded on the
+second panel system), and adds the EXP-05 window-variant extension point:
+the lap arms' variants depend on the committed metadata capture's exact
+first-crossing endpoints, so they are materialized AFTER metadata through
+:func:`register_exp05_window_variants` and merge into the registry the
+``phase67`` dispatch returns. The locked raw registry entries are never
+edited.
 """
 
 from __future__ import annotations
 
 import json
 import math
+import re
 from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
@@ -76,10 +87,18 @@ __all__ = [
     "PHASE67_ARMS",
     "PHASE67_REGISTRY",
     "PHASE67_REGISTRY_NAME",
+    "EXP04_LOCKED_F1_851_VARIANT",
+    "EXP04_LOCKED_F12_851_VARIANT",
+    "EXP04_EXP01_F1_851_VARIANT",
+    "EXP04_EXP01_F12_851_VARIANT",
+    "EXP05_WINDOW_ARM_PATTERN",
     "census_feature_frequency",
     "census_n_in",
+    "exp05_window_variant",
+    "phase67_arm_variant",
     "phase67_registry",
     "phase67_variant",
+    "register_exp05_window_variants",
 ]
 
 #: The registry name a Phase 67 fit registration selects through its
@@ -193,6 +212,31 @@ EXP04_EXP01_F12_VARIANT = DiagnosticVariant(
     feature_frequency=FEATURE_FREQUENCY_1632,
 )
 
+#: The repeat-system (851) encoded registrations (plan 67-06, D-09): the same
+#: encoded designs at 851's own committed census frequency, materialized as
+#: fresh orbit-specific declarations so an encoded arm runs identically
+#: encoded on the second panel system. Raw arms need no orbit-specific copy.
+EXP04_LOCKED_F1_851_VARIANT = DiagnosticVariant(
+    name="exp04-locked-f1-851", time_features="tau_ic13_fourier1",
+    depth=12, width=256, learning_rate=1e-4, window_length=10.0, first_omega_0=30.0,
+    feature_frequency=FEATURE_FREQUENCY_851,
+)
+EXP04_LOCKED_F12_851_VARIANT = DiagnosticVariant(
+    name="exp04-locked-f12-851", time_features="tau_ic13_fourier12",
+    depth=12, width=256, learning_rate=1e-4, window_length=10.0, first_omega_0=30.0,
+    feature_frequency=FEATURE_FREQUENCY_851,
+)
+EXP04_EXP01_F1_851_VARIANT = DiagnosticVariant(
+    name="exp04-exp01-f1-851", time_features="tau_ic13_fourier1",
+    depth=1, width=384, learning_rate=1e-4, window_length=10.0, first_omega_0=1000.0,
+    feature_frequency=FEATURE_FREQUENCY_851,
+)
+EXP04_EXP01_F12_851_VARIANT = DiagnosticVariant(
+    name="exp04-exp01-f12-851", time_features="tau_ic13_fourier12",
+    depth=1, width=384, learning_rate=1e-4, window_length=10.0, first_omega_0=1000.0,
+    feature_frequency=FEATURE_FREQUENCY_851,
+)
+
 #: The exact arm IDs per experiment, in the plan's listed arm order, mapped
 #: to their declarations. Later execution plans expand their case-major
 #: Cartesian products from these tables.
@@ -222,7 +266,8 @@ PHASE67_ARMS = MappingProxyType({
 })
 
 #: The ladder declarations in registration order (the depth-2 tracer
-#: declaration leads; it is registered first below).
+#: declaration leads; it is registered first below, and the 851 encoded
+#: registrations close the order as the last fresh materializations).
 _LADDER_DECLARATIONS = (
     EXP02_D4_VARIANT,
     EXP02_D6_VARIANT,
@@ -239,6 +284,10 @@ _LADDER_DECLARATIONS = (
     EXP04_EXP01_RAW_VARIANT,
     EXP04_EXP01_F1_VARIANT,
     EXP04_EXP01_F12_VARIANT,
+    EXP04_LOCKED_F1_851_VARIANT,
+    EXP04_LOCKED_F12_851_VARIANT,
+    EXP04_EXP01_F1_851_VARIANT,
+    EXP04_EXP01_F12_851_VARIANT,
 )
 
 #: The Phase 67 registry: a fresh immutable copy of the sealed catalog
@@ -268,6 +317,122 @@ def phase67_variant(experiment, arm):
             f"unknown {experiment} arm {arm!r}; known: {list(arms)}"
         )
     return arms[arm]
+
+
+#: The EXP-05 encoded arm name pattern: ``exp05-lap<1|2|5|10>-<orbit id>``,
+#: materialized from the committed metadata capture's exact first-crossing
+#: endpoints (never pinned here — the endpoints are algorithm outputs).
+EXP05_WINDOW_ARM_PATTERN = re.compile(r"^exp05-lap(1|2|5|10)-([1-9][0-9]*)$")
+
+#: The materialized EXP-05 window variants (name -> declaration). Populated
+#: ONLY through :func:`register_exp05_window_variants` after the committed
+#: metadata capture resolves each orbit's lap endpoints; merged into the
+#: registry the ``phase67`` dispatch returns. The locked raw registry is
+#: never edited and the static name set never collides (no static name
+#: matches the pattern).
+_EXP05_WINDOW_VARIANTS: dict = {}
+
+
+def register_exp05_window_variants(declarations):
+    """Materialize the EXP-05 lap variants from the committed metadata.
+
+    Idempotent for an identical re-materialization (the same name and the
+    same declaration fields), refusing a conflicting re-registration, a name
+    outside the ``exp05-lap<L>-<orbit id>`` pattern, an encoded time-feature
+    declaration (EXP-05 changes only the window; D-06), or a name that
+    collides with the static registry. Returns the effective variant table.
+    """
+    if not isinstance(declarations, (list, tuple)):
+        raise VariantRefused(
+            f"the exp05 window variants need a list of declarations; got {declarations!r}"
+        )
+    for declaration in declarations:
+        if not isinstance(declaration, DiagnosticVariant):
+            raise VariantRefused(
+                "an exp05 window variant must be a DiagnosticVariant; got "
+                f"{type(declaration).__name__}"
+            )
+        if EXP05_WINDOW_ARM_PATTERN.fullmatch(declaration.name) is None:
+            raise VariantRefused(
+                f"an exp05 window variant name must match exp05-lap<1|2|5|10>-"
+                f"<orbit id>; got {declaration.name!r}"
+            )
+        if declaration.time_features != "raw_tau_ic13":
+            raise VariantRefused(
+                f"the exp05 window variant {declaration.name!r} changes the "
+                "input design too; EXP-05 changes only the window (D-06)"
+            )
+        if declaration.name in PHASE67_REGISTRY:
+            raise VariantRefused(
+                f"the exp05 window variant name {declaration.name!r} collides "
+                "with the static registry"
+            )
+        existing = _EXP05_WINDOW_VARIANTS.get(declaration.name)
+        if existing is not None and existing.to_json_dict() != (
+            declaration.to_json_dict()
+        ):
+            raise VariantRefused(
+                f"the exp05 window variant {declaration.name!r} was already "
+                "materialized with different fields; a conflicting "
+                "re-registration refuses"
+            )
+        _EXP05_WINDOW_VARIANTS[declaration.name] = declaration
+    return dict(_EXP05_WINDOW_VARIANTS)
+
+
+def exp05_window_variant(name):
+    """One materialized EXP-05 window variant, or ``None``."""
+    return _EXP05_WINDOW_VARIANTS.get(name)
+
+
+def phase67_arm_variant(experiment, arm, orbit_key):
+    """The declaration one (experiment, arm, orbit) row runs.
+
+    Orbit-aware (plan 67-06, D-09): the exp04 encoded arms run their
+    orbit-specific declaration — the main-system declaration on 1632 and the
+    materialized 851 registration on 851 — and any other orbit refuses for
+    an encoded arm, exactly as ``phase67_registry``'s census-agreement check
+    enforces at admission. Raw arms and every other experiment resolve the
+    arm's static declaration on any registered orbit. EXP-05 resolves the
+    materialized ``exp05-lap<L>-<orbit id>`` variant.
+    """
+    if not isinstance(orbit_key, str):
+        raise VariantRefused(
+            f"the orbit key must be variant/fidelity/id text; got {orbit_key!r}"
+        )
+    if experiment == "exp05":
+        if arm not in ("lap1", "lap2", "lap5", "lap10"):
+            raise VariantRefused(
+                f"unknown exp05 window arm {arm!r}; known: lap1, lap2, lap5, lap10"
+            )
+        orbit_id = orbit_key.rsplit("/", 1)[-1]
+        declaration = _EXP05_WINDOW_VARIANTS.get(f"exp05-{arm}-{orbit_id}")
+        if declaration is None:
+            raise VariantRefused(
+                f"the exp05 window variant for arm {arm!r} on orbit {orbit_key!r} "
+                "is not materialized; it exists only after the committed "
+                "metadata capture resolves the exact first-crossing endpoint"
+            )
+        return declaration
+    declaration = phase67_variant(experiment, arm)
+    if experiment == "exp04" and declaration.time_features != "raw_tau_ic13":
+        if orbit_key == "hierarchical/gold/1632":
+            return declaration
+        if orbit_key == "hierarchical/gold/851":
+            suffix = "-851"
+            orbit_declaration = next(
+                entry for entry in (
+                    EXP04_LOCKED_F1_851_VARIANT, EXP04_LOCKED_F12_851_VARIANT,
+                    EXP04_EXP01_F1_851_VARIANT, EXP04_EXP01_F12_851_VARIANT,
+                ) if entry.name == declaration.name + suffix
+            )
+            return orbit_declaration
+        raise VariantRefused(
+            f"the encoded arm {arm!r} has no orbit-specific registration for "
+            f"orbit {orbit_key!r}; encoded arms run only on the registered "
+            "panel systems 1632 and 851 (D-09)"
+        )
+    return declaration
 
 
 def _default_panels_path():
@@ -357,11 +522,15 @@ def phase67_registry(settings):
     Accepts either a settings mapping or the registry name itself. ``None`` —
     every Phase 65 registration — selects the sealed ``REGISTRY`` object, so
     Phase 65 behaviour is unchanged; ``PHASE67_REGISTRY_NAME`` selects
-    :data:`PHASE67_REGISTRY`. Any other value raises ``VariantRefused`` before
-    any data access, optimizer construction or attempt claim. The Phase 66
-    table stays in ``diagnostic_phase66.REGISTRIES``; the fit harness checks
-    it first and falls through to this dispatch, so this function needs no
-    Phase 66 import and the catalog stays declaration-only.
+    :data:`PHASE67_REGISTRY` extended with any materialized EXP-05 window
+    variants (plan 67-06: the lap arms' declarations exist only after the
+    committed metadata capture, and the merged table keeps the static
+    registration order followed by the materialized names). Any other value
+    raises ``VariantRefused`` before any data access, optimizer construction
+    or attempt claim. The Phase 66 table stays in
+    ``diagnostic_phase66.REGISTRIES``; the fit harness checks it first and
+    falls through to this dispatch, so this function needs no Phase 66
+    import and the catalog stays declaration-only.
 
     When the settings mapping names BOTH a variant and an orbit, an encoded
     declaration's pinned ``feature_frequency`` must agree with the orbit's
@@ -401,4 +570,8 @@ def phase67_registry(settings):
                         f"resolves {expected!r} from its committed census row; "
                         "an encoded declaration never runs on a disagreeing orbit"
                     )
-    return PHASE67_REGISTRY
+    if not _EXP05_WINDOW_VARIANTS:
+        return PHASE67_REGISTRY
+    return MappingProxyType({
+        **PHASE67_REGISTRY, **_EXP05_WINDOW_VARIANTS,
+    })

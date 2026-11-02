@@ -48,9 +48,11 @@ CENSUS_PANELS = (
     / "evidence" / "census" / "panels.json"
 )
 
-#: The exact registration order of the Phase 67 registry after plan 67-02:
-#: the sealed ``locked-12`` entry, then D-03's depth ladder, D-04's rate
-#: ladder and D-05's six input arms in the plan's listed arm order.
+#: The exact registration order of the Phase 67 registry after plans
+#: 67-02 and 67-06: the sealed ``locked-12`` entry, then D-03's depth
+#: ladder, D-04's rate ladder, D-05's six input arms in the plan's listed
+#: arm order, and the four fresh orbit-specific 851 encoded registrations
+#: (plan 67-06, D-09) closing the order.
 EXPECTED_REGISTRY_ORDER = [
     "locked-12",
     "exp02-d2-w256-o30",
@@ -69,6 +71,10 @@ EXPECTED_REGISTRY_ORDER = [
     "exp04-exp01-raw",
     "exp04-exp01-f1",
     "exp04-exp01-f12",
+    "exp04-locked-f1-851",
+    "exp04-locked-f12-851",
+    "exp04-exp01-f1-851",
+    "exp04-exp01-f12-851",
 ]
 
 #: Deterministic CPU float64 seed-42 parameter counts per registered name
@@ -91,6 +97,10 @@ EXPECTED_PARAMETERS = {
     "exp04-exp01-raw": 157065,
     "exp04-exp01-f1": 157833,
     "exp04-exp01-f12": 158601,
+    "exp04-locked-f1-851": 796169,
+    "exp04-locked-f12-851": 796681,
+    "exp04-exp01-f1-851": 157833,
+    "exp04-exp01-f12-851": 158601,
 }
 
 #: The committed Phase 59 census rows (``panels.json`` singles) this catalog

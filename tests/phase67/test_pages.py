@@ -29,6 +29,10 @@ def _module(case):
         case.fail(f"pinn.verification.{MODULE_NAME} is missing: {exc}")
 
 
+def _refusal(case):
+    return _module(case).Phase67CommandRefused
+
+
 def _symbol(case, module, name):
     value = getattr(module, name, None)
     case.assertIsNotNone(value, f"{module.__name__}.{name} is missing")
@@ -145,7 +149,10 @@ class DesignTests(unittest.TestCase):
                 design = self._design(experiment)
                 self.assertEqual(design["schema"], "phase67-design/v1")
                 self.assertEqual(design["experiment"], experiment)
-                self.assertEqual(tuple(design["variants"]), EXPECTED_ARMS[experiment])
+                self.assertEqual(
+                    [entry["arm"] for entry in design["variants"]],
+                    list(EXPECTED_ARMS[experiment]),
+                )
                 self.assertEqual(
                     tuple((row["case"], row["orbit_key"], row["seed"])
                           for row in design["cases"]),
@@ -223,7 +230,10 @@ class DesignTests(unittest.TestCase):
         )
 
         exp04 = self._design("exp04")
-        locked_f1 = exp04["variants"]["locked-f1"]
+        variants = {
+            entry["arm"]: entry["declarations"] for entry in exp04["variants"]
+        }
+        locked_f1 = variants["locked-f1"]
         self.assertEqual(
             set(locked_f1),
             {"hierarchical/gold/1632", "hierarchical/gold/851"},
@@ -232,7 +242,7 @@ class DesignTests(unittest.TestCase):
             locked_f1["hierarchical/gold/851"]["feature_frequency"],
             FEATURE_FREQUENCY_851,
         )
-        raw = exp04["variants"]["exp01-raw"]
+        raw = variants["exp01-raw"]
         self.assertEqual(raw["hierarchical/gold/1632"], raw["hierarchical/gold/851"])
         exp05 = self._design("exp05")
         self.assertEqual(exp05["window_selection"]["algorithm"], "first_lap_prefixes")
@@ -335,18 +345,18 @@ class MatrixTests(unittest.TestCase):
             with self.subTest(bad=bad_name):
                 doc = _metadata_record("exp02")
                 mutate(doc)
-                with self.assertRaises((ValueError, TypeError)):
+                with self.assertRaises(_refusal(self)):
                     self.execution.phase67_run_matrix(
                         "exp02", "timing", metadata=doc
                     )
-        with self.assertRaises((ValueError, TypeError)):
+        with self.assertRaises(_refusal(self)):
             self.execution.phase67_run_matrix("exp99", "timing",
                                               metadata=_metadata_record("exp02"))
-        with self.assertRaises((ValueError, TypeError)):
+        with self.assertRaises(_refusal(self)):
             self.execution.phase67_run_matrix("exp02", "other",
                                               metadata=_metadata_record("exp02"))
         # A non-mapping metadata record refuses too.
-        with self.assertRaises((ValueError, TypeError)):
+        with self.assertRaises(_refusal(self)):
             self.execution.phase67_run_matrix("exp02", "timing", metadata=[])
 
 
@@ -355,7 +365,8 @@ class CostRowTests(unittest.TestCase):
 
     TIMING_RECORD = {
         "status": "complete",
-        "steps": {"completed": 1200},
+        "steps": {"requested": 1200, "warmup": 200, "measured": 1000,
+                  "completed": 1200},
         "timing": {
             "seconds_per_step": 0.01,
             "warmup_seconds": 2.0,
@@ -400,11 +411,11 @@ class CostRowTests(unittest.TestCase):
         receipt = {"checked_utc": "2026-11-07T18:00:00+00:00"}
         attempt = {"ended_utc": "2026-11-07T18:00:20+00:00"}
         incomplete = dict(record, status="incomplete")
-        with self.assertRaises((ValueError, TypeError)):
+        with self.assertRaises(_refusal(self)):
             extractor([(identity, incomplete, receipt, attempt, 10)])
         wrong_steps = dict(record)
         wrong_steps["steps"] = {"completed": 100}
-        with self.assertRaises((ValueError, TypeError)):
+        with self.assertRaises(_refusal(self)):
             extractor([(identity, wrong_steps, receipt, attempt, 10)])
 
 
@@ -428,7 +439,7 @@ class ScopeGateTests(unittest.TestCase):
                 disposition["scope49_disposition"], "proposal-pending", label
             )
             self.assertIs(disposition["dependent_launch_allowed"], False, label)
-        with self.assertRaises((ValueError, TypeError)):
+        with self.assertRaises(_refusal(self)):
             self._scope("confirmed-maybe")
 
     def test_a_pending_proposal_blocks_only_later_experiments(self):
@@ -478,6 +489,8 @@ class PageBuilderTests(unittest.TestCase):
     def test_the_budget_page_and_prediction_page_are_cost_only(self):
         execution = _module(self)
         budget = {
+            "schema": "phase67-budget/v1",
+            "whole_run_cap_seconds": 3540.0,
             "common_optimizer_steps": 300,
             "warmup_steps": 200,
             "loss_trace_stride": 1,

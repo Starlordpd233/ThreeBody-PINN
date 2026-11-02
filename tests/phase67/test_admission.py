@@ -327,14 +327,15 @@ class Phase67CatalogControlTests(unittest.TestCase):
         from pinn.verification.diagnostic_variants import LOCKED_12, REGISTRY
 
         self.assertIsNot(PHASE67_REGISTRY, REGISTRY)
-        # Plan 67-02 extends the registry beyond the tracer declaration with
-        # the exact D-03/D-04/D-05 ladders; the full order is pinned by
-        # tests/phase67/test_catalog.py. This pin keeps proving the same
-        # facts for the head of the registration order.
+        # Plans 67-02 and 67-06 extend the registry beyond the tracer
+        # declaration with the exact D-03/D-04/D-05 ladders and the fresh
+        # orbit-specific 851 encoded registrations; the full order is pinned
+        # by tests/phase67/test_catalog.py. This pin keeps proving the same
+        # facts for the head and tail of the registration order.
         self.assertEqual(
             list(PHASE67_REGISTRY)[:2], ["locked-12", "exp02-d2-w256-o30"]
         )
-        self.assertEqual(list(PHASE67_REGISTRY)[-1], "exp04-exp01-f12")
+        self.assertEqual(list(PHASE67_REGISTRY)[-1], "exp04-exp01-f12-851")
         self.assertIs(PHASE67_REGISTRY["locked-12"], LOCKED_12)
         self.assertIs(PHASE67_REGISTRY["exp02-d2-w256-o30"], EXP02_D2_VARIANT)
         with self.assertRaises(TypeError):
@@ -364,7 +365,7 @@ class Phase67CatalogControlTests(unittest.TestCase):
             **EXP02_D2_VARIANT.to_json_dict(), "name": "phase67-fixture-copy"
         })
         extended = register_variant(renamed, into=PHASE67_REGISTRY)
-        self.assertEqual(list(extended)[-2:], ["exp04-exp01-f12",
+        self.assertEqual(list(extended)[-2:], ["exp04-exp01-f12-851",
                                                "phase67-fixture-copy"])
         self.assertEqual(len(extended), len(PHASE67_REGISTRY) + 1)
 

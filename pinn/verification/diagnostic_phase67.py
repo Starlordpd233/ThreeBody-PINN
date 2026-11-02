@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import math
 import re
+import sys
 from collections.abc import Mapping
 from types import MappingProxyType
 
@@ -64,6 +65,7 @@ __all__ = [
     "PHASE67_EFFECT_RULE",
     "PHASE67_IMPROVEMENT_RULE",
     "SIMILARITY_NOTE",
+    "main",
     "phase67_budget",
     "phase67_cadence",
     "phase67_confirmation",
@@ -1072,3 +1074,194 @@ def phase67_confirmation(experiment, contrasts, *, declared_arms):
             "loss": "context only",
         },
     }
+
+
+# --------------------------------------------------------------------------
+# Plan 67-06: the Phase 67 CLI. The execution adapter is imported lazily
+# inside ``main`` so this pure module never gains a harness import (the fit
+# harness imports it at module level).
+# --------------------------------------------------------------------------
+
+
+def main(argv=None, *, repo_root=None, read_power=None, run=None, now=None,
+         load_orbit=None, load_reference=None):
+    """The Phase 67 command line (``python -B -m pinn.verification.
+    diagnostic_phase67``).
+
+    Each experiment command takes ``--experiment exp02|exp03|exp04|exp05``
+    and an optional ``--phase-dir`` (defaulting to this phase's planning
+    directory); the row commands also take ``--kind timing|science``, and
+    ``--case``/``--arm``; ``check-matrix`` takes ``--kind``; ``audit-phase``
+    takes no experiment and optionally ``--json``. Exit codes: 0 on a
+    verified success, 2 for an unknown command, option, experiment, kind,
+    case or arm and for every refused precondition (nothing downstream is
+    created). The seam keyword arguments are the test injection points.
+    """
+    import argparse
+
+    from pinn.verification.diagnostic_phase67_execution import (
+        Phase67CommandRefused,
+        audit_phase,
+        capture_phase67_metadata,
+        check_budget,
+        check_design,
+        check_matrix,
+        check_metadata,
+        check_review,
+        check_row,
+        launch_phase67_row,
+        prepare_design,
+        register_timing,
+        write_budget,
+        write_review,
+    )
+
+    parser = argparse.ArgumentParser(
+        prog="diagnostic_phase67",
+        description=(
+            "The Phase 67 execution and page commands: freeze the designs, "
+            "capture the registered metadata, register and launch one row at "
+            "a time, derive the cost-only budgets, review the results and "
+            "audit the phase."
+        ),
+    )
+    commands = parser.add_subparsers(dest="command")
+
+    def experiment_command(name, help_text):
+        sub = commands.add_parser(name, help=help_text)
+        sub.add_argument("--experiment", required=True)
+        sub.add_argument("--phase-dir", required=False)
+        return sub
+
+    def row_command(name, help_text):
+        sub = experiment_command(name, help_text)
+        sub.add_argument("--kind", required=True)
+        sub.add_argument("--case", required=True)
+        sub.add_argument("--arm", required=True)
+        return sub
+
+    experiment_command("prepare-design", "create the frozen design trio")
+    experiment_command("check-design", "verify the committed design trio")
+    experiment_command("capture-metadata", "the gated metadata-only capture")
+    experiment_command("check-metadata", "audit the committed capture")
+    experiment_command("register-timing", "write the timing matrix and rows")
+    matrix = experiment_command("check-matrix", "verify a committed matrix")
+    matrix.add_argument("--kind", required=True)
+    row_command("launch-row", "launch exactly one registered row")
+    row_command("check-row", "strictly read exactly one row")
+    experiment_command("budget", "derive the budget and freeze science")
+    experiment_command("check-budget", "verify the committed budget")
+    experiment_command("review", "review every science row")
+    experiment_command("check-review", "verify the review and scope authority")
+    audit = commands.add_parser("audit-phase", help="the read-only phase audit")
+    audit.add_argument("--json", action="store_true", required=False)
+    audit.add_argument("--phase-dir", required=False)
+
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:  # argparse's own usage error carries exit code 2
+        code = int(exc.code) if isinstance(exc.code, int) else 2
+        print(f"PHASE67-REFUSED: unknown or missing option", file=sys.stderr)
+        return code
+
+    def run_and_report(handler, marker):
+        result = handler()
+        print(marker)
+        return result
+
+    experiment = getattr(args, "experiment", None)
+    phase_dir = getattr(args, "phase_dir", None)
+    common = {"repo_root": repo_root, "phase_dir": phase_dir}
+    try:
+        if args.command == "prepare-design":
+            report = prepare_design(experiment, **common)
+            print(f"PHASE67-DESIGN-WRITTEN design={report['design']} "
+                  f"page={report['page']}")
+            return 0
+        if args.command == "check-design":
+            run_and_report(
+                lambda: check_design(experiment, **common), "PHASE67-DESIGN-OK"
+            )
+            return 0
+        if args.command == "capture-metadata":
+            record = capture_phase67_metadata(
+                experiment, **common, load_orbit=load_orbit,
+                load_reference=load_reference, read_power=read_power, now=now,
+            )
+            print(f"PHASE67-METADATA-WRITTEN orbits={len(record['orbits'])}")
+            return 0
+        if args.command == "check-metadata":
+            run_and_report(
+                lambda: check_metadata(experiment, **common),
+                "PHASE67-METADATA-OK",
+            )
+            return 0
+        if args.command == "register-timing":
+            report = register_timing(experiment, **common)
+            print(f"PHASE67-TIMING-WRITTEN rows={report['rows']}")
+            return 0
+        if args.command == "check-matrix":
+            run_and_report(
+                lambda: check_matrix(experiment, args.kind, **common),
+                "PHASE67-MATRIX-OK",
+            )
+            return 0
+        if args.command == "launch-row":
+            return int(launch_phase67_row(
+                experiment, args.kind, args.case, args.arm, **common,
+                read_power=read_power, run=run, now=now,
+            ))
+        if args.command == "check-row":
+            report = check_row(
+                experiment, args.kind, args.case, args.arm, **common
+            )
+            print(f"PHASE67-ROW-OK case={report['case']} arm={report['arm']}")
+            return 0
+        if args.command == "budget":
+            budget = write_budget(experiment, **common)
+            print(f"PHASE67-BUDGET-WRITTEN "
+                  f"steps={budget['common_optimizer_steps']}")
+            return 0
+        if args.command == "check-budget":
+            run_and_report(
+                lambda: check_budget(experiment, **common), "PHASE67-BUDGET-OK"
+            )
+            return 0
+        if args.command == "review":
+            review = write_review(experiment, **common)
+            print(f"PHASE67-REVIEW-WRITTEN "
+                  f"allowed={review['dependent_launch_allowed']}")
+            return 0
+        if args.command == "check-review":
+            report = check_review(experiment, **common)
+            if not report["allowed"]:
+                print("PHASE67-REVIEW-BLOCKED", file=sys.stderr)
+                return 2
+            print("PHASE67-REVIEW-OK")
+            return 0
+        if args.command == "audit-phase":
+            report = audit_phase(repo_root=repo_root, phase_dir=phase_dir)
+            if args.json:
+                print(__import__("json").dumps(report, indent=2, sort_keys=True))
+                return 0 if report["status"] == "PHASE67-AUDIT-OK" else 2
+            for experiment_key, state in report["experiments"].items():
+                print(f"{experiment_key}: {state['scope']}")
+            for problem in report["problems"]:
+                print(f"problem: {problem}", file=sys.stderr)
+            print(report["status"])
+            return 0 if report["status"] == "PHASE67-AUDIT-OK" else 2
+        print(
+            "PHASE67-REFUSED: choose prepare-design, check-design, "
+            "capture-metadata, check-metadata, register-timing, check-matrix, "
+            "launch-row, check-row, budget, check-budget, review, "
+            "check-review or audit-phase",
+            file=sys.stderr,
+        )
+        return 2
+    except Phase67CommandRefused as exc:
+        print(f"PHASE67-REFUSED: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
