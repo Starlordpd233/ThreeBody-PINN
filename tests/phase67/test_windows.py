@@ -32,6 +32,9 @@ from pinn.verification.diagnostic_data import (
     validate_window,
 )
 from pinn.verification.feasibility_scorecard import load_scorecard
+from pinn.verification.feasibility_scorer import score_trajectory
+from pinn.verification.learnability_data import RecordView
+from pinn.verification.two_kepler import NotApplicable, two_kepler_prediction
 
 TWO_PI = 2.0 * np.pi
 CPU = torch.device("cpu")
@@ -123,6 +126,52 @@ def _expected_first_crossing(theta, laps):
     """The earliest index whose analytic signed turns reach each lap count."""
     turns = (theta - theta[0]) / TWO_PI
     return {float(lap): int(np.flatnonzero(turns >= lap)[0]) for lap in laps}
+
+
+def _windowed_data(reference, endpoint):
+    """A loaded-data seam over one reference's exact inclusive window.
+
+    Mirrors the loader's retained fields (``load_diagnostic_data``): the score
+    view on the masked grid, ordered masses, and the first in-window snapshot
+    as the recorded initial state.
+    """
+    times = np.asarray(reference.times, dtype=np.float64).reshape(-1)
+    positions = np.asarray(reference.positions, dtype=np.float64)
+    velocities = np.asarray(reference.velocities, dtype=np.float64)
+    masses = np.asarray(reference.masses, dtype=np.float64).reshape(3)
+    mask = physical_window(times, endpoint)
+    view = RecordView(
+        grid="gold",
+        times=times[mask],
+        positions=positions[mask],
+        inner_pair=tuple(int(slot) for slot in reference.inner_pair),
+        masses=masses,
+    )
+    return SimpleNamespace(
+        score=view,
+        masses=masses,
+        true_r0=torch.as_tensor(positions[0], dtype=torch.float64),
+        true_v0=torch.as_tensor(velocities[0], dtype=torch.float64),
+    )
+
+
+def _independent_constant_score(data, scorecard):
+    """The window-mean constant with zero velocities, scored independently."""
+    positions = np.asarray(data.score.positions, dtype=np.float64)
+    constant = np.broadcast_to(
+        positions.mean(axis=0, keepdims=True), positions.shape
+    ).copy()
+    return score_trajectory(
+        constant,
+        np.zeros_like(constant),
+        positions,
+        np.asarray(data.masses, dtype=np.float64),
+        tuple(int(slot) for slot in data.score.inner_pair),
+        np.asarray(data.score.times, dtype=np.float64),
+        velocity_source="analytic",
+        scorecard=scorecard,
+        grid=data.score.grid,
+    ).to_json_dict()
 
 
 class LoaderWindowControlTests(unittest.TestCase):
@@ -480,6 +529,159 @@ class LapPrefixTests(unittest.TestCase):
         prefixes = _symbol(self, module, "first_lap_prefixes")(reference)
         self.assertEqual(
             [prefix["requested_laps"] for prefix in prefixes], [1, 2, 5, 10]
+        )
+
+
+class SameWindowExpectationTests(unittest.TestCase):
+    """same_window_expectations: matched-window baselines, independently checked."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.scorecard = load_scorecard()
+
+    def test_short_window_constant_and_kepler_match_independent_recomputation(self):
+        module = _module(self)
+        first = _symbol(self, module, "first_lap_prefixes")
+        expectations = _symbol(self, module, "same_window_expectations")
+        times = np.linspace(0.0, 10.0, 1001)
+        # Rate 0.3 turns/unit keeps the inner pair Kepler-bound for the frozen
+        # formula while staying well under the census unwrap limit per step.
+        reference = _planar_reference(times, *_uniform(0.3))
+        prefix = first(reference, (1,))[0]
+        data = _windowed_data(reference, prefix["requested_endpoint"])
+        evidence = expectations(data, scorecard=self.scorecard, prefix=prefix)
+        self.assertEqual(evidence["grid"], "gold")
+        self.assertEqual(evidence["window"]["first_time"], 0.0)
+        self.assertEqual(evidence["window"]["last_time"], prefix["requested_endpoint"])
+        self.assertEqual(evidence["window"]["sample_count"], prefix["sample_count"])
+        self.assertEqual(evidence["physical_times_sha256"], prefix["physical_times_sha256"])
+        self.assertEqual(evidence["normalized_tau_sha256"], prefix["normalized_tau_sha256"])
+        self.assertEqual(evidence["masses"], [1.0, 1.0, 1.0])
+        self.assertEqual(evidence["inner_pair"], [0, 1])
+        self.assertIn("GAP-59-08", evidence["gap_59_08"])
+        # The constant row the harness would record equals a third, test-side
+        # recomputation on exactly the selected samples.
+        direct = _independent_constant_score(data, self.scorecard)
+        self.assertIs(evidence["constant"]["agree"], True)
+        self.assertEqual(evidence["constant"]["harness"]["score"], direct)
+        self.assertEqual(evidence["constant"]["independent"]["score"], direct)
+        # A short-window mean is not the full-window mean: the [0, 10] EXP-01
+        # constant can never be borrowed for a shorter prefix.
+        full_data = _windowed_data(reference, 10.0)
+        full_direct = _independent_constant_score(full_data, self.scorecard)
+        self.assertNotEqual(direct["E"], full_direct["E"])
+        # The frozen two-Kepler formula applies on this bound configuration and
+        # agrees between the harness row and the independent call.
+        self.assertIs(evidence["two_kepler"]["applicable"], True)
+        self.assertIs(evidence["two_kepler"]["agree"], True)
+        elapsed = (
+            np.asarray(data.score.times, dtype=np.float64)
+            - float(np.asarray(data.score.times, dtype=np.float64)[0])
+        ) / T_CHARACTERISTIC_TIME
+        predicted, predicted_v = two_kepler_prediction(
+            data.true_r0.detach().cpu().numpy().astype(np.float64),
+            data.true_v0.detach().cpu().numpy().astype(np.float64),
+            np.asarray(data.masses, dtype=np.float64),
+            tuple(int(slot) for slot in data.score.inner_pair),
+            elapsed,
+        )
+        direct_kepler = score_trajectory(
+            predicted,
+            predicted_v,
+            np.asarray(data.score.positions, dtype=np.float64),
+            np.asarray(data.masses, dtype=np.float64),
+            tuple(int(slot) for slot in data.score.inner_pair),
+            np.asarray(data.score.times, dtype=np.float64),
+            velocity_source="analytic",
+            scorecard=self.scorecard,
+            grid=data.score.grid,
+        ).to_json_dict()
+        self.assertEqual(evidence["two_kepler"]["harness"]["score"], direct_kepler)
+        self.assertEqual(evidence["two_kepler"]["independent"]["score"], direct_kepler)
+
+    def test_formula_nonapplicability_is_explicit_and_never_a_score(self):
+        module = _module(self)
+        first = _symbol(self, module, "first_lap_prefixes")
+        expectations = _symbol(self, module, "same_window_expectations")
+        times = np.linspace(0.0, 10.0, 1001)
+        # The kinematic planar fixture's inner pair is unbound for the frozen
+        # two-Kepler formula: the refusal must stay explicit on both paths.
+        reference = _planar_reference(times, *_uniform(1.05))
+        prefix = first(reference, (1,))[0]
+        data = _windowed_data(reference, prefix["requested_endpoint"])
+        evidence = expectations(data, scorecard=self.scorecard, prefix=prefix)
+        block = evidence["two_kepler"]
+        self.assertIs(block["applicable"], False)
+        self.assertEqual(block["harness"]["failure"], "not_applicable")
+        self.assertEqual(block["independent"]["failure"], "not_applicable")
+        self.assertEqual(block["harness"]["reason"], block["independent"]["reason"])
+        self.assertIn("unbound", block["reason"])
+        self.assertNotIn("score", block["harness"])
+        self.assertNotIn("score", block["independent"])
+        self.assertIs(block["agree"], True)
+
+    def test_a_tampered_window_against_the_prefix_refuses(self):
+        module = _module(self)
+        refused = _symbol(self, module, "WindowExpectationRefused")
+        first = _symbol(self, module, "first_lap_prefixes")
+        expectations = _symbol(self, module, "same_window_expectations")
+        times = np.linspace(0.0, 10.0, 1001)
+        reference = _planar_reference(times, *_uniform(0.3))
+        prefixes = first(reference, (1, 2))
+        # Data loaded on the two-lap window cannot present the one-lap prefix.
+        other = _windowed_data(reference, prefixes[1]["requested_endpoint"])
+        with self.assertRaises(refused):
+            expectations(other, scorecard=self.scorecard, prefix=prefixes[0])
+
+    def test_a_mismatched_grid_hash_refuses(self):
+        module = _module(self)
+        refused = _symbol(self, module, "WindowExpectationRefused")
+        first = _symbol(self, module, "first_lap_prefixes")
+        expectations = _symbol(self, module, "same_window_expectations")
+        times = np.linspace(0.0, 10.0, 1001)
+        reference = _planar_reference(times, *_uniform(0.3))
+        prefix = first(reference, (1,))[0]
+        data = _windowed_data(reference, prefix["requested_endpoint"])
+        # Shift one interior timestamp: the endpoint and sample count still
+        # match the prefix, but the retained grid bytes do not.
+        tampered_times = np.array(data.score.times, dtype=np.float64, copy=True)
+        tampered_times[7] += 1e-6
+        data.score = SimpleNamespace(
+            grid=data.score.grid,
+            times=tampered_times,
+            positions=np.array(data.score.positions, dtype=np.float64, copy=True),
+            inner_pair=data.score.inner_pair,
+            masses=data.score.masses,
+        )
+        with self.assertRaises(refused) as caught:
+            expectations(data, scorecard=self.scorecard, prefix=prefix)
+        self.assertIn("grid", str(caught.exception))
+
+    def test_short_window_kepler_scores_differ_from_full_window_scores(self):
+        module = _module(self)
+        first = _symbol(self, module, "first_lap_prefixes")
+        expectations = _symbol(self, module, "same_window_expectations")
+        times = np.linspace(0.0, 10.0, 1001)
+        reference = _planar_reference(times, *_uniform(0.3))
+        prefixes = first(reference, (1, 2))
+        short = expectations(
+            _windowed_data(reference, prefixes[0]["requested_endpoint"]),
+            scorecard=self.scorecard,
+            prefix=prefixes[0],
+        )
+        longer = expectations(
+            _windowed_data(reference, prefixes[1]["requested_endpoint"]),
+            scorecard=self.scorecard,
+            prefix=prefixes[1],
+        )
+        self.assertIs(short["two_kepler"]["applicable"], True)
+        self.assertIs(longer["two_kepler"]["applicable"], True)
+        self.assertNotEqual(
+            short["two_kepler"]["harness"]["score"]["E"],
+            longer["two_kepler"]["harness"]["score"]["E"],
+        )
+        self.assertNotEqual(
+            short["window"]["last_time"], longer["window"]["last_time"]
         )
 
 
