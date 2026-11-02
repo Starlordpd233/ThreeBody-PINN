@@ -326,5 +326,178 @@ class DiagnosticNetworkTests(unittest.TestCase):
         self.assertEqual(score["velocity_source"], "autograd")
 
 
+def _similarity_inputs(count=6):
+    """A tiny synthetic measurement set: strictly increasing raw tau that
+    matches its physical times under the locked normalization, varied
+    targets, ordered masses."""
+    generator = torch.Generator()
+    generator.manual_seed(6703)
+    tau = torch.linspace(-1.0, 1.0, count, dtype=F64).unsqueeze(1)
+    ic13 = torch.randn(1, 13, dtype=F64, generator=generator).expand(count, 13)
+    X = torch.cat([tau, ic13.contiguous()], dim=1)
+    masses = torch.tensor([0.4, 1.0, 0.8], dtype=F64)
+    targets = torch.randn(count, 9, dtype=F64, generator=generator)
+    times = torch.linspace(0.0, 10.0, count, dtype=torch.float64)
+    return X, masses, targets, times
+
+
+class EncodedLoggerTests(unittest.TestCase):
+    """Encoded measurements are honest about the aggregate bandwidth."""
+
+    def _measure(self, name):
+        from pinn.verification.diagnostic_similarity import measure_time_signal
+
+        X, masses, targets, times = _similarity_inputs()
+        model = build_variant(PHASE67_REGISTRY[name], seed=42, dtype=F64, device=CPU)
+        return measure_time_signal(model, X, masses, targets, times)
+
+    def test_encoded_measurements_mark_the_aggregate_bandwidth_inapplicable(self):
+        payload = self._measure("exp04-locked-f1").to_json_dict()
+        self.assertIs(payload.get("frequency_applicability"), False)
+        frequency = payload.get("first_layer_frequency")
+        self.assertIsNone(frequency.get("median"))
+        self.assertIsNone(frequency.get("max"))
+        reason = payload.get("frequency_reason")
+        self.assertIsInstance(reason, str)
+        self.assertTrue(reason.strip())
+        self.assertIn("column", reason.lower())
+
+    def test_encoded_measurements_record_the_pinned_feature_metadata(self):
+        payload = self._measure("exp04-locked-f1").to_json_dict()
+        self.assertEqual(payload.get("feature_harmonics"), [1])
+        self.assertEqual(len(payload.get("feature_frequency_cycles") or []), 1)
+        self.assertAlmostEqual(
+            (payload.get("feature_frequency_cycles") or [0.0])[0],
+            N_IN / T_CHARACTERISTIC_TIME,
+            places=12,
+        )
+        self.assertEqual(payload.get("internal_input_dimension"), 16)
+
+    def test_the_second_backbone_and_second_harmonic_are_recorded_too(self):
+        payload = self._measure("exp04-exp01-f12").to_json_dict()
+        self.assertEqual(payload.get("feature_harmonics"), [1, 2])
+        frequencies = payload.get("feature_frequency_cycles")
+        self.assertEqual(len(frequencies), 2)
+        self.assertAlmostEqual(frequencies[0], N_IN / T_CHARACTERISTIC_TIME,
+                               places=12)
+        self.assertAlmostEqual(frequencies[1], 2.0 * N_IN / T_CHARACTERISTIC_TIME,
+                               places=12)
+        self.assertEqual(payload.get("internal_input_dimension"), 18)
+        self.assertIs(payload.get("frequency_applicability"), False)
+
+    def test_raw_measurements_keep_their_established_frequency_fields(self):
+        payload = self._measure("exp02-d2-w256-o30").to_json_dict()
+        self.assertIsNone(payload.get("frequency_applicability"))
+        self.assertIsNone(payload.get("frequency_reason"))
+        self.assertIsNone(payload.get("feature_frequency_cycles"))
+        self.assertIsNone(payload.get("feature_harmonics"))
+        self.assertIsNone(payload.get("internal_input_dimension"))
+        frequency = payload["first_layer_frequency"]
+        self.assertIsInstance(frequency["median"], float)
+        self.assertIsInstance(frequency["max"], float)
+        self.assertTrue(math.isfinite(frequency["median"]))
+        self.assertTrue(math.isfinite(frequency["max"]))
+
+
+class SimilarityCaptureTests(unittest.TestCase):
+    """Layer identity/order at every depth, hook cleanup, tau monotonicity."""
+
+    def _hooks_alive(self, model):
+        handles = [dict(model.input_layer._forward_hooks)]
+        handles.extend(dict(layer._forward_hooks) for layer in model.hidden_layers)
+        return any(entry for entry in handles)
+
+    def test_every_layer_is_logged_exactly_once_in_order_at_depths_2_and_12(self):
+        from pinn.verification.diagnostic_similarity import measure_time_signal
+
+        X, masses, targets, times = _similarity_inputs()
+        for name, depth in (("exp02-d2-w256-o30", 2), ("exp02-d12-w256-o30", 12)):
+            with self.subTest(variant=name):
+                model = build_variant(
+                    PHASE67_REGISTRY[name], seed=42, dtype=F64, device=CPU
+                )
+                measurement = measure_time_signal(model, X, masses, targets, times)
+                rows = measurement.to_json_dict()["layers"]
+                expected = ["input"] + [f"h{index}" for index in range(1, depth + 1)]
+                self.assertEqual([row["name"] for row in rows], expected)
+                self.assertEqual([row["order"] for row in rows],
+                                 list(range(depth + 1)))
+                self.assertTrue(all(
+                    math.isfinite(row["adjacent_cosine_mean"]) for row in rows
+                ))
+
+    def test_the_exp01_backbone_logs_input_and_h1_only(self):
+        from pinn.verification.diagnostic_similarity import measure_time_signal
+
+        X, masses, targets, times = _similarity_inputs()
+        model = build_variant(
+            PHASE67_REGISTRY["exp04-exp01-raw"], seed=42, dtype=F64, device=CPU
+        )
+        rows = measure_time_signal(model, X, masses, targets, times) \
+            .to_json_dict()["layers"]
+        self.assertEqual([row["name"] for row in rows], ["input", "h1"])
+
+    def test_hooks_are_removed_on_success(self):
+        from pinn.verification.diagnostic_similarity import measure_time_signal
+
+        X, masses, targets, times = _similarity_inputs()
+        model = build_variant(
+            PHASE67_REGISTRY["exp02-d2-w256-o30"], seed=42, dtype=F64, device=CPU
+        )
+        measure_time_signal(model, X, masses, targets, times)
+        self.assertFalse(self._hooks_alive(model))
+
+    def test_hooks_are_removed_when_the_forward_fails(self):
+        from unittest import mock
+
+        from pinn.verification.diagnostic_similarity import measure_time_signal
+
+        X, masses, targets, times = _similarity_inputs()
+        model = build_variant(
+            PHASE67_REGISTRY["exp02-d2-w256-o30"], seed=42, dtype=F64, device=CPU
+        )
+        with mock.patch.object(model, "forward", side_effect=RuntimeError("boom")):
+            with self.assertRaises(RuntimeError):
+                measure_time_signal(model, X, masses, targets, times)
+        self.assertFalse(self._hooks_alive(model))
+
+    def test_non_increasing_raw_tau_refuses_before_any_forward(self):
+        from pinn.verification.diagnostic_similarity import (
+            MeasurementRefused,
+            measure_time_signal,
+        )
+
+        X, masses, targets, times = _similarity_inputs()
+        model = build_variant(
+            PHASE67_REGISTRY["exp02-d2-w256-o30"], seed=42, dtype=F64, device=CPU
+        )
+        for tau_column in (
+            torch.flip(torch.linspace(-1.0, 1.0, X.shape[0]), dims=(0,)),
+            torch.full((X.shape[0],), 0.25),
+        ):
+            broken = X.clone()
+            broken[:, 0] = tau_column
+            with self.subTest(tau="reversed" if tau_column[0] > tau_column[-1]
+                              else "constant"):
+                with self.assertRaises(MeasurementRefused):
+                    measure_time_signal(model, broken, masses, targets, times)
+        self.assertFalse(self._hooks_alive(model))
+
+    def test_non_finite_raw_tau_still_refuses(self):
+        from pinn.verification.diagnostic_similarity import (
+            MeasurementRefused,
+            measure_time_signal,
+        )
+
+        X, masses, targets, times = _similarity_inputs()
+        model = build_variant(
+            PHASE67_REGISTRY["exp02-d2-w256-o30"], seed=42, dtype=F64, device=CPU
+        )
+        broken = X.clone()
+        broken[2, 0] = float("nan")
+        with self.assertRaises(MeasurementRefused):
+            measure_time_signal(model, broken, masses, targets, times)
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

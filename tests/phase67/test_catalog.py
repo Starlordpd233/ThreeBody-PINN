@@ -444,5 +444,48 @@ class RawParityAndRNGTests(unittest.TestCase):
         self.assertTrue(math.isfinite(T_CHARACTERISTIC_TIME))
 
 
+class RawLoggerShapeTests(unittest.TestCase):
+    """A fresh raw measurement keeps the committed raw record's JSON shape."""
+
+    def test_raw_similarity_entries_match_the_committed_record_shape(self):
+        import json as _json
+
+        from pinn.verification.diagnostic_similarity import measure_time_signal
+
+        committed_path = (
+            REPO_ROOT / ".planning" / "phases" / "66-small-network-control"
+            / "evidence" / "exp01" / "main-1632-s42" / "record.json"
+        )
+        committed = _json.loads(committed_path.read_bytes())
+        entries = committed["similarity"]["entries"]
+        self.assertTrue(entries)
+        committed_keys = set(entries[0])
+
+        generator = torch.Generator()
+        generator.manual_seed(6702)
+        count = 6
+        tau = torch.linspace(-1.0, 1.0, count, dtype=torch.float64).unsqueeze(1)
+        ic13 = torch.randn(1, 13, dtype=torch.float64,
+                           generator=generator).expand(count, 13)
+        X = torch.cat([tau, ic13.contiguous()], dim=1)
+        masses = torch.tensor([0.4, 1.0, 0.8], dtype=torch.float64)
+        targets = torch.randn(count, 9, dtype=torch.float64, generator=generator)
+        times = torch.linspace(0.0, 10.0, count, dtype=torch.float64)
+        model = build_variant(
+            PHASE67_REGISTRY["exp02-d2-w256-o30"], seed=42,
+            dtype=torch.float64, device=CPU,
+        )
+        fresh = measure_time_signal(model, X, masses, targets, times).to_json_dict()
+        # ``log_similarity`` adds exactly the step/point wrapper fields.
+        self.assertEqual(set(fresh) | {"step", "point"}, committed_keys)
+        self.assertEqual(set(fresh["first_layer_frequency"]),
+                         {"definition", "median", "max"})
+        self.assertEqual({row["name"] for row in fresh["layers"]},
+                         {"input", "h1", "h2"})
+        for key in ("times_physical", "tau_values", "n_points",
+                    "output_movement", "output_rate_ratio", "physical_dt_median"):
+            self.assertIn(key, fresh)
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
