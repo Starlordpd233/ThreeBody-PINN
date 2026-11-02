@@ -199,6 +199,76 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
   4. Every confirming result is repeated on a second panel system and a second seed, and every result is reviewed against the plan under SCOPE-49.
 
 **Plans**: TBD
+**Wave 1**
+
+- [ ] 67-01-PLAN.md
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 67-02-PLAN.md
+- [ ] 67-03-PLAN.md
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 67-04-PLAN.md
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 67-05-PLAN.md
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 67-06-PLAN.md
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 67-07-PLAN.md
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 67-08-PLAN.md
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 67-09-PLAN.md
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 67-10-PLAN.md
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 67-11-PLAN.md
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 67-12-PLAN.md
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
+- [ ] 67-13-PLAN.md
+
+**Wave 13** *(blocked on Wave 12 completion)*
+
+- [ ] 67-14-PLAN.md
+
+**Wave 14** *(blocked on Wave 13 completion)*
+
+- [ ] 67-15-PLAN.md
+
+**Wave 15** *(blocked on Wave 14 completion)*
+
+- [ ] 67-16-PLAN.md
+
+**Cross-cutting constraints:**
+
+- All 15 arm/case timing rows measure this experiment's cost; no Phase65/66 rate determines its budget, per D-07/D-08/D-09.
+- Every science row receives one common cost-only N with the exact cadence, controls and repeats frozen prospectively, per D-08/D-10.
+- Every real attempt is serial, single-use, TRAIN-only, supervised below one hour and admitted on this Mac during weekend AC eligibility, per D-07/D-12/D-13.
+- E, frozen tier, same-window comparisons and every-layer adjacent-time trace are reported against the committed prediction, per D-11/D-13.
+- No main-only result, tie, opposed repeat, unsettled endpoint or small effect is presented as confirmation, per D-08/D-09.
+- A result-driven scope/resource/out-of-rule change blocks dependent work until an actual owner ruling; registered in-scope branches proceed under D-01/SCOPE-47/SCOPE-49.
+- Frozen scorer, pass bars, production settings and all historical evidence remain unchanged, per D-11/D-12.
 
 ### Phase 68: Yardstick
 
@@ -235,7 +305,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 |-------|----------------|--------|-----------|
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
-| 67. Design & Settings Ladders | 0/TBD | Not started | - |
+| 67. Design & Settings Ladders | 0/16 | Planned    |  |
 | 68. Yardstick | 0/TBD | Not started | - |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |
 

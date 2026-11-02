@@ -4,16 +4,16 @@ milestone: v2.5
 milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
-status: planning
-stopped_at: Phase 67 context gathered, ready for research and planning
-last_updated: "2026-11-01T23:33:47.547Z"
+status: executing
+stopped_at: Phase 67 planned and independently checked, ready to execute
+last_updated: "2026-11-02T04:25:23.934Z"
 last_activity: 2026-11-01
-last_activity_desc: Phase 66 complete, transitioned to Phase 67
-state_head: 3afe4704c9b904bc38dd99f102b1b9f8c143712b
+last_activity_desc: Phase 67 planned and independently checked, 16 plans in 15 waves
+state_head: b407b54d569033300d4a5d3ba4848c831edcf208
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 11
+  total_plans: 27
   completed_plans: 11
   percent: 40
 ---
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 
 ## Current Position
 
-Phase: 67 — Design & Settings Ladders
+Phase: 67 (Design & Settings Ladders) — READY TO EXECUTE
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-11-01 — Phase 66 complete, transitioned to Phase 67
+Status: Ready to execute
+Last activity: 2026-11-01 - Phase 67 planned and independently checked, 16 plans in 15 waves
 
 ### Decisions from 66-05 (2026-11-01, tasks 66-05-01 to 66-05-03 — checkpoint 1 answered)
 
@@ -1227,11 +1227,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/67-design-settings-ladders/67-CONTEXT.md
+**Resume file:** .planning/phases/67-design-settings-ladders/67-01-PLAN.md
 
-Last session: 2026-11-01T23:33:47.483Z
-Stopped at: Phase 67 context gathered, ready for research and planning
-Next action: Research and plan Phase 67 with $gsd-plan-phase 67 from the trainex worktree. Read 67-CONTEXT.md first. Technical and scientific decisions remain delegated; training has not been authorized by context capture and retains the weekend AC-power gate.
+Last session: 2026-11-02T04:24:23.147Z
+Stopped at: Phase 67 planned and independently checked, ready to execute
+Next action: Execute Phase 67 with $gsd-execute-phase 67 in the existing trainex worktree, starting with 67-01-PLAN.md. Plans 01 through 07 implement and verify the diagnostic harness with synthetic fixtures and can run any day. Real metadata, timing and science in Plans 08 through 15 require the registered weekend AC gate and measured budgets. The independent plan check passed after the compatibility/freeze split. Do not create a new worktree or launch unregistered compute.
 
 ## Operator Next Steps
 

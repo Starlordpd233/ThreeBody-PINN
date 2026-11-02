@@ -1,0 +1,806 @@
+{
+  "phase": "67",
+  "checked_date": "2026-11-01",
+  "kind": "static_planning_validation",
+  "independent_review": {
+    "reviewer": "gsd-plan-checker /root/phase67_full_check",
+    "iterations": 2,
+    "status": "VERIFICATION PASSED",
+    "blockers": 0,
+    "warnings": 0,
+    "resolved_issue": "Split compatibility and harness freeze from Plan06 into Plan07 before registrations."
+  },
+  "counts": {
+    "plans": 16,
+    "waves": 15,
+    "tasks": 39,
+    "automated_commands": 56,
+    "inline_python_programs_parsed": 12,
+    "prospective_metadata_attempts": 4,
+    "prospective_timing_attempts": 60,
+    "prospective_science_attempts": 60
+  },
+  "checks": {
+    "structure": "passed",
+    "dependency_waves": "passed",
+    "same_wave_file_ownership": "disjoint",
+    "validation_task_map": "39/39",
+    "decision_coverage": {
+      "passed": true,
+      "skipped": false,
+      "total": 13,
+      "covered": 13,
+      "uncovered": [],
+      "message": "All trackable CONTEXT.md decisions are covered by plans."
+    },
+    "post_planning_gap_coverage": {
+      "total": 17,
+      "covered": 17,
+      "uncovered": 0
+    },
+    "failure_directions_status": "ok",
+    "verify_command_paths_status": "not_applicable"
+  },
+  "limits": [
+    "Static planning acceptance only. No implementation tests or future diagnostic commands were run.",
+    "Python verify-command paths are not supported by the deterministic path probe; not_applicable is not a runtime success.",
+    "Real endpoints, step counts and machine-hour projections await prospectively registered capture and timing."
+  ],
+  "plans": [
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-01-PLAN.md",
+      "sha256": "f4bdfaf597b0746e0ad8fbf32142d24a44c00a4da63a80c87be9fce660e80998",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2,
+        "tasks": [
+          {
+            "name": "67-01-01: carry a registered raw-depth-2 fixture through the complete diagnostic path",
+            "type": "tracer",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-01-02: prove admission and historical-evidence boundaries on that path",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-02-PLAN.md",
+      "sha256": "3f96a956d27f3ae307e3b37db2269ff8ef3584269eb0c5bd0404c9bfe2bddabc",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2,
+        "tasks": [
+          {
+            "name": "67-02-01: expose exact ladders and internal Fourier models through the diagnostic constructor",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-02-02: make the shared logger truthful for encoded inputs and all layer depths",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-03-PLAN.md",
+      "sha256": "b8a252b24805dd123f72fd24028379cdfb53bf1d182a158ec56ad2b2a8ad6505",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2,
+        "tasks": [
+          {
+            "name": "67-03-01: derive exact sampled signed-lap prefixes with crossing evidence",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-03-02: verify baseline expectations on exactly the selected samples",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-04-PLAN.md",
+      "sha256": "7ba810a119b33d4e705f57b126f4223aed9d46d697e994d3685402e651f621af",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2,
+        "tasks": [
+          {
+            "name": "67-04-01: record and time the registered science checkpoint schedule",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-04-02: derive a common update budget from every registered timing row",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-05-PLAN.md",
+      "sha256": "47114c6f47d3c48b01f7283ec04d879c7d695bc865a2f3217a76594579bc1fc5",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2,
+        "tasks": [
+          {
+            "name": "67-05-01: validate every admitted record shape against its committed registration",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-05-02: implement matched contrast, convergence and confirmation rules",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-06-PLAN.md",
+      "sha256": "23c7a91ec8e00a8b561af6cf9e905b13f17251ce662ddea62600f7b6ac7dcff8",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2,
+        "tasks": [
+          {
+            "name": "67-06-01: implement committed design, page, matrix and review commands",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-06-02: gate real metadata and single-row launches across the complete deadline",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-07-PLAN.md",
+      "sha256": "6474fcd394400a7c0da31ac8d466f7feb4b041ca9a07bb453b794ce6a1183558",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 1,
+        "tasks": [
+          {
+            "name": "67-07-01: prove compatibility and freeze the harness before registrations",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-08-PLAN.md",
+      "sha256": "1a098541cd786302905c56dd63f7ebd3fcc3db8c17476a273d1669a45eb3f6c0",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3,
+        "tasks": [
+          {
+            "name": "67-08-01: commit the complete EXP-02 scientific design",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-08-02: capture registered TRAIN metadata and commit every timing registration",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-08-03: measure all timing rows and commit the common science budget",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-09-PLAN.md",
+      "sha256": "1201fa1164c8874c516bb2f1c116141af37459346369b69f641da83b2c399e78",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3,
+        "tasks": [
+          {
+            "name": "67-09-01: execute every pre-registered science row once and commit each result",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-09-02: commit the complete prediction and roadmap review",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-09-03: resolve only an actual reserved proposal before dependent work",
+            "type": "checkpoint:decision",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-10-PLAN.md",
+      "sha256": "61f6cd70600b183ca4f48ef9e9c631d925eed444558dcdf51ad9faff8f5e5358",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3,
+        "tasks": [
+          {
+            "name": "67-10-01: commit the complete EXP-03 scientific design",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-10-02: capture registered TRAIN metadata and commit every timing registration",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-10-03: measure all timing rows and commit the common science budget",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-11-PLAN.md",
+      "sha256": "4084a22e3ff88cea06ccc6a5ed5be231a666229d1e4bef0cf16e2c54a4fbecce",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3,
+        "tasks": [
+          {
+            "name": "67-11-01: execute every pre-registered science row once and commit each result",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-11-02: commit the complete prediction and roadmap review",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-11-03: resolve only an actual reserved proposal before dependent work",
+            "type": "checkpoint:decision",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-12-PLAN.md",
+      "sha256": "1f447c271ffe17173b3afe4990685d0263b5df91c077319c954e4d22648b11b5",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3,
+        "tasks": [
+          {
+            "name": "67-12-01: commit the complete EXP-04 scientific design",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-12-02: capture registered TRAIN metadata and commit every timing registration",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-12-03: measure all timing rows and commit the common science budget",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-13-PLAN.md",
+      "sha256": "804278ebd30dfce417b66d4b17a44355102fdf7b9cb21cc2833474f7ba29787a",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3,
+        "tasks": [
+          {
+            "name": "67-13-01: execute every pre-registered science row once and commit each result",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-13-02: commit the complete prediction and roadmap review",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-13-03: resolve only an actual reserved proposal before dependent work",
+            "type": "checkpoint:decision",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-14-PLAN.md",
+      "sha256": "6eb2ae373f02161e74126b554e6f2a90e852fc7fe9865733522b5d09aa81199b",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3,
+        "tasks": [
+          {
+            "name": "67-14-01: commit the complete EXP-05 scientific design",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-14-02: capture registered TRAIN metadata and commit every timing registration",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-14-03: measure all timing rows and commit the common science budget",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-15-PLAN.md",
+      "sha256": "e1d31befa6ea1045788302774bdbc2c031c76d11037d597d98dcd3f062b5dd19",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3,
+        "tasks": [
+          {
+            "name": "67-15-01: execute every pre-registered science row once and commit each result",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-15-02: commit the complete prediction and roadmap review",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-15-03: resolve only an actual reserved proposal before dependent work",
+            "type": "checkpoint:decision",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-16-PLAN.md",
+      "sha256": "d57279eb89d89e9dd8b68f6868b212a7ea006d506b22a78f0a66d232b0f5dd43",
+      "structure": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2,
+        "tasks": [
+          {
+            "name": "67-16-01: audit the complete committed experiment chains and record bounded findings",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          },
+          {
+            "name": "67-16-02: verify the phase boundary and commit the evidence handoff",
+            "type": "auto",
+            "hasFiles": true,
+            "hasAction": true,
+            "hasVerify": true,
+            "hasDone": true
+          }
+        ],
+        "frontmatter_fields": [
+          "phase",
+          "plan",
+          "type",
+          "wave",
+          "depends_on",
+          "files_modified",
+          "autonomous",
+          "requirements",
+          "estimate",
+          "must_haves"
+        ]
+      }
+    }
+  ],
+  "supporting_artifacts": [
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-CONTEXT.md",
+      "sha256": "ae9cca2b54fd71150c74a7867c95a84ba87ebcc9b76a10da5757b8efb49d616b"
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-RESEARCH.md",
+      "sha256": "52d468c9fe9a4919684da10ffc3a9b1804b3c94c91db1eb0392eaf3e88c4e1be"
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-PATTERNS.md",
+      "sha256": "0c6dd3f1cedecabd700458ab84ec2310b66f7209515eee238f995a5e7223ea34"
+    },
+    {
+      "path": ".planning/phases/67-design-settings-ladders/67-VALIDATION.md",
+      "sha256": "2c142997a43188ee6db3f1f6fd1cad8abca744b49cce988056dfa078155dcc3c"
+    }
+  ],
+  "verification_commands": {
+    "structure_prefix": [
+      "node",
+      "<home>/.codex4/gsd-core/bin/gsd-tools.cjs",
+      "verify",
+      "plan-structure"
+    ],
+    "decision_coverage": [
+      "node",
+      "<home>/.codex4/gsd-core/bin/gsd-tools.cjs",
+      "query",
+      "check.decision-coverage-plan",
+      ".planning/phases/67-design-settings-ladders",
+      ".planning/phases/67-design-settings-ladders/67-CONTEXT.md"
+    ],
+    "failure_directions": [
+      "node",
+      "<home>/.codex4/gsd-core/bin/gsd-tools.cjs",
+      "check",
+      "verify-failure-directions",
+      "67",
+      "--raw"
+    ],
+    "path_probe": [
+      "node",
+      "<home>/.codex4/gsd-core/bin/gsd-tools.cjs",
+      "check",
+      "verify-command-paths",
+      "67",
+      "--raw"
+    ],
+    "post_gaps": [
+      "node",
+      "<home>/.codex4/gsd-core/bin/gsd-tools.cjs",
+      "check",
+      "gap-analysis.plan-post",
+      ".planning/phases/67-design-settings-ladders",
+      "EXP-02, EXP-03, EXP-04, EXP-05",
+      "--raw"
+    ]
+  }
+}
