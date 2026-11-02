@@ -79,6 +79,11 @@ from pinn.verification.diagnostic_guard import (
     require_committed_registration,
 )
 from pinn.verification.diagnostic_phase66 import REGISTRIES
+from pinn.verification.diagnostic_phase67 import (
+    phase67_cadence,
+    phase67_loss_trace_stride,
+    phase67_score_cadence,
+)
 from pinn.verification.diagnostic_phase67_catalog import (
     PHASE67_REGISTRY_NAME,
     phase67_registry,
@@ -457,6 +462,47 @@ def validate_smoke_settings(doc):
         raise DiagnosticFitRefused(
             "the loss-trace stride must be an integer from 1 to optimizer_steps"
         )
+    # The Phase 67 checkpoint schedule (plan 67-04, D-08/D-10): a
+    # registration that declares one must declare the exact registered
+    # schedule — the five normalized similarity events, the three
+    # frozen-score checkpoints and the bounded loss-trace stride — before
+    # any data access or model construction. Older raw runs (any registry,
+    # no score cadence) gain no new fields or events.
+    score_cadence = settings.get("score_cadence")
+    if score_cadence is not None:
+        if settings.get("variant_registry") != PHASE67_REGISTRY_NAME:
+            raise DiagnosticFitRefused(
+                "score_cadence is a Phase 67 checkpoint-schedule setting; a "
+                f"registration naming the {settings.get('variant_registry')!r} "
+                "registry cannot declare it"
+            )
+        if not isinstance(score_cadence, list) or not score_cadence \
+                or any(isinstance(c, bool) or not isinstance(c, int) for c in score_cadence):
+            raise DiagnosticFitRefused(
+                f"the score cadence must be a non-empty list of integers; got {score_cadence!r}"
+            )
+        try:
+            expected_score = phase67_score_cadence(steps)
+            expected_similarity = phase67_cadence(steps)
+            expected_stride = phase67_loss_trace_stride(steps)
+        except ValueError as exc:
+            raise DiagnosticFitRefused(str(exc)) from exc
+        if score_cadence != expected_score:
+            raise DiagnosticFitRefused(
+                "the registered score cadence must be the exact Phase 67 "
+                f"schedule {expected_score} for {steps} steps; got {score_cadence!r}"
+            )
+        if cadence != expected_similarity:
+            raise DiagnosticFitRefused(
+                "a registration with a score cadence must declare the exact "
+                f"normalized similarity schedule {expected_similarity} for "
+                f"{steps} steps; got {cadence!r}"
+            )
+        if stride != expected_stride:
+            raise DiagnosticFitRefused(
+                "a registration with a score cadence must declare the bounded "
+                f"loss-trace stride {expected_stride} for {steps} steps; got {stride!r}"
+            )
     cap = settings.get("whole_run_cap_seconds")
     if isinstance(cap, bool) or not isinstance(cap, (int, float)) \
             or not math.isfinite(float(cap)) or not 0 < float(cap) < HOUR_SECONDS:
@@ -799,6 +845,30 @@ def _comparison_rows(data, *, scorecard):
     return [constant_row, kepler_row]
 
 
+def _require_finite_checkpoint(score, *, step):
+    """A recorded checkpoint must be a complete finite frozen score.
+
+    The guard mirrors the loss guard: a checkpoint whose error columns are
+    not all finite numbers is refused before it is recorded, and nothing is
+    published (D-08/D-13 — a non-finite score never becomes evidence).
+    """
+    tier = getattr(score, "tier", None)
+    if isinstance(tier, bool) or not isinstance(tier, int):
+        raise DiagnosticFitRefused(
+            f"the frozen score at step {step} carries no integer tier; the "
+            "checkpoint is not recorded and nothing is published"
+        )
+    for name in ("E", "e_sys_max", "e_in_max", "eps_h"):
+        value = getattr(score, name, None)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) \
+                or not math.isfinite(float(value)):
+            raise DiagnosticFitRefused(
+                f"the frozen score at step {step} is not a complete finite "
+                f"score ({name} = {value!r}); the checkpoint is not recorded "
+                "and nothing is published"
+            )
+
+
 def fit_diagnostic(
     variant,
     data,
@@ -823,6 +893,7 @@ def fit_diagnostic(
     run_context=None,
     variant_registry=None,
     loss_trace_stride=None,
+    score_cadence=None,
 ):
     """Fit, measure, score and record one diagnostic variant on one orbit.
 
@@ -841,6 +912,16 @@ def fit_diagnostic(
     directory. Every timing segment is wrapped in the MPS ``_synchronize``
     helper, whose overhead and call count are recorded. Returns the canonical
     record; nothing is published unless every step completed finite.
+
+    The registered Phase 67 checkpoint schedule (plan 67-04, D-08/D-10):
+    ``score_cadence`` names the steps at which the frozen ``score_network``
+    runs as mid-run checkpoints. Each scorer and logger event is then timed
+    individually (synchronized, on the same monotonic basis, disjoint from
+    the synchronized optimizer durations) inside the whole-run deadline,
+    checkpoints are recorded only after complete finite scores, and the
+    final checkpoint supplies the endpoint score — no fourth scoring call
+    happens. Without a ``score_cadence`` the historical path is unchanged:
+    no checkpoint, event or timing field is added.
     """
     resolved = resolve_variant(variant)
     if isinstance(steps, bool) or not isinstance(steps, int) or steps < 1:
@@ -871,6 +952,36 @@ def fit_diagnostic(
         raise DiagnosticFitRefused("the cadence must start at step 0 and end at the final step")
     if any(c < 0 or c > int(steps) for c in cadence):
         raise DiagnosticFitRefused("the cadence steps must lie in [0, steps]")
+    # The admitted schedule is checked before the model is built: a bad
+    # score cadence refuses before any data access or optimizer work.
+    score_set = None
+    if score_cadence is not None:
+        if not isinstance(score_cadence, list) or not score_cadence \
+                or any(isinstance(c, bool) or not isinstance(c, int) for c in score_cadence):
+            raise DiagnosticFitRefused(
+                f"score_cadence must be a non-empty list of integers; got {score_cadence!r}"
+            )
+        if len(set(score_cadence)) != len(score_cadence) \
+                or score_cadence != sorted(score_cadence):
+            raise DiagnosticFitRefused(
+                f"the score cadence must be unique and in step order; got {score_cadence!r}"
+            )
+        if any(c < 0 or c > int(steps) for c in score_cadence):
+            raise DiagnosticFitRefused(
+                f"the score cadence steps must lie in [0, steps]; got {score_cadence!r}"
+            )
+        if score_cadence[-1] != int(steps):
+            raise DiagnosticFitRefused(
+                "the score cadence must end at the final step so the endpoint "
+                f"score is the final checkpoint; got {score_cadence!r}"
+            )
+        off_grid = [c for c in score_cadence if c not in set(cadence)]
+        if off_grid:
+            raise DiagnosticFitRefused(
+                "every score cadence step must be a similarity cadence step; "
+                f"got {score_cadence!r} against cadence {cadence!r}"
+            )
+        score_set = set(score_cadence)
     if deadline_seconds is not None:
         if isinstance(deadline_seconds, bool) or not isinstance(deadline_seconds, (int, float)) \
                 or not math.isfinite(float(deadline_seconds)) \
@@ -933,16 +1044,44 @@ def fit_diagnostic(
     setup_seconds = clock() - setup_started
 
     # Initialization is logged once, before any step, outside the optimizer
-    # timing (its seconds join the logging phase).
+    # timing (its seconds join the logging phase). On the registered Phase 67
+    # schedule every logger and scorer event is timed individually as its own
+    # synchronized completed-work segment, disjoint from the synchronized
+    # optimizer durations, and each expensive event is deadline-checked
+    # before and after (plan 67-04, D-08).
+    scheduled = score_set is not None
     log_seconds = 0.0
+    logging_events = []
+    score_events = []
+    score_checkpoints = []
     cadence_set = set(cadence)
     entries = []
+    view = data.score
+
+    def run_log_event(step, point):
+        nonlocal log_seconds
+        if scheduled:
+            check_deadline(f"the similarity log at step {step}")
+            timed_sync()
+            log_started = clock()
+            entry = log_similarity(
+                model, data.data_points, times_physical, step=step, point=point
+            )
+            timed_sync()
+        else:
+            log_started = clock()
+            entry = log_similarity(
+                model, data.data_points, times_physical, step=step, point=point
+            )
+        event_seconds = clock() - log_started
+        log_seconds += event_seconds
+        if scheduled:
+            logging_events.append({"step": int(step), "seconds": float(event_seconds)})
+            check_deadline(f"the similarity log at step {step} completed")
+        return entry
+
     if 0 in cadence_set:
-        log_started = clock()
-        entries.append(log_similarity(
-            model, data.data_points, times_physical, step=0, point="init"
-        ))
-        log_seconds += clock() - log_started
+        entries.append(run_log_event(0, "init"))
 
     losses = []
     warmup_seconds = 0.0
@@ -965,33 +1104,71 @@ def fit_diagnostic(
             measured_count += 1
         if step in cadence_set:
             point = "final" if step == int(steps) else f"step-{step}"
-            log_started = clock()
-            entries.append(log_similarity(
-                model, data.data_points, times_physical, step=step, point=point
-            ))
-            log_seconds += clock() - log_started
+            entries.append(run_log_event(step, point))
+        if score_set is not None and step in score_set:
+            check_deadline(f"the frozen-score checkpoint at step {step}")
+            timed_sync()
+            event_started = clock()
+            checkpoint_score = score_network(
+                model,
+                data.ic13,
+                data.masses,
+                view.positions,
+                view.inner_pair,
+                view.times,
+                scorecard=scorecard,
+                dtype=dtype,
+                device=device,
+                grid=view.grid,
+            )
+            timed_sync()
+            event_seconds = clock() - event_started
+            _require_finite_checkpoint(checkpoint_score, step=step)
+            score_events.append({"step": int(step), "seconds": float(event_seconds)})
+            score_checkpoints.append({
+                "step": int(step),
+                "score": checkpoint_score.to_json_dict(),
+                "elapsed_seconds": float(clock() - fit_started),
+            })
+            check_deadline(f"the frozen-score checkpoint at step {step} completed")
     wall = clock() - loop_started
 
-    # Scoring happens outside the optimizer timing, synchronized, inside the
-    # whole-run deadline.
-    check_deadline("scoring")
-    timed_sync()
-    scoring_started = clock()
-    view = data.score
-    score = score_network(
-        model,
-        data.ic13,
-        data.masses,
-        view.positions,
-        view.inner_pair,
-        view.times,
-        scorecard=scorecard,
-        dtype=dtype,
-        device=device,
-        grid=view.grid,
-    )
-    comparisons = _comparison_rows(data, scorecard=scorecard)
-    scoring_seconds = clock() - scoring_started
+    comparisons_seconds = None
+    if score_set is None:
+        # Scoring happens outside the optimizer timing, synchronized, inside
+        # the whole-run deadline.
+        check_deadline("scoring")
+        timed_sync()
+        scoring_started = clock()
+        score = score_network(
+            model,
+            data.ic13,
+            data.masses,
+            view.positions,
+            view.inner_pair,
+            view.times,
+            scorecard=scorecard,
+            dtype=dtype,
+            device=device,
+            grid=view.grid,
+        )
+        comparisons = _comparison_rows(data, scorecard=scorecard)
+        scoring_seconds = clock() - scoring_started
+        network_score_json = score.to_json_dict()
+    else:
+        # The endpoint score is the final frozen-score checkpoint: no fourth
+        # scoring call happens. The frozen comparisons still run on the same
+        # window, timed as their own synchronized segment.
+        check_deadline("comparisons")
+        timed_sync()
+        comparisons_started = clock()
+        comparisons = _comparison_rows(data, scorecard=scorecard)
+        timed_sync()
+        comparisons_seconds = clock() - comparisons_started
+        scoring_seconds = (
+            sum(event["seconds"] for event in score_events) + comparisons_seconds
+        )
+        network_score_json = score_checkpoints[-1]["score"]
 
     check_deadline("publish")
     publish_started = clock()
@@ -1029,6 +1206,15 @@ def fit_diagnostic(
         },
         "completed_steps": len(losses),
     }
+    if scheduled:
+        # The disjoint per-event ledger (plan 67-04): each logger and scorer
+        # event's own synchronized seconds, plus the publication I/O segment.
+        timing["events"] = {
+            "logging": logging_events,
+            "scoring": score_events,
+            "publication_io": [{"phase": "publish", "seconds": None}],
+        }
+        timing["phases"]["comparisons_seconds"] = float(comparisons_seconds)
     timing["total_wall_seconds"] = float(clock() - fit_started)
     timing["end_to_end_seconds_per_completed_step"] = (
         timing["total_wall_seconds"] / len(losses)
@@ -1086,9 +1272,10 @@ def fit_diagnostic(
             "polish": None,
         },
         "similarity": {"cadence": list(cadence), "entries": entries},
+        **({"score_checkpoints": score_checkpoints} if scheduled else {}),
         "loss": loss_block,
         "timing": timing,
-        "scores": {"network": score.to_json_dict()},
+        "scores": {"network": network_score_json},
         "comparisons": comparisons,
         "weights": weights_block,
         "source_sha256": pinned_source_hashes(repo_root=repo_root),
@@ -1110,6 +1297,14 @@ def fit_diagnostic(
     if run_context is not None:
         record["context"] = dict(run_context)
     record["timing"]["phases"]["publish_seconds"] = float(clock() - publish_started)
+    if scheduled:
+        record["timing"]["events"]["publication_io"][0]["seconds"] = (
+            record["timing"]["phases"]["publish_seconds"]
+        )
+        # The deadline is checked after the expensive publication work and
+        # before the exclusive write, so an over-cap attempt never strands a
+        # written record; the supervisor remains the hard stop (D-07/D-08).
+        check_deadline("the publication of the record")
     write_record_exclusive(
         record_path, record,
         data_root=getattr(context.reader, "data_root", None),
@@ -1240,6 +1435,7 @@ def run_registered_smoke(registration_path, output_path, *, repo_root=None, cloc
             seed=int(settings["seed"]),
             variant_registry=settings.get("variant_registry"),
             loss_trace_stride=settings.get("loss_trace_stride"),
+            score_cadence=settings.get("score_cadence"),
             # The 33 pinned source digests describe the RUNNING implementation,
             # never the registration's repository (which may be a fixture).
             repo_root=None,
@@ -1461,6 +1657,50 @@ def verify_fit_result(registration_path, result_path, *, repo_root=None):
         [entry.get("step") for entry in entries] == list(settings["similarity_cadence"]),
         "the result's similarity entries are not exactly the registered cadence",
     )
+    # The registered Phase 67 checkpoint schedule (plan 67-04): a
+    # registration that declares one must see exactly its score checkpoints,
+    # the endpoint score reused from the final checkpoint and the per-event
+    # timing ledger; a registration without one must see none of them.
+    score_cadence_setting = settings.get("score_cadence")
+    if score_cadence_setting is not None:
+        checkpoints = record.get("score_checkpoints")
+        checkpoint_steps = (
+            [entry.get("step") for entry in checkpoints if isinstance(entry, Mapping)]
+            if isinstance(checkpoints, list) else None
+        )
+        check(
+            checkpoint_steps == list(score_cadence_setting),
+            "the result's score checkpoints disagree with the registered score cadence",
+        )
+        final_checkpoint = (
+            checkpoints[-1]
+            if isinstance(checkpoints, list) and checkpoints
+            and isinstance(checkpoints[-1], Mapping) else None
+        )
+        check(
+            final_checkpoint is not None
+            and (record.get("scores") or {}).get("network")
+            == final_checkpoint.get("score"),
+            "the result's network score is not its final score checkpoint",
+        )
+        event_ledger = (record.get("timing") or {}).get("events") or {}
+        check(
+            isinstance(event_ledger.get("logging"), list)
+            and isinstance(event_ledger.get("scoring"), list)
+            and isinstance(event_ledger.get("publication_io"), list),
+            "the result's timing is missing the per-event logging, scoring "
+            "and publication seconds",
+        )
+    else:
+        check(
+            "score_checkpoints" not in record,
+            "the result carries score checkpoints its registration does not declare",
+        )
+        check(
+            "events" not in (record.get("timing") or {}),
+            "the result's timing carries per-event seconds its registration "
+            "does not declare",
+        )
     optimizer = record.get("optimizer") or {}
     check(
         optimizer.get("kind") == "adam_constant_rate"

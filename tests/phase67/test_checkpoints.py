@@ -205,7 +205,7 @@ class ScoreCadenceAdmissionTests(unittest.TestCase):
         settings, variant, orbit_key, runtime = validate_smoke_settings(doc)
         self.assertEqual(settings["score_cadence"], SCORE_CADENCE)
         self.assertEqual(variant.name, "exp02-d2-w256-o30")
-        self.assertEqual(orbit_key.record_id, 0)
+        self.assertEqual(orbit_key.id, 0)
         # The runtime pair is the named (dtype, device).
         self.assertEqual(str(runtime[1]), "cpu")
 
