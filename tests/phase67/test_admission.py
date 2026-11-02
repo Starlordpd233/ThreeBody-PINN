@@ -239,6 +239,69 @@ class Phase67AdmissionTests(unittest.TestCase):
         self.assertEqual(output.read_bytes(), b"{}\n")
 
 
+def _run_non_train_case(stack, root_path):
+    """Drive one CLI run whose registration names the withheld test key.
+
+    Only ``open_diagnostic_context`` is routed to the fixture context: the
+    orbit spec, the Stage-0 TRAIN-only admission and the reference loader are
+    the real seam, so a non-train orbit refuses before any record is opened.
+    """
+    import pinn.verification.diagnostic_data as diagnostic_data
+    import pinn.verification.diagnostic_fit as fit_module
+    from pinn.verification import evidence_io
+    from tests.phase60._fixtures import gold_corpus_fixture
+    from tests.phase65.test_fit_short import _loaded
+
+    fixture = stack.enter_context(gold_corpus_fixture())
+    _spec, context, _card, _data = _loaded(fixture)
+    orbit_key = evidence_io.record_key_str(fixture.test_key)
+    root, _commit = phase67_fixture_registration(root_path, orbit_key=orbit_key)
+    registration = root / "reg/smoke-registration.json"
+    output = root / "evidence/nontrain/record.json"
+    with mock.patch.object(
+        fit_module, "open_diagnostic_context", create=True, return_value=context,
+    ), mock.patch.object(
+        diagnostic_data, "load_reference",
+        wraps=diagnostic_data.load_reference,
+    ) as reference_spy, mock.patch.object(
+        torch.optim.Adam, "step"
+    ) as adam_spy:
+        code = fit_module.main(
+            ["run", "--registration", str(registration), "--output", str(output)],
+            repo_root=root,
+            supervisor=inline_supervisor,
+        )
+    return code, output, reference_spy, adam_spy
+
+
+class Phase67NonTrainBoundaryTests(unittest.TestCase):
+    """A non-train orbit refuses at the real Stage-0 seam before any open.
+
+    Unlike the admission tests above, no blanket no-data spies are installed:
+    the orbit spec, the Stage-0 TRAIN-only admission and the reference loader
+    are the real seam, with the context routed to the synthetic corpus.
+    """
+
+    def test_a_non_train_orbit_refuses_before_any_corpus_open(self):
+        stack = ExitStack()
+        self.addCleanup(stack.close)
+        tmp = Path(stack.enter_context(
+            tempfile.TemporaryDirectory(prefix="phase67-nontrain-")
+        ))
+        code, output, reference_spy, adam_spy = _run_non_train_case(
+            stack, tmp / "non-train"
+        )
+        self.assertEqual(code, 2)
+        self.assertFalse(output.exists())
+        self.assertEqual(reference_spy.call_count, 0)
+        self.assertEqual(adam_spy.call_count, 0)
+        attempt = json.loads((output.parent / "attempt.json").read_bytes())
+        self.assertEqual(attempt["status"], "incomplete")
+        # The withheld test key refuses at the allowlist door, a train-only
+        # orbit at the Stage-0 door — both "before any path is built".
+        self.assertIn("refused before any path is built", attempt["reason"])
+
+
 class Phase67CatalogControlTests(unittest.TestCase):
     """The sealed catalogs unchanged, the Phase 67 copy fresh, duplicates and
     empty declarations refused, deterministic order, no harness import."""
