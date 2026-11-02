@@ -24,6 +24,7 @@ from types import SimpleNamespace
 
 import numpy as np
 import torch
+from unittest import mock
 
 from pinn.constants import T_CHARACTERISTIC_TIME
 from pinn.verification.diagnostic_data import (
@@ -656,6 +657,31 @@ class SameWindowExpectationTests(unittest.TestCase):
         with self.assertRaises(refused) as caught:
             expectations(data, scorecard=self.scorecard, prefix=prefix)
         self.assertIn("grid", str(caught.exception))
+
+    def test_tampered_harness_applicability_refuses(self):
+        module = _module(self)
+        refused = _symbol(self, module, "WindowExpectationRefused")
+        first = _symbol(self, module, "first_lap_prefixes")
+        expectations = _symbol(self, module, "same_window_expectations")
+        times = np.linspace(0.0, 10.0, 1001)
+        # The frozen formula is not applicable here; a tampered harness row
+        # that manufactures an applicable finite score must be rejected.
+        reference = _planar_reference(times, *_uniform(1.05))
+        prefix = first(reference, (1,))[0]
+        data = _windowed_data(reference, prefix["requested_endpoint"])
+        tampered = [
+            dict(row) for row in module._comparison_rows(data, scorecard=self.scorecard)
+        ]
+        for row in tampered:
+            if row["comparison"] == "two_kepler":
+                row["applicable"] = True
+                row["score"] = {"E": 0.0, "tier": 0}
+                row.pop("failure", None)
+                row.pop("reason", None)
+        with mock.patch.object(module, "_comparison_rows", return_value=tampered):
+            with self.assertRaises(refused) as caught:
+                expectations(data, scorecard=self.scorecard, prefix=prefix)
+        self.assertIn("applicability", str(caught.exception))
 
     def test_short_window_kepler_scores_differ_from_full_window_scores(self):
         module = _module(self)
