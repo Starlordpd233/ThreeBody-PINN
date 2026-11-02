@@ -548,8 +548,15 @@ def _smoke_settings(**overrides):
     return settings
 
 
-def _fit_registration_fixture(root, kind="matching", settings_extra=None, receipt_raw=None):
+def _fit_registration_fixture(
+    root, kind="matching", settings_extra=None, receipt_raw=None, doc_extra=None
+):
     """A minimal committed fit registration inside a throwaway git repository.
+
+    ``doc_extra`` (plan 67-05) merges additional committed top-level blocks
+    into the registration document — the Phase 67 reader's committed window
+    metadata and same-window baseline expectations — without changing any
+    earlier caller's document shape.
 
     ``kind`` selects the broken variant: matching, missing (an artifact is
     deleted), untracked (the registration file is never committed), staged_only
@@ -641,6 +648,7 @@ def _fit_registration_fixture(root, kind="matching", settings_extra=None, receip
         },
         "code_dependencies": [entry("fit_dep.py", dep_raw)],
         "frozen": [entry("frozen/scorer.py", frozen_raw)],
+        **(dict(doc_extra) if doc_extra else {}),
     }
     registration_raw = (json.dumps(doc, indent=2) + "\n").encode("utf-8")
     (reg / "smoke-registration.json").write_bytes(registration_raw)
