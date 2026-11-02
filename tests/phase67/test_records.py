@@ -31,7 +31,6 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pinn.verification.diagnostic_fit as fit_module
-from pinn.constants import T_CHARACTERISTIC_TIME
 from tests.phase60._fixtures import gold_corpus_fixture
 from tests.phase65.test_fit_short import _fit_registration_fixture, _loaded
 from tests.phase67._fixtures import (
@@ -151,7 +150,10 @@ def _committed_metadata(data, scorecard):
     (formula nonapplicability retained, never a manufactured score).
     """
     times = [float(value) for value in data.score.times.tolist()]
-    tau = [2.0 * (value / T_CHARACTERISTIC_TIME) - 1.0 for value in times]
+    tau = [
+        float(value)
+        for value in data.data_points.tau_ic13[:, 0].tolist()
+    ]
     rows = {
         row["comparison"]: row
         for row in fit_module._comparison_rows(data, scorecard=scorecard)
@@ -432,10 +434,13 @@ class HostileRecordShapeTests(_RunTestCase):
     def setUpClass(cls):
         cls.root, cls.registration, cls.run_dir, cls.record = cls._make_run()
 
-    def _problem_case(self, name, mutate, problem, *, receipt=None, attempt=None):
+    def _problem_case(self, name, mutate, problem, *, receipt=None, attempt=None,
+                       record_bytes=None):
         with self.subTest(case=name):
             target = _copy_run(self.run_dir.parent / f"hostile-{name}", self.run_dir)
-            if mutate is not None:
+            if record_bytes is not None:
+                (target / "record.json").write_bytes(record_bytes)
+            elif mutate is not None:
                 _rewrite_record(target, mutate)
             if receipt is not None:
                 (target / "power-gate.json").write_bytes(receipt)
@@ -461,27 +466,29 @@ class HostileRecordShapeTests(_RunTestCase):
             ("number", b"17\n"),
             ("truncated", b'{"status": "comp'),
         ):
-            self._problem_case(f"root-{name}", None, RECORD_UNREADABLE, receipt=raw)
+            self._problem_case(
+                f"root-{name}", None, RECORD_UNREADABLE, record_bytes=raw
+            )
 
     def test_bad_nested_similarity_blocks_refuse(self):
         entries = [
-            ("entries not a list", lambda r: r["similarity"].update(entries={"0": 1})),
-            ("entry not an object", lambda r: r["similarity"]["entries"].__setitem__(0, [1])),
-            ("layers missing", lambda r: r["similarity"]["entries"][0].pop("layers")),
+            ("entries not a list", lambda r: r["similarity"].update(entries={"0": 1}), LAYERS),
+            ("entry not an object", lambda r: r["similarity"]["entries"].__setitem__(0, [1]), LAYERS),
+            ("layers missing", lambda r: r["similarity"]["entries"][0].pop("layers"), LAYERS),
             ("extra layer", lambda r: r["similarity"]["entries"][0]["layers"].append(
-                {"name": "h3", "order": 3, "adjacent_cosine_mean": 0.9})),
+                {"name": "h3", "order": 3, "adjacent_cosine_mean": 0.9}), LAYERS),
             ("duplicate layer", lambda r: r["similarity"]["entries"][0]["layers"].append(
-                r["similarity"]["entries"][0]["layers"][1])),
+                r["similarity"]["entries"][0]["layers"][1]), LAYERS),
             ("missing deep layer", lambda r: r["similarity"]["entries"].__setitem__(
                 0, {**r["similarity"]["entries"][0],
-                    "layers": r["similarity"]["entries"][0]["layers"][:1]})),
-            ("order not increasing", lambda r: r["similarity"]["entries"][0]["layers"][1].update(order=5)),
-            ("cadence tampered", lambda r: r["similarity"].update(cadence=[0, 25, 50, 99, 100])),
-            ("checkpoints missing", lambda r: r.pop("score_checkpoints")),
-            ("checkpoint steps tampered", lambda r: r["score_checkpoints"][0].update(step=25)),
+                    "layers": r["similarity"]["entries"][0]["layers"][:1]}), LAYERS),
+            ("order not increasing", lambda r: r["similarity"]["entries"][0]["layers"][1].update(order=5), LAYERS),
+            ("cadence tampered", lambda r: r["similarity"].update(cadence=[0, 25, 50, 99, 100]), SCHEDULE),
+            ("checkpoints missing", lambda r: r.pop("score_checkpoints"), SCHEDULE),
+            ("checkpoint steps tampered", lambda r: r["score_checkpoints"][0].update(step=25), SCHEDULE),
         ]
-        for name, mutate in entries:
-            self._problem_case(name, mutate, LAYERS if "layer" in name else SCHEDULE)
+        for name, mutate, problem in entries:
+            self._problem_case(name, mutate, problem)
 
     def test_unusable_cosines_movements_and_coordinates_refuse(self):
         cases = [
@@ -532,9 +539,10 @@ class HostileRecordShapeTests(_RunTestCase):
                 row["score"] = {"E": 0.5}
 
         cases = [
-            ("grid tampered", lambda r: r["similarity"]["entries"][0]["times_physical"].__setitem__(5, 4.444), GRID),
+            ("grid tampered", lambda r: r["similarity"]["entries"][0]["times_physical"].__setitem__(
+                5, r["similarity"]["entries"][0]["times_physical"][5] + 1e-9), GRID),
             ("grid endpoint tampered", lambda r: r["similarity"]["entries"][0]["times_physical"].__setitem__(
-                -1, 9.999), GRID),
+                -1, r["similarity"]["entries"][0]["times_physical"][-1] - 1e-9), GRID),
             ("constant baseline substituted", lambda r: next(
                 row for row in r["comparisons"]
                 if row["comparison"] == "window_mean_constant"
@@ -562,9 +570,7 @@ class HostileRecordShapeTests(_RunTestCase):
     def test_unsafe_and_symlinked_weight_references_refuse(self):
         outside = self.run_dir.parent / "outside.weights"
         outside.write_bytes(b"not weights")
-        symlink = self.run_dir.parent / "hostile-symlink" / "linked.weights"
         target = _copy_run(self.run_dir.parent / "hostile-symlink", self.run_dir)
-        (target / "linked.weights").unlink()
         (target / "linked.weights").symlink_to(outside.resolve())
         self._problem_case(
             "parent-relative weights", lambda r: r["weights"].update(file="../outside.weights"), UNSAFE_PATH
