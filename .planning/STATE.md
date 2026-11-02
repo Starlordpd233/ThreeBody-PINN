@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: Completed 67-01-PLAN.md (the Phase 67 tracer), ready for 67-02
-last_updated: "2026-11-02T05:25:00.000Z"
+stopped_at: Completed 67-02-PLAN.md (the ladders and internal Fourier models), ready for 67-03
+last_updated: "2026-11-02T06:00:00.000Z"
 last_activity: 2026-11-02
-last_activity_desc: Plan 67-01 complete (tracer, admission and historical boundaries)
-state_head: 7ea514fb
+last_activity_desc: Plan 67-02 complete (ladder catalog, internal Fourier time features, truthful encoded logger)
+state_head: f4be10d7
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 12
-  percent: 44
+  completed_plans: 13
+  percent: 48
 ---
 
 # Project State
@@ -30,9 +30,67 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 2 of 16
-Status: Executing Phase 67 (67-01 complete)
-Last activity: 2026-11-02 — plan 67-01, the registered Phase 67 tracer and boundaries
+Plan: 3 of 16
+Status: Executing Phase 67 (67-01, 67-02 complete)
+Last activity: 2026-11-02 — plan 67-02, the exact ladder catalog, the internal
+Fourier time-feature models and the truthful encoded logger
+
+### Decisions from 67-02 (2026-11-02, tasks 67-02-01 and 67-02-02)
+
+- **The declared depth, rate and time-input interventions are constructible
+  through the proven diagnostic path (TDD, both RED gates machine-verified
+  RED_EVIDENCE_OK).** `PHASE67_REGISTRY` now holds the exact 17-name
+  registration order: the sealed `locked-12`, D-03's depth arms
+  `exp02-d2/d4/d6/d8/d12-w256-o30` (width 256, first omega 30, locked hidden
+  omega, raw14, rate 1e-4, [0, 10]; deterministic counts 137,737 / 269,321 /
+  400,905 / 532,489 / 795,657), D-04's rate arms
+  `exp03-d12-w256-lr1e-3…lr1e-5` (exactly 1e-3/3e-4/1e-4/3e-5/1e-5 on the
+  locked depth-12 network) and D-05's six input arms `exp04-locked-raw/
+  locked-f1/locked-f12/exp01-raw/exp01-f1/exp01-f12` at rate 1e-4 on the two
+  required backbones (locked 12/256/30; the actual EXP-01 1/384/1000 — never
+  mixed). `PHASE67_ARMS` + `phase67_variant` map the exact arm IDs.
+- **`diagnostic_time_features.py` owns the internal encoder (D-05):** the
+  public contract stays raw14; `tau_ic13_fourier1`/`tau_ic13_fourier12`
+  append ordered sin/cos pairs after raw tau and IC13 (internal dimensions
+  14/16/18, first-layer fan-in bound 1/internal_dim, persistent
+  `frequency_cycles`/`harmonics` buffers surviving state_dict round-trips,
+  inherited mass-weighted COM forward), with phase `pi*N_in*(tau+1)` from the
+  base frequency `N_in/10` cycles per physical time unit read against the
+  global `T_CHARACTERISTIC_TIME`; analytic first and second raw-tau
+  derivatives and the frozen `score_network` vmap(jacrev) path are tested.
+  `build_variant` dispatches feature-only — raw construction stays bitwise
+  production and global-RNG-free. Malformed raw14/frequency/harmonics inputs
+  refuse (T-67-04).
+- **Encoded frequencies resolve only from validated committed metadata.** The
+  exp04 encoded arms pin the main system's census row (`N_in` 1632 =
+  10.471994061054543, `f = N_in/T`, pinned against the committed
+  `panels.json` by test); `phase67_registry(settings)` rejects a settings
+  block whose orbit's census row disagrees with the encoded declaration it
+  names (a 1632-pinned declaration never runs on 851), refuses unknown
+  variants/registries, and never consults the census for raw declarations.
+  Repeat-system variants materialize later as fresh orbit-specific
+  registrations (67-06/67-12), never by editing declarations.
+- **The shared logger is truthful for encoded inputs and every depth
+  (D-11/D-13, T-67-06, WR-06).** `measure_time_signal` refuses a
+  non-increasing raw tau column before any hook, alongside the physical-time
+  check; encoded models emit null aggregate median/max with
+  `frequency_applicability` false, an explicit reason (column zero describes
+  only the raw tau channel), and the encoder's pinned per-harmonic physical
+  frequencies, harmonic list and internal dimension; raw records keep their
+  historical JSON shape byte-for-byte (proven against a committed Phase 66
+  record's similarity entries). Hooks ride the actual forward at depths 2/12
+  and the EXP-01 backbone and are removed on success and failure; the
+  adjacent-time cosine stays associated evidence with no similarity pass bar.
+- **The D-12 live-pin transition grew as mandated and is routed to 67-06.**
+  Editing `diagnostic_variants.py` and `diagnostic_similarity.py` (both pinned
+  by the Phase 66 registrations and the Phase 65 smoke registration) leaves
+  phase66 discovery at 99 tests / 6 failures — the four known `test_pages`
+  live-digest failures plus the same-class Phase 65 smoke pins on the two
+  edited files — while phase65 stays 204 OK and phase67 discovery is 72 OK;
+  the phase67 historical suite's `EDITED_PINS` transition set and the
+  admission registry-order pin were extended (run-commit identity assertions
+  unchanged). Historical bytes were never edited; new Phase 67 registrations
+  pin the new bytes.
 
 ### Decisions from 67-01 (2026-11-02, tasks 67-01-01 and 67-01-02)
 
