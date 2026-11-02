@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: Completed 67-05-PLAN.md (evidence reader + contrast/confirmation rules), ready for 67-06
-last_updated: "2026-11-02T20:52:00.000Z"
+stopped_at: Completed 67-06-PLAN.md (execution/page commands + real-operation gates), ready for 67-07
+last_updated: "2026-11-02T23:50:00.000Z"
 last_activity: 2026-11-02
-last_activity_desc: Plan 67-05 complete (registration-bound science reader, prospective reading rules)
-state_head: d8974f73
+last_activity_desc: Plan 67-06 complete (thirteen execution commands, real-operation admission/deadline gates)
+state_head: 469f6e26
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 16
-  percent: 59
+  completed_plans: 17
+  percent: 63
 ---
 
 # Project State
@@ -30,10 +30,86 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 6 of 16
-Status: Executing Phase 67 (67-01..67-05 complete; Wave 4 done)
-Last activity: 2026-11-02 — plan 67-05, the registration-bound science
-reader and the prospective contrast/confirmation reading rules
+Plan: 7 of 16
+Status: Executing Phase 67 (67-01..67-06 complete; Wave 5 done)
+Last activity: 2026-11-02 — plan 67-06, the thirteen execution/page
+commands and the real-operation admission/deadline gates
+
+### Decisions from 67-06 (2026-11-02, tasks 67-06-01 and 67-06-02)
+
+- **The thirteen Phase 67 commands exist and are tested end to end on
+  synthetic data (TDD, both RED gates machine-verified RED_EVIDENCE_OK;
+  task 2 resumed from an interrupted executor with its RED re-verified
+  against the implementation-free tree).**
+  `diagnostic_phase67_execution.py` implements the complete CLI table on
+  the established `-B -m pinn.verification.diagnostic_phase67` entry
+  point: prepare-design freezes the full scientific design (suspect
+  predictions, variants, repeat cases, contrasts, cadence formula, budget
+  arithmetic, no-continuation policy, 67-05's reading branches, the
+  depth/fan-in confound records and the four hypotheses with their flat/
+  opposite/unsettled/mechanical alternatives), check-design/capture-metadata
+  /check-metadata/register-timing/check-matrix/launch-row/check-row/budget/
+  check-budget/review/check-review/audit-phase each enforce their exact
+  path/flag/refusal contract, and the six new schemas live only in the new
+  diagnostic artifacts. The exact case-major matrices are the full
+  Cartesian product (15/15/18/12 rows; the fixture-scale arm table proves
+  the product and ordering), every dependent command refuses with no
+  downstream file before its prerequisite commit, the budget is cost-only
+  over the committed timing rows (score independence proven: changing
+  timing scores cannot move the budget, science settings or prediction
+  text; the timing prediction page stays byte-unchanged), and a pending
+  SCOPE-49 proposal blocks only the dependent experiment. The optional
+  `67-EXPxx-RULING.md` contract (three digests, explicit disposition,
+  exact allowed scope, verbatim owner words) is implemented with
+  check-review refusing missing/stale/ambiguous/hold/scope-mismatched
+  rulings. audit-phase audits all four experiments read-only, `--json`
+  emitting pure JSON whose status equals the marker.
+- **The full-cap remaining-window admission exists as a power primitive
+  (D-07/D-10, T-67-17).** `weekend_closing_utc` derives the Sunday 22:00
+  America/Chicago closing instant from the receipt's own aware weekend
+  instant (wall-clock construction so a DST transition inside the weekend
+  is exact; every duration between aware UTC instants) and
+  `require_remaining_window(cap, ...)` requires current+cap ≤ closing with
+  exact equality admitted and the next representable instant refused, for
+  both the 900-second metadata/timing and 3540-second science caps,
+  returning the closing instant and remaining allowance so the capture
+  receipt records independently recheckable evidence
+  (`closing_utc − checked_utc ≥ cap_seconds`).
+- **Every real operation runs inside one bounded outer supervisor whose
+  cap covers all overhead.** The monotonic timer starts at the spawn,
+  before power/admission; the spawned child owns its process group (the
+  fixed-argv caffeinate/fit descendants join it) and a cap expiry SIGTERMs
+  then SIGKILLs the whole group (ps -g sweep proves no surviving
+  descendant), preserves the attempt explicitly incomplete
+  (wall_cap_expired) and publishes nothing — never an erase, resume,
+  rename or retry. The writable-space check against the registered byte
+  bound runs before any claim; battery, weekday, late Sunday, dirty
+  freeze, duplicate-output and prior-review refusals all land before any
+  protected work; concurrent/second launches refuse at the exclusive
+  claim. The injectable supervisor seam `supervised(target, args, *,
+  timeout)` serves the synthetic suites in-process
+  (`inline_supervisor`) and the real path through the spawn supervisor
+  with one payload contract; the synthetic deadline fires the same
+  supervised stop early because a rule patch cannot cross the spawn
+  boundary (the child re-admits against the unpatched rule module), while
+  the registered-cap propagation (900.0) is asserted separately.
+- **The encoded logger-parity receipt admits as a measurement (the 67-05
+  adapter item), and check-matrix settings-validates its rows.** A receipt
+  with null aggregate median/max beside an explicit false applicability, a
+  reason, the pinned per-harmonic cycles, the harmonic list and the
+  internal dimension (14 + 2·harmonics) admits through
+  `_receipt_is_a_measurement`; half-null hybrids, manufactured
+  applicability and non-numeric cycles refuse. check-matrix runs
+  `validate_smoke_settings` on every row after the metadata-only identity
+  door, so an mps-declaring registration on a machine without MPS refuses
+  at matrix-check time — before any launch. Malformed input returns
+  controlled exit 2, never a traceback. The D-12 live-pin transition set
+  gains the edited `diagnostic_power.py` (run-commit provenance still
+  verifies; live admission still refuses on the changed dependency).
+  Tests: 31 in test_pages+test_workflow, 33 in
+  test_isolation+test_workflow+test_tracer; phase67 discovery 233 OK;
+  phase65 204 OK; phase66 unchanged at its known six D-12 live-pin
+  failures; `git diff --check` clean over the plan range.
 
 ### Decisions from 67-05 (2026-11-02, tasks 67-05-01 and 67-05-02)
 
