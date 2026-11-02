@@ -1,19 +1,20 @@
 """Plan 67-01: Phase 65/66 historical evidence and the live-pin transition.
 
-In the real repository, read-only git: the six Phase 66 code pins this plan
-does not edit still hash to every Phase 66 registration's recorded digests;
-each Phase 66 run's identity holds at the commit that added its record (the
-record's cited registration sha256 and all seven code-dependency digests,
-including the now-historical ``diagnostic_fit.py``); and the 11 preserved
-Phase 65 evidence files of 65-CLOSEOUT.md keep their table hashes. Fresh
-new-run admission on the live tree correctly refuses the Phase 66
-registrations on the changed ``diagnostic_fit.py`` dependency while those
-recorded bytes still verify at their recorded run commits — the D-12/D-13
-separation of historical provenance from live admission permission. No commit
-SHA is hard-coded: each anchor is found by ``--diff-filter=A`` on its record
-path. The Phase 66 test_pages live-digest assertions are the inherited
-live-pin confusion this plan reports for the narrowly scoped compatibility
-work in 67-06.
+In the real repository, read-only git: the Phase 66 code pins the Phase 67
+plans have not edited (the seven recorded dependencies minus
+:data:`EDITED_PINS`) still hash to every Phase 66 registration's recorded
+digests; each Phase 66 run's identity holds at the commit that added its
+record (the record's cited registration sha256 and all seven code-dependency
+digests, including the now-historical ``diagnostic_fit.py``); and the 11
+preserved Phase 65 evidence files of 65-CLOSEOUT.md keep their table hashes.
+Fresh new-run admission on the live tree correctly refuses the Phase 66
+registrations on a changed dependency while those recorded bytes still
+verify at their recorded run commits — the D-12/D-13 separation of
+historical provenance from live admission permission. No commit SHA is
+hard-coded: each anchor is found by ``--diff-filter=A`` on its record path.
+The Phase 66 test_pages live-digest assertions are the inherited live-pin
+confusion this plan reports for the narrowly scoped compatibility work in
+67-06.
 """
 
 from __future__ import annotations
@@ -29,9 +30,16 @@ ROOT = Path(__file__).resolve().parents[2]
 PHASE65_DIR = ROOT / ".planning/phases/65-probe-on-the-record-fit-harness"
 PHASE66_DIR = ROOT / ".planning/phases/66-small-network-control"
 
-#: The one harness file Phase 67 edits; its live digest diverges from every
-#: Phase 66 registration's recorded pin, which is the planned D-12 transition.
-EDITED_PIN = "pinn/verification/diagnostic_fit.py"
+#: The harness files the Phase 67 plans edit; their live digests diverge from
+#: every Phase 66 registration's recorded pins, which is the planned D-12
+#: transition (67-01 edited diagnostic_fit.py; 67-02 edits the variant
+#: declarations and, in its logger task, the shared similarity measurement).
+#: Historical provenance still verifies at each record's run commit below.
+EDITED_PINS = frozenset({
+    "pinn/verification/diagnostic_fit.py",
+    "pinn/verification/diagnostic_variants.py",
+    "pinn/verification/diagnostic_similarity.py",
+})
 
 #: The Phase 66 registrations and their run records (registration, record).
 PHASE66_RUNS = (
@@ -60,7 +68,7 @@ class HistoricalPhase66Tests(unittest.TestCase):
             }
             with self.subTest(registration=registration_relative):
                 for relative, digest in recorded.items():
-                    if relative == EDITED_PIN:
+                    if relative in EDITED_PINS:
                         continue
                     live = hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()
                     self.assertEqual(live, digest)
@@ -116,7 +124,17 @@ class HistoricalPhase66Tests(unittest.TestCase):
                         repo_root=ROOT,
                         weight_digests=False,
                     )
-                self.assertIn(EDITED_PIN, str(refused.exception))
+                recorded = json.loads(
+                    (PHASE66_DIR / "evidence" / registration_relative).read_bytes()
+                )
+                edited = EDITED_PINS & {
+                    entry["path"] for entry in recorded["code_dependencies"]
+                }
+                message = str(refused.exception)
+                self.assertTrue(
+                    edited and any(path in message for path in edited),
+                    f"the refusal names no edited dependency: {message}",
+                )
 
 
 class PreservedPhase65EvidenceTests(unittest.TestCase):

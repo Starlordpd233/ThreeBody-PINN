@@ -31,6 +31,10 @@ import torch
 from pinn.architecture_spec import ArchitectureSpec
 from pinn.constants import SIREN_FIRST_OMEGA_0, SIREN_HIDDEN_OMEGA_0
 from pinn.network import SQRSkipResNetSIREN
+from pinn.verification.diagnostic_time_features import (
+    FOURIER_TIME_FEATURES,
+    DiagnosticTimeFeatureNetwork,
+)
 
 __all__ = [
     "SUPPORTED_TIME_FEATURES",
@@ -49,11 +53,14 @@ __all__ = [
 #: Exact-ASCII diagnostic variant identifiers (same alphabet as arm ids).
 VARIANT_NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
 
-#: The only time-feature declaration Wave 0 supports: raw normalized tau beside
-#: the raw 13-component IC vector, exactly the production 14D input. Anything
-#: else is refused before construction, naming the declaration, so later
-#: prediction pages can add their own approved designs explicitly.
-SUPPORTED_TIME_FEATURES = ("raw_tau_ic13",)
+#: The supported time-feature declarations. ``raw_tau_ic13`` is the Wave 0
+#: production input (raw normalized tau beside the raw 13-component IC
+#: vector, exactly the 14D production input). The Phase 67 D-05 encoded
+#: designs append ordered harmonic sin/cos pairs INSIDE the diagnostic
+#: model (``diagnostic_time_features``); anything else is refused before
+#: construction, naming the declaration, so later prediction pages add
+#: their own approved designs explicitly.
+SUPPORTED_TIME_FEATURES = ("raw_tau_ic13",) + tuple(FOURIER_TIME_FEATURES)
 
 #: Physical window length is bounded by the Stage-0 scoring horizon (10).
 MAX_WINDOW_LENGTH = 10.0
@@ -72,6 +79,10 @@ class DiagnosticVariant:
     merely selects what to build). ``learning_rate`` is the constant Adam rate
     of the diagnostic policy. ``window_length`` is the physical window, from
     t = 0, in the same physical time units as the records.
+    ``feature_frequency`` is required by (and only by) an encoded declaration:
+    the base frequency in cycles per physical time unit, pinned per system
+    from the committed census row (``N_in / T``); a raw declaration carries
+    ``None`` and never emits the field.
     """
 
     name: str
@@ -82,6 +93,7 @@ class DiagnosticVariant:
     window_length: float
     first_omega_0: float = SIREN_FIRST_OMEGA_0
     hidden_omega_0: float = SIREN_HIDDEN_OMEGA_0
+    feature_frequency: float = None
 
     def __post_init__(self):
         if not isinstance(self.name, str) or VARIANT_NAME_RE.fullmatch(self.name) is None:
@@ -111,6 +123,31 @@ class DiagnosticVariant:
                 raise VariantRefused(
                     f"{field_name} must be a finite positive real number; got {value!r}"
                 )
+        encoded = self.time_features != "raw_tau_ic13"
+        if encoded and self.feature_frequency is None:
+            raise VariantRefused(
+                f"an encoded time-feature declaration ({self.time_features!r}) must pin "
+                f"feature_frequency in cycles per physical time unit; variant "
+                f"{self.name!r} names none"
+            )
+        if not encoded and self.feature_frequency is not None:
+            raise VariantRefused(
+                f"a raw_tau_ic13 declaration carries no feature_frequency; variant "
+                f"{self.name!r} names {self.feature_frequency!r}"
+            )
+        if encoded:
+            value = self.feature_frequency
+            if isinstance(value, bool) or not isinstance(value, numbers.Real):
+                raise VariantRefused(
+                    f"feature_frequency must be a finite positive real number of "
+                    f"cycles per physical time unit; got {value!r}"
+                )
+            number = float(value)
+            if not math.isfinite(number) or number <= 0.0:
+                raise VariantRefused(
+                    f"feature_frequency must be a finite positive real number of "
+                    f"cycles per physical time unit; got {value!r}"
+                )
         if not 0.0 < float(self.window_length) <= MAX_WINDOW_LENGTH:
             raise VariantRefused(
                 f"window_length must satisfy 0 < window_length <= {MAX_WINDOW_LENGTH}; "
@@ -119,8 +156,10 @@ class DiagnosticVariant:
 
     def to_json_dict(self) -> dict:
         """Plain JSON types. Numeric fields keep their exact values — never a
-        rounded string substitution (E-INST-encoding)."""
-        return {
+        rounded string substitution (E-INST-encoding). Raw declarations emit
+        exactly the historical keys; an encoded declaration appends its pinned
+        ``feature_frequency``."""
+        payload = {
             "name": str(self.name),
             "time_features": str(self.time_features),
             "depth": int(self.depth),
@@ -130,6 +169,9 @@ class DiagnosticVariant:
             "first_omega_0": float(self.first_omega_0),
             "hidden_omega_0": float(self.hidden_omega_0),
         }
+        if self.time_features != "raw_tau_ic13":
+            payload["feature_frequency"] = float(self.feature_frequency)
+        return payload
 
 
 #: The locked production topology as a diagnostic variant: 12 hidden layers of
@@ -201,7 +243,7 @@ def registry_names(registry):
 
 
 def build_variant(variant, *, seed, dtype, device):
-    """Build the production network for ``variant``, seeded exactly as production.
+    """Build the network for ``variant``, seeded exactly as production.
 
     The validated fields of ``ArchitectureSpec(seed=seed)`` are copied and only
     the topology fields the variant names are replaced, so at the locked values
@@ -209,6 +251,13 @@ def build_variant(variant, *, seed, dtype, device):
     ...)`` in the same runtime. A local ``torch.Generator`` is used; the global
     RNG is never touched. Synthetic-only custom variants are fixture inputs —
     building one does not register it.
+
+    A ``raw_tau_ic13`` declaration builds the production class itself. An
+    encoded declaration (D-05) dispatches to the diagnostic subclass in
+    ``diagnostic_time_features``, which builds the SAME production layer
+    stack from a copied spec whose internal input dimension is 16 or 18 and
+    encodes inside the model — the raw construction path is unchanged and
+    stays bitwise production.
     """
     resolved = resolve_variant(variant)
     fields = dataclasses.asdict(ArchitectureSpec(seed=int(seed)))
@@ -218,6 +267,16 @@ def build_variant(variant, *, seed, dtype, device):
     fields["hidden_omega_0"] = float(resolved.hidden_omega_0)
     generator = torch.Generator(device=device)
     generator.manual_seed(int(seed))
-    return SQRSkipResNetSIREN(
-        SimpleNamespace(**fields), dtype=dtype, device=device, generator=generator
+    spec = SimpleNamespace(**fields)
+    if resolved.time_features == "raw_tau_ic13":
+        return SQRSkipResNetSIREN(
+            spec, dtype=dtype, device=device, generator=generator
+        )
+    return DiagnosticTimeFeatureNetwork(
+        spec,
+        harmonics=FOURIER_TIME_FEATURES[resolved.time_features],
+        feature_frequency=resolved.feature_frequency,
+        dtype=dtype,
+        device=device,
+        generator=generator,
     )

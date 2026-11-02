@@ -153,7 +153,7 @@ class Phase67LadderCatalogTests(unittest.TestCase):
 
     def test_every_exp04_arm_declares_d05_exactly(self):
         arms = {
-            name: PHASE67_REGISTRY[name]
+            name.partition("-")[2]: PHASE67_REGISTRY[name]
             for name in EXPECTED_REGISTRY_ORDER[11:17]
         }
         backbones = {
@@ -200,7 +200,8 @@ class Phase67LadderCatalogTests(unittest.TestCase):
              "exp01-raw", "exp01-f1", "exp01-f12"],
         )
         self.assertIs(phase67_variant("exp02", "d2"), EXP02_D2_VARIANT)
-        self.assertIs(phase67_variant("exp04", "exp01-f12").name, "exp04-exp01-f12")
+        self.assertEqual(phase67_variant("exp04", "exp01-f12").name,
+                         "exp04-exp01-f12")
         for experiment, arm in (("exp05", "d2"), ("exp02", "d3"), (None, "d2")):
             with self.subTest(experiment=experiment, arm=arm):
                 with self.assertRaises(VariantRefused):
@@ -326,10 +327,12 @@ class Phase67FrequencyResolutionTests(unittest.TestCase):
         self.assertIs(phase67_registry({"variant_registry": "phase67"}),
                       PHASE67_REGISTRY)
         self.assertIs(phase67_registry("phase67"), PHASE67_REGISTRY)
+        # ``None`` keeps the sealed Phase 65 default (every Phase 65
+        # registration names no registry); a foreign name refuses.
+        self.assertIs(phase67_registry(None), REGISTRY)
+        self.assertIs(phase67_registry({"variant_registry": None}), REGISTRY)
         with self.assertRaises(VariantRefused):
             phase67_registry({"variant_registry": "phase68"})
-        with self.assertRaises(VariantRefused):
-            phase67_registry(None)
 
     def test_the_census_reader_validates_committed_metadata(self):
         from pinn.verification.diagnostic_phase67_catalog import census_n_in
