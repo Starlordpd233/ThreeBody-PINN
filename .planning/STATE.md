@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: Completed 67-04-PLAN.md (checkpoint schedule + common budget), ready for 67-05
-last_updated: "2026-11-02T19:46:11.000Z"
+stopped_at: Completed 67-05-PLAN.md (evidence reader + contrast/confirmation rules), ready for 67-06
+last_updated: "2026-11-02T20:52:00.000Z"
 last_activity: 2026-11-02
-last_activity_desc: Plan 67-04 complete (timed science checkpoint schedule, cost-only common update budget)
-state_head: b89e04d3
+last_activity_desc: Plan 67-05 complete (registration-bound science reader, prospective reading rules)
+state_head: d8974f73
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 15
-  percent: 56
+  completed_plans: 16
+  percent: 59
 ---
 
 # Project State
@@ -30,10 +30,77 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 5 of 16
-Status: Executing Phase 67 (67-01..67-04 complete; Wave 3 done)
-Last activity: 2026-11-02 — plan 67-04, the timed registered science
-checkpoint schedule and the cost-only common update budget
+Plan: 6 of 16
+Status: Executing Phase 67 (67-01..67-05 complete; Wave 4 done)
+Last activity: 2026-11-02 — plan 67-05, the registration-bound science
+reader and the prospective contrast/confirmation reading rules
+
+### Decisions from 67-05 (2026-11-02, tasks 67-05-01 and 67-05-02)
+
+- **The Phase 67 science reader exists (TDD, both RED gates machine-verified
+  RED_EVIDENCE_OK).** `read_phase67_run_directory` in
+  `pinn/verification/diagnostic_phase67_records.py` admits the committed
+  registration, requires the registered checkpoint schedule plus the
+  committed `window_metadata`/`window_baselines` blocks (typed refusals when
+  absent — the contract 67-07's pages must carry, mirroring 67-03's
+  `same_window_expectations` evidence), then validates the run directory in
+  a staged order — shapes, the declared matrix row (experiment/arm/case/
+  orbit/seed → value-free setting problems on mismatch), evidence links
+  (record/weights/receipt/attempt digests; a weight reference must be a
+  contained local basename, never a symlink or parent escape, and an unsafe
+  reference skips the fit verifier so nothing outside the run directory is
+  opened, T-67-13), then the numeric and scientific fields: every layer row
+  exactly once in order, finite cosines in [-1, 1], output movement and
+  rate, strictly increasing actual physical/raw-tau coordinates that must
+  reproduce the committed grid digests, endpoint and sample count, raw
+  first-layer frequency evidence or the registered encoded nonapplicability
+  and feature metadata (cycles = k·f, harmonics, internal dimension), the
+  frozen E/tier/eps_h consistency of the endpoint and every checkpoint via
+  `tier_of`, the same-window baselines with the two-Kepler applicability
+  retained, and TRAIN-only access evidence where absent never stands for
+  zero. The receipt audit derives the weekday from the receipt's own aware
+  instant, checks the recorded pmset first line names AC Power, the
+  checked-before-start-before-end order, the launch-to-end wall inside the
+  registered cap, and the derived Sunday 22:00 closing instant the cap must
+  fit — exact equality admits, the next instant does not (as 67-06
+  specifies). Scores appear only after a clean audit, so a malformed record
+  never yields an accuracy direction; 67-06's wrappers translate the
+  problem lists to exit 2. Raw and encoded depths read clean on real
+  registered synthetic runs (the encoded one through a patched census seam;
+  the real encoded receipt branch is 67-06's adapter item).
+- **The prospective reading rules are executable before any prediction page
+  or real run exists (D-08/D-09/D-10/D-11).**
+  `phase67_improvement_check` settles the final-quarter rule exactly —
+  `(E_at_3N/4 − E_at_N)/E_at_3N/4` strictly greater than five percent is
+  unsettled, exactly five percent is settled, a zero reference is settled
+  either way (positive final = settled worsening), and negative/non-finite/
+  boolean/string E or malformed checkpoints refuse; the reader's `unsettled`
+  flag delegates to this one implementation. `phase67_contrast` runs one
+  declared arm against its registered control (`phase67_control_arm`: d12,
+  lr1e-4, own-backbone raw, lap10) on exactly the three `PHASE67_CASES`
+  (main 1632/42, repeat-system 851/42, repeat-seed 1632/41): direction by
+  exact E ordering (equal = tie), `relative_E_effect =
+  abs(E_arm−E_control)/E_control` with a zero control retaining direction
+  and flagging the percentage inapplicable, tier qualification through the
+  frozen scorecard ordering (higher is better), and qualification as the
+  plan's OR — a nonzero direction qualifies through a matching tier change
+  OR a relative effect ≥ 20 percent exactly (an opposing tier change cannot
+  veto the effect side). Confirmation requires all three cases qualifying in
+  one direction with all six endpoints settled and mechanically clean;
+  problematic readings are inconclusive-mechanical, unsettled endpoints
+  block confirmation, and ties/small effects/opposed directions are
+  ambiguous with reasons; duplicate run identities refuse (an interrupted or
+  duplicate attempt never counts as an additional replicate), as do missing
+  repeats, wrong controls and mismatched orbit/seed/experiment/arm
+  identities. `phase67_confirmation` persists every declared noncontrol
+  contrast (missing/duplicate/undeclared/control-arm contrasts refuse) with
+  nonconfirmation reasons (T-67-15). Observed fits stay separate from cause
+  confirmation, adjacent-time similarity stays descriptive with no cosine
+  threshold or causal claim, loss stays context and GAP-59-08 stays
+  explicit; the labels describe finite-budget effects and never amend the
+  frozen FEAS tiers. Tests: 24 in test_records + 21 in test_reading_rule;
+  phase67 discovery 184 OK; phase65 204 OK; phase66 unchanged at its known
+  six D-12 live-pin failures; `git diff --check` clean over the plan range.
 
 ### Decisions from 67-04 (2026-11-02, tasks 67-04-01 and 67-04-02)
 
