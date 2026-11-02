@@ -363,7 +363,7 @@ class BudgetValidationTests(unittest.TestCase):
         unknown = _cost_row(identity=_identity(arm="d12"))
         with self.assertRaises(ValueError) as raised:
             p67.phase67_budget(rows + [unknown], expected_identities=identities)
-        self.assertIn("not declared", str(raised.exception))
+        self.assertIn("not a declared identity", str(raised.exception))
 
     def test_malformed_nonfinite_and_boolean_rows_refuse(self):
         identity = _identity()
