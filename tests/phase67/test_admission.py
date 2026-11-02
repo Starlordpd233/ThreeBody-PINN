@@ -114,7 +114,8 @@ class Phase67AdmissionTests(unittest.TestCase):
         for field, value in drifts.items():
             with self.subTest(field=field):
                 self._refuses(
-                    f"drift-{field}", {"variant": {**base, field: value}}
+                    f"drift-{field}",
+                    phase67_settings(variant={**base, field: value}),
                 )
 
     def test_every_phase65_settings_refusal_still_applies(self):
@@ -139,16 +140,20 @@ class Phase67AdmissionTests(unittest.TestCase):
                 self._refuses(name, extra)
 
     def test_invalid_seed_types_refuse(self):
-        for value in (True, "42", 1.5, None):
+        for label, value in (
+            ("bool", True), ("string", "42"), ("float", 1.5), ("null", None),
+        ):
             with self.subTest(seed=value):
-                self._refuses(f"seed-{value!r}".replace("/", "-"), {"seed": value})
+                self._refuses(f"seed-{label}", phase67_settings(seed=value))
 
     def test_phase67_window_endpoints_are_typed_and_exact(self):
         """Both endpoints: finite numbers, booleans excluded, start exactly zero.
 
-        The Phase 65 door accepts a boolean or numeric-string ``t_start``
-        through its float coercion; the Phase 67 settings consumer refuses
-        both endpoints of any other type before any data access.
+        The cases run through the full Phase 67 settings (registry and variant
+        included), so the refusal is proven on the Phase 67 door. The Phase 65
+        door accepts a boolean or numeric-string ``t_start`` through its float
+        coercion; the Phase 67 settings consumer refuses both endpoints of
+        any other type before any data access.
         """
         for field, value in (
             ("t_start", False),
@@ -163,8 +168,8 @@ class Phase67AdmissionTests(unittest.TestCase):
             with self.subTest(field=field, value=value):
                 window = {"t_start": 0.0, "t_end": 10.0, field: value}
                 self._refuses(
-                    f"window-{field}-{value!r}".replace("/", "-"),
-                    {"physical_window": window},
+                    f"window-{field}-{value!r}".replace("/", "-").replace("'", ""),
+                    phase67_settings(physical_window=window),
                 )
         for name, window in (
             ("int-endpoints", {"t_start": 0, "t_end": 10}),
@@ -173,7 +178,7 @@ class Phase67AdmissionTests(unittest.TestCase):
             with self.subTest(window=name):
                 root, _commit = _fit_registration_fixture(
                     self.tmp / f"window-ok-{name}",
-                    settings_extra={"physical_window": window},
+                    settings_extra=phase67_settings(physical_window=window),
                 )
                 _admitted_root, doc = self._admission(root)
                 self.assertEqual(doc["settings"]["physical_window"], window)
@@ -181,7 +186,7 @@ class Phase67AdmissionTests(unittest.TestCase):
     def test_caps_at_or_above_one_hour_still_refuse(self):
         for cap in (3600, 7200):
             with self.subTest(cap=cap):
-                self._refuses(f"cap{cap}", {"whole_run_cap_seconds": cap})
+                self._refuses(f"cap{cap}", phase67_settings(whole_run_cap_seconds=cap))
 
     def test_a_pre_existing_attempt_refuses_before_protected_operations(self):
         root, _commit = phase67_fixture_registration(self.tmp / "spent-attempt")
