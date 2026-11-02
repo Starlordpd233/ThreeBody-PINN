@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: Completed 67-03-PLAN.md (signed-lap windows), ready for 67-04
-last_updated: "2026-11-02T19:06:39.000Z"
+stopped_at: Completed 67-04-PLAN.md (checkpoint schedule + common budget), ready for 67-05
+last_updated: "2026-11-02T19:46:11.000Z"
 last_activity: 2026-11-02
-last_activity_desc: Plan 67-03 complete (exact signed-lap prefixes, same-window baseline verification)
-state_head: d9b3a035
+last_activity_desc: Plan 67-04 complete (timed science checkpoint schedule, cost-only common update budget)
+state_head: b89e04d3
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 14
-  percent: 52
+  completed_plans: 15
+  percent: 56
 ---
 
 # Project State
@@ -30,10 +30,80 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 4 of 16
-Status: Executing Phase 67 (67-01, 67-02, 67-03 complete; Wave 2 done)
-Last activity: 2026-11-02 — plan 67-03, the exact sampled signed-lap
-prefixes and the independently checked same-window baselines
+Plan: 5 of 16
+Status: Executing Phase 67 (67-01..67-04 complete; Wave 3 done)
+Last activity: 2026-11-02 — plan 67-04, the timed registered science
+checkpoint schedule and the cost-only common update budget
+
+### Decisions from 67-04 (2026-11-02, tasks 67-04-01 and 67-04-02)
+
+- **The registered science checkpoint schedule exists and is timed inside
+  the fit (TDD, both RED gates machine-verified RED_EVIDENCE_OK).** The new
+  pure stdlib-only `pinn/verification/diagnostic_phase67.py` exports
+  `phase67_cadence(n)` — the five normalized similarity events
+  0, N/4, N/2, 3N/4, N at positive multiples of the 100-step quantum —
+  `phase67_score_cadence(n)` — the three frozen-score checkpoints
+  N/2, 3N/4, N riding the cadence grid — `phase67_loss_trace_stride(n)` =
+  ceil(N/1000) with at most 1001 retained entries (final loss kept), and
+  `PHASE67_BUDGET_RULE` pinning the science numbers (cap 3540 s, 0.75 time
+  fraction, 0.25 rate margin, warmup 200, quantum 100, floor 300, 32-byte
+  loss entries, 1e-9 s residual tolerance, 10 MiB/0.9 size ceiling) and the
+  registered timing run (1200/200/1000 under a 900 s whole-launch cap).
+  The harness imports this module; it never imports the harness, the guard,
+  the data seam, the logger or any reader.
+- **`score_cadence` is a Phase 67-only settings field, validated before any
+  data or model exists.** A phase67 registration declaring it must declare
+  the exact registered schedule — score cadence equal to
+  `phase67_score_cadence(steps)`, similarity cadence equal to
+  `phase67_cadence(steps)`, and `loss_trace_stride` equal to
+  `phase67_loss_trace_stride(steps)`; a non-phase67 registry declaring it
+  refuses, and without it nothing changes (67-01's tracer registration
+  contract is preserved byte-for-byte).
+- **The fit times the actual events: exactly three scorer calls and five
+  logger calls, individually and disjointly.** In `fit_diagnostic`'s
+  schedule path each logger and scorer event is its own synchronized
+  completed-work segment on the same monotonic basis, disjoint from the
+  synchronized optimizer durations (proven by the segment-sum bound inside
+  the loop wall); the whole-run deadline is checked before and after every
+  expensive event and after the publication work before the exclusive
+  write, with the supervised cap retained as the hard stop;
+  `score_checkpoints` records step, frozen score and elapsed whole-run
+  seconds only after the complete-finite-score guard (E, e_sys_max,
+  e_in_max, eps_h, tier); the final checkpoint supplies `scores.network`
+  with no fourth scoring call; `timing.events` keeps the disjoint
+  logging/scoring/publication-I/O ledger and `phases.comparisons_seconds`
+  the frozen comparisons. The historical no-schedule path is unchanged in
+  fields and behavior, and `verify_fit_result` now checks the declared
+  schedule in both directions (missing, extra or tampered checkpoints, or
+  an un-declared event ledger, all refuse).
+- **The common update budget is cost-only over every declared timing row
+  (D-07/D-08/D-09, T-67-10/T-67-11).** `phase67_budget(cost_rows, *,
+  expected_identities, unmeasured=None)` requires every main and repeat row
+  (seed 41 included) exactly once, keyed by the complete
+  experiment/arm/orbit/seed/window identity at the registered timing scale
+  with the five measured logger-event seconds, three measured scorer-event
+  seconds, publication I/O, the full-launch wall and the published bytes.
+  The projection at N is the launch residual F (retaining comparison,
+  data-load, power, admission and supervision costs) plus the measured
+  warmup, (N−200) steps at the measured rate with the 25% margin, five
+  maximum logger-event seconds, three maximum scorer-event seconds, and
+  publication I/O scaled by max(1, predicted byte bound / published bytes);
+  the byte bound covers weights and the measured record plus extra loss
+  entries (at most 1001 at 32 B each) and step-number serialization
+  growth, and an unsafe size refuses rather than shortening science. N is
+  the largest multiple of 100 at or above 300 within 0.75·3540 s (target
+  equality admitted; the next 100-step candidate necessarily beyond), by
+  integer exponential bracketing plus binary search with every value
+  validated finite; no admissible N is an explicit resource refusal. The
+  output carries the ten cost-only fields — including per-row projections,
+  timing-evidence digests, per-experiment projections and a phase cost
+  ledger that separates measured planned seconds from explicitly labelled
+  cap-based upper reservations for unmeasured experiments (the `unmeasured`
+  run-count map), never a borrowed historical rate. No score, loss, tier
+  or cosine value is read or emitted. Tests: 18 in test_budget plus 23 in
+  test_checkpoints; phase67 discovery 139 OK; phase65 204 OK; phase66
+  stays at its known six D-12 live-pin failures (unchanged, routed to
+  67-06); `git diff --check` clean over the plan range.
 
 ### Decisions from 67-03 (2026-11-02, tasks 67-03-01 and 67-03-02)
 
