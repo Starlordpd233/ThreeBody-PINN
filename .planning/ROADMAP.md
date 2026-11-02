@@ -198,10 +198,10 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
   3. The time-input design and the window-length experiments each record `E`, tier and similarity for every variant, on the locked depth and, for time input, on the Phase 66 network.
   4. Every confirming result is repeated on a second panel system and a second seed, and every result is reviewed against the plan under SCOPE-49.
 
-**Plans**: TBD
+**Plans**: 16 plans in 15 waves (planned 2026-11-01). Waves 7-14 run only in the owner's weekend AC window.
 **Wave 1**
 
-- [ ] 67-01-PLAN.md
+- [x] 67-01-PLAN.md
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

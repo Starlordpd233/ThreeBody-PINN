@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: Phase 67 planned and independently checked, ready to execute
-last_updated: "2026-11-02T04:25:23.934Z"
-last_activity: 2026-11-01
-last_activity_desc: Phase 67 planned and independently checked, 16 plans in 15 waves
-state_head: b407b54d569033300d4a5d3ba4848c831edcf208
+stopped_at: Completed 67-01-PLAN.md (the Phase 67 tracer), ready for 67-02
+last_updated: "2026-11-02T05:25:00.000Z"
+last_activity: 2026-11-02
+last_activity_desc: Plan 67-01 complete (tracer, admission and historical boundaries)
+state_head: 7ea514fb
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 11
-  percent: 40
+  completed_plans: 12
+  percent: 44
 ---
 
 # Project State
@@ -25,14 +25,69 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Phase 67 - Design & Settings Ladders
+**Current focus:** Phase 67 — Design & Settings Ladders
 
 ## Current Position
 
-Phase: 67 (Design & Settings Ladders) — READY TO EXECUTE
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-11-01 - Phase 67 planned and independently checked, 16 plans in 15 waves
+Phase: 67 (Design & Settings Ladders) — EXECUTING
+Plan: 2 of 16
+Status: Executing Phase 67 (67-01 complete)
+Last activity: 2026-11-02 — plan 67-01, the registered Phase 67 tracer and boundaries
+
+### Decisions from 67-01 (2026-11-02, tasks 67-01-01 and 67-01-02)
+
+- **The Phase 67 slice is real and tested end to end on synthetic data (TDD,
+  both RED gates machine-verified RED_EVIDENCE_OK).** A committed CPU64
+  fixture registration for `exp02-d2-w256-o30` (D-03: depth 2, width 256,
+  raw `[tau, IC13]`, first omega 30, locked hidden omega, rate 1e-4, [0, 10])
+  names `variant_registry: phase67`; `diagnostic_phase67_catalog.py` holds
+  `EXP02_D2_VARIANT`, `PHASE67_REGISTRY` (a fresh `register_variant` copy:
+  `locked-12` then the depth-2 declaration, 137,737 parameters vs the locked
+  795,657) and `phase67_registry(settings)`, and `diagnostic_fit`'s
+  `_named_registry` dispatches phase67 without editing the frozen Phase 66
+  catalog. The tracer runs admission → AC/weekend launch → 20-step
+  constant-Adam fit (stride-3 loss trace) → input/h1/h2 rows in every
+  similarity entry → frozen scorer with both comparison rows and access
+  attestation → marked exclusive weights/record → `verify_fit_result` OK →
+  a clean `read_phase67_record`; the battery control refuses before any
+  creation. Commits e0f06523 (RED) → 8e2f4110 (GREEN); tracer feedback gate
+  re-verified end-to-end before expansion.
+- **`diagnostic_phase67_records.py` owns the registration-bound reader:**
+  `read_phase67_record(registration_path, run_dir, *, repo_root,
+  include_scores=False)` admits the committed registration first
+  (metadata-only), requires the phase67 registry, audits the record through
+  the existing `verify_fit_result` plus the AC/weekend receipt (weekday
+  derived from the receipt's own local_time — 66-REVIEW WR-01 not
+  inherited), the published attempt digest, every-layer rows against the
+  registered depth, split opens and tier consistency, returning value-free
+  `mechanical_problems`/`setting_problems` beside the registered identity,
+  with frozen scores exposed only on a clean audit. `setting_problems` is
+  reserved for the experiment reading rules of later plans; no scientific
+  branch table lives in this reader.
+- **Admission is strict for Phase 67 settings:** both window endpoints must
+  be finite numbers excluding booleans with the start exactly zero
+  (65-CLOSEOUT IN-01 applied per D-13), while Phase 65/66 registrations keep their
+  existing check byte-for-byte. Refusals proven before any data access or
+  optimizer construction: null/absent/unknown/non-string registry names,
+  variant field drift, every Phase 65 settings rule, invalid seed types,
+  caps at 3600+, pre-existing attempts (the foreign claim is left
+  untouched) and records, and non-TRAIN orbits at the real Stage-0 seam
+  (zero reference loads, zero optimizer steps). Catalog controls pin both
+  sealed catalogs unchanged, refuse duplicate names and null/empty
+  declarations, hold deterministic order, forbid harness imports in the
+  catalog, and prove locked raw construction still bitwise
+  `build_network(ArchitectureSpec(seed))`.
+- **Historical evidence is intact and the live-pin transition is recorded.**
+  The six unedited Phase 66 code pins are byte-identical live; every Phase
+  66 run's registration/dependency identity holds at its recorded run
+  commit; live new-run admission correctly refuses on the changed
+  `diagnostic_fit.py`; the 11 Phase 65 preserved evidence hashes are
+  unchanged and `load_protocol()` still prints PROTOCOL-OK (33 pinned
+  digests). The four `tests/phase66/test_pages.py` live-digest failures are
+  the planned D-12 transition, reported for the narrowly scoped
+  compatibility work in 67-06 exactly as the plan instructs; phase65
+  discovery stays 204 OK and phase67 discovery is 26 tests OK. No real
+  corpus, timing or training ran; the held-out evaluation stays unspent.
 
 ### Decisions from 66-05 (2026-11-01, tasks 66-05-01 to 66-05-03 — checkpoint 1 answered)
 
