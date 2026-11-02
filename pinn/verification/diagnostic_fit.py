@@ -79,10 +79,14 @@ from pinn.verification.diagnostic_guard import (
     require_committed_registration,
 )
 from pinn.verification.diagnostic_phase66 import REGISTRIES
+from pinn.verification.diagnostic_phase67_catalog import (
+    PHASE67_REGISTRY_NAME,
+    phase67_registry,
+)
 from pinn.verification.diagnostic_similarity import measure_time_signal
 from pinn.verification.diagnostic_variants import (
-    REGISTRY,
     DiagnosticVariant,
+    VariantRefused,
     build_variant,
     resolve_variant,
 )
@@ -319,16 +323,20 @@ def _named_registry(name):
 
     ``None`` — every Phase 65 registration — selects the sealed ``REGISTRY``
     object itself, so Phase 65 behaviour is unchanged. A string key of
-    ``REGISTRIES`` selects that registry. Anything else refuses before any
-    data access, optimizer construction or attempt claim.
+    ``REGISTRIES`` selects that registry. ``phase67`` dispatches to the Phase
+    67 catalog's registry through ``phase67_registry`` (a separate module, so
+    the frozen Phase 66 catalog is never edited). Anything else refuses
+    before any data access, optimizer construction or attempt claim.
     """
-    if name is None:
-        return REGISTRY
     if isinstance(name, str) and name in REGISTRIES:
         return REGISTRIES[name]
-    raise DiagnosticFitRefused(
-        f"unknown variant registry {name!r}; known registries: {list(REGISTRIES)}"
-    )
+    try:
+        return phase67_registry({"variant_registry": name})
+    except VariantRefused as exc:
+        raise DiagnosticFitRefused(
+            f"unknown variant registry {name!r}; known registries: "
+            f"{[*REGISTRIES, PHASE67_REGISTRY_NAME]}"
+        ) from exc
 
 
 def validate_smoke_settings(doc):
