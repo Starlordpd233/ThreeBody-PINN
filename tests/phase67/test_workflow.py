@@ -185,10 +185,13 @@ def _build_chain():
                     argv[6:], repo_root=root, supervisor=inline_supervisor
                 )
 
+        from tests.phase67._fixtures import inline_supervisor
+
         code, _stdout, stderr = run_cli(
             ["launch-row", "--experiment", "exp02", "--kind", kind,
              "--case", case, "--arm", arm],
             read_power=fake_pmset(AC_LINE), run=runner, now=fake_clock(SATURDAY),
+            supervisor=inline_supervisor,
         )
         assert code == 0, f"launch-row {kind}/{case}/{arm} refused: {stderr}"
 
@@ -216,10 +219,12 @@ def _stages(state):
     def load_orbit(orbit_key, window_length):
         return state["orbit_data"][orbit_key]
 
+    from tests.phase67._fixtures import inline_supervisor
+
     code, _out, err = run_cli(
         ["capture-metadata", "--experiment", "exp02"],
         read_power=fake_pmset(AC_LINE), now=fake_clock(SATURDAY),
-        load_orbit=load_orbit,
+        load_orbit=load_orbit, supervisor=inline_supervisor,
     )
     assert code == 0, f"capture-metadata refused: {err}"
     _commit(root, "metadata capture")

@@ -30,7 +30,7 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -50,7 +50,9 @@ __all__ = [
     "main",
     "power_source",
     "require_ac_power",
+    "require_remaining_window",
     "require_weekend_window",
+    "weekend_closing_utc",
 ]
 
 PMSET = "/usr/bin/pmset"
@@ -161,6 +163,75 @@ def require_weekend_window(now=None):
         "owner's weekend window (Saturday, or Sunday before "
         f"{WINDOW_SUNDAY_LAST_HOUR:02d}:00 in {WINDOW_TIMEZONE}); refusing to launch"
     )
+
+
+def weekend_closing_utc(local):
+    """This weekend's Sunday 22:00 closing instant, as an aware UTC datetime.
+
+    ``local`` is the aware local datetime the weekend window check returned
+    (Saturday or Sunday in ``WINDOW_TIMEZONE``). A Saturday derives the next
+    day's 22:00; a Sunday the same day's. The closing instant is constructed
+    on the Chicago wall clock (so a DST transition inside the weekend is
+    exact) and converted to UTC, where all duration arithmetic happens.
+    """
+    if not isinstance(local, datetime) or local.tzinfo is None \
+            or local.tzinfo.utcoffset(local) is None:
+        raise PowerRefused("the closing instant needs an aware local datetime")
+    if local.isoweekday() == 6:
+        day = local.date() + timedelta(days=1)
+    elif local.isoweekday() == 7:
+        day = local.date()
+    else:
+        raise PowerRefused(
+            f"the local time {local.isoformat(timespec='seconds')} has no "
+            "weekend closing instant; it is outside the owner's window"
+        )
+    closing = datetime(
+        day.year, day.month, day.day,
+        int(WINDOW_SUNDAY_LAST_HOUR), 0, 0,
+        tzinfo=ZoneInfo(WINDOW_TIMEZONE),
+    )
+    return closing.astimezone(timezone.utc)
+
+
+def require_remaining_window(cap_seconds, *, local=None, now=None):
+    """The full-cap remaining-window admission (plan 67-06, D-07/D-10).
+
+    The existing launch-time weekend check establishes only that the instant
+    sits inside the window; this check establishes that the ENTIRE
+    registered whole-launch allowance fits before the weekend closes:
+    ``current_instant + cap_seconds <= closing_instant`` with the closing
+    instant derived as Sunday 22:00 ``WINDOW_TIMEZONE`` and every duration
+    computed between aware UTC instants (a DST transition inside the weekend
+    is therefore exact). Exact equality is admitted; the next instant beyond
+    the boundary refuses. Returns the closing instant, the remaining
+    allowance and the cap, so a receipt can record independently recheckable
+    evidence. Raises :class:`PowerRefused` (never a silent pass).
+    """
+    if isinstance(cap_seconds, bool) or not isinstance(cap_seconds, (int, float)) \
+            or not 0 < float(cap_seconds):
+        raise PowerRefused(
+            f"the whole-launch cap must be a positive number of seconds; "
+            f"got {cap_seconds!r}"
+        )
+    cap = float(cap_seconds)
+    if local is None:
+        local = require_weekend_window(now)
+    closing = weekend_closing_utc(local)
+    current = local.astimezone(timezone.utc)
+    remaining = (closing - current).total_seconds()
+    if current + timedelta(seconds=cap) > closing:
+        raise PowerRefused(
+            f"the remaining weekend allowance is {remaining:g} seconds before "
+            f"the Sunday {WINDOW_SUNDAY_LAST_HOUR:02d}:00 closing instant "
+            f"({closing.isoformat()}); the registered {cap:g}-second "
+            "whole-launch allowance does not fit, so nothing is launched"
+        )
+    return {
+        "cap_seconds": cap,
+        "closing_utc": closing.isoformat(),
+        "remaining_allowance_seconds": remaining,
+    }
 
 
 def _default_run(argv, *, cwd):

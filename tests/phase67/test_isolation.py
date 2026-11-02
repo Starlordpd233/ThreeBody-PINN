@@ -64,6 +64,21 @@ def _saturday():
     return SATURDAY_NOON
 
 
+def _sleeping_loader(orbit_key, window_length):
+    """A registered load that outruns the cap (the deadline fixture)."""
+    time.sleep(30.0)
+
+
+def _sleeping_group_operation(queue):
+    """A spawned worker that joins its own group and starts a descendant."""
+    pid_file = os.environ["PHASE67_GROUP_PID_FILE"]
+    os.setpgid(0, 0)
+    with open(pid_file, "w", encoding="utf-8") as handle:
+        handle.write(f"{os.getpid()} {os.getpgid(0)}\n")
+    subprocess.run(["/bin/sleep", "30"], check=False)
+    queue.put({"status": "complete"})
+
+
 class RemainingWindowTests(unittest.TestCase):
     """The full-cap remaining-window admission at its exact boundaries."""
 
@@ -367,13 +382,23 @@ class CaptureDeadlineTests(unittest.TestCase, _CaptureFixture):
         cls._make(cls)
 
     def test_a_cap_expired_capture_publishes_nothing_and_stays_incomplete(self):
-        def sleeping_loader(orbit_key, window_length):
-            time.sleep(30.0)
+        execution = _execution(self)
+
+        def early_deadline(target, args, *, timeout, **kwargs):
+            # The registered cap is the real 900-second rule (the spawned
+            # child re-admits it against the unpatched module, so the fixture
+            # cannot shrink it); this deadline fixture fires the SAME
+            # supervised stop early, while the registered load sleeps far
+            # beyond it, to prove the mechanism: the group is stopped, the
+            # attempt stays incomplete and nothing is published.
+            return execution._run_outer_supervised(
+                target, args, timeout=6.0, **kwargs
+            )
 
         started = time.monotonic()
         code, _out, err = self.capture(
-            read_power=_ac_power, now=_saturday, load_orbit=sleeping_loader,
-            supervisor=_execution(self)._run_outer_supervised,
+            read_power=_ac_power, now=_saturday, load_orbit=_sleeping_loader,
+            supervisor=early_deadline,
         )
         elapsed = time.monotonic() - started
         self.assertEqual(code, 2)
@@ -390,39 +415,33 @@ class CaptureDeadlineTests(unittest.TestCase, _CaptureFixture):
         import multiprocessing
 
         execution = _execution(self)
-        supervised = execution._run_outer_supervised
-        worker_pid = {}
-
-        def operation(queue):
-            os.setpgid(0, 0)
-            worker_pid["pid"] = os.getpid()
-            worker_pid["pgid"] = os.getpgid(0)
-            subprocess.run(["/bin/sleep", "30"], check=False)
-            queue.put({"status": "complete"})
-
+        with tempfile.NamedTemporaryFile(
+            prefix="phase67-group-pids-", suffix=".txt", delete=False
+        ) as handle:
+            pid_file = handle.name
+        self.addCleanup(os.unlink, pid_file)
+        environment = {**os.environ, "PHASE67_GROUP_PID_FILE": pid_file}
         context = multiprocessing.get_context("spawn")
-        with mock.patch.object(execution, "_SUPERVISOR_CONTEXT", context):
+        with mock.patch.object(execution, "_SUPERVISOR_CONTEXT", context), \
+                mock.patch.dict(os.environ, environment):
             started = time.monotonic()
-            status, payload = supervised(operation, timeout=2.0)
+            status, payload = execution._run_outer_supervised(
+                _sleeping_group_operation, timeout=2.0,
+            )
         self.assertEqual(status, "timeout")
         self.assertIsNone(payload)
         self.assertLess(time.monotonic() - started, 15.0)
+        with open(pid_file, encoding="utf-8") as handle:
+            worker_pid, group_pid = (int(value) for value in handle.read().split())
+        self.assertEqual(worker_pid, group_pid, "the worker did not own its group")
         time.sleep(0.3)
-        for pid in (worker_pid.get("pid"),):
-            if pid is None:
-                continue
-            try:
-                os.kill(pid, 0)
-            except ProcessLookupError:
-                continue
-            alive_group = subprocess.run(
-                ["ps", "-g", str(worker_pid.get("pgid")), "-o", "pid="],
-                capture_output=True, text=True, check=False,
-            ).stdout.split()
-            self.assertEqual(
-                alive_group, [],
-                "a descendant survived the supervised stop",
-            )
+        alive_group = subprocess.run(
+            ["ps", "-g", str(group_pid), "-o", "pid="],
+            capture_output=True, text=True, check=False,
+        ).stdout.split()
+        self.assertEqual(
+            alive_group, [], "a descendant survived the supervised stop",
+        )
 
 
 class LaunchGateTests(unittest.TestCase, _CaptureFixture):
@@ -436,7 +455,13 @@ class LaunchGateTests(unittest.TestCase, _CaptureFixture):
         execution = _execution(self)
         from tests.phase67._fixtures import inline_supervisor
 
-        # register the timing matrix so a row exists, without launching it
+        # a committed metadata capture precedes the timing registrations
+        code, _out, err = self.capture(
+            read_power=_ac_power, now=_saturday, load_orbit=self.load_orbit
+        )
+        self.assertEqual(code, 0, err)
+        _git(self.root, "add", ".planning")
+        _git(self.root, "commit", "-q", "-m", "metadata")
         stdout, stderr = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(stdout), \
                 contextlib.redirect_stderr(stderr):
@@ -472,6 +497,18 @@ class LaunchGateTests(unittest.TestCase, _CaptureFixture):
     def test_02_an_mps_registration_refuses_when_mps_is_unavailable(self):
         import torch
 
+        # One timing registration names the production mps runtime; the fit
+        # door must refuse it while MPS is unavailable (D-07), before any
+        # corpus open or launch.
+        matrix = json.loads(
+            (self.phase / "evidence/exp02/timing-matrix.json").read_bytes()
+        )
+        registration = self.phase / matrix["rows"][0]["registration_path"]
+        doc = json.loads(registration.read_bytes())
+        doc["settings"]["runtime"] = {"dtype": "float32", "device": "mps"}
+        registration.write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n")
+        _git(self.root, "add", ".planning")
+        _git(self.root, "commit", "-q", "-m", "mps registration")
         if torch.backends.mps.is_available():
             unavailable = mock.patch.object(
                 torch.backends.mps, "is_available", return_value=False
@@ -488,19 +525,28 @@ class LaunchGateTests(unittest.TestCase, _CaptureFixture):
                 )
         self.assertEqual(code, 2)
         self.assertIn("PHASE67-REFUSED", stderr.getvalue())
+        self.assertIn("MPS is not available", stderr.getvalue())
 
 
 class EncodedReceiptTests(unittest.TestCase):
     """The encoded logger-parity receipt branch in the fit admission."""
 
-    def _registration(self, receipt_raw):
-        import hashlib
+    def setUp(self):
+        stack = contextlib.ExitStack()
+        self.addCleanup(stack.close)
+        self._stack = stack
 
-        with tempfile.TemporaryDirectory(prefix="phase67-encoded-") as raw:
-            root, _commit = _fit_registration_fixture(
-                Path(raw) / "repo", receipt_raw=receipt_raw
-            )
-            return root, root / "reg/smoke-registration.json"
+    def _enter(self, manager):
+        return self._stack.enter_context(manager)
+
+    def _registration(self, receipt_raw):
+        raw = Path(self._enter(tempfile.TemporaryDirectory(
+            prefix="phase67-encoded-"
+        )))
+        root, _commit = _fit_registration_fixture(
+            raw / "repo", receipt_raw=receipt_raw
+        )
+        return root, root / "reg/smoke-registration.json"
 
     def _encoded_receipt(self):
         payload = {

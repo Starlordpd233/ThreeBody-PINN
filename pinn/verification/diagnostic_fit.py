@@ -539,7 +539,16 @@ def validate_smoke_settings(doc):
 
 
 def _receipt_is_a_measurement(receipt):
-    """A successful logger-parity receipt is an actual log_similarity entry."""
+    """A successful logger-parity receipt is an actual log_similarity entry.
+
+    Two registered shapes admit (plan 67-06 task 2): the raw receipt, whose
+    first-layer frequency carries finite median/max numbers, and the encoded
+    receipt (the D-05 logger's truthful output), whose aggregate frequency is
+    explicitly inapplicable — null median/max beside a false applicability
+    flag, a reason, the pinned per-harmonic cycles, the harmonic list and the
+    internal dimension. Anything else (a half-encoded hybrid, a manufactured
+    applicability or a non-numeric frequency) refuses.
+    """
     if not isinstance(receipt, Mapping):
         return False
     layers = receipt.get("layers")
@@ -559,12 +568,47 @@ def _receipt_is_a_measurement(receipt):
     for block in (frequency, movement, rate):
         if not isinstance(block, Mapping):
             return False
-    numbers.extend((frequency.get("median"), frequency.get("max")))
+    median, maximum = frequency.get("median"), frequency.get("max")
+    raw_frequency = not any(
+        value is None for value in (median, maximum)
+    )
+    if raw_frequency:
+        numbers.extend((median, maximum))
+    elif not (median is None and maximum is None):
+        return False  # a half-null aggregate frequency is no registered shape
     numbers.extend((movement.get("value"), rate.get("value")))
     if any(isinstance(v, bool) or not isinstance(v, (int, float))
            or not math.isfinite(float(v)) for v in numbers):
         return False
-    return isinstance(receipt.get("point"), str) and isinstance(receipt.get("step"), int)
+    if not (isinstance(receipt.get("point"), str) and isinstance(receipt.get("step"), int)):
+        return False
+    # The raw receipt is complete at this point.
+    if raw_frequency:
+        return True
+    # The encoded receipt: an explicitly inapplicable aggregate frequency
+    # beside the encoder's pinned per-harmonic metadata.
+    cycles = receipt.get("feature_frequency_cycles")
+    harmonics = receipt.get("feature_harmonics")
+    dimension = receipt.get("internal_input_dimension")
+    if receipt.get("frequency_applicability") is not False:
+        return False
+    if not isinstance(receipt.get("frequency_reason"), str) \
+            or not receipt["frequency_reason"]:
+        return False
+    if not isinstance(cycles, list) or not cycles \
+            or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                   or not math.isfinite(float(v)) or float(v) <= 0.0
+                   for v in cycles):
+        return False
+    if not isinstance(harmonics, list) or not harmonics \
+            or any(isinstance(v, bool) or not isinstance(v, int)
+                   for v in harmonics):
+        return False
+    if len(cycles) != len(harmonics):
+        return False
+    if isinstance(dimension, bool) or not isinstance(dimension, int):
+        return False
+    return dimension == 14 + 2 * len(harmonics)
 
 
 def verify_logger_parity_receipt(doc, *, repo_root):

@@ -33,12 +33,14 @@ PHASE66_DIR = ROOT / ".planning/phases/66-small-network-control"
 #: The harness files the Phase 67 plans edit; their live digests diverge from
 #: every Phase 66 registration's recorded pins, which is the planned D-12
 #: transition (67-01 edited diagnostic_fit.py; 67-02 edits the variant
-#: declarations and, in its logger task, the shared similarity measurement).
+#: declarations and, in its logger task, the shared similarity measurement;
+#: 67-06 task 2 edits the power gate's remaining-window admission).
 #: Historical provenance still verifies at each record's run commit below.
 EDITED_PINS = frozenset({
     "pinn/verification/diagnostic_fit.py",
     "pinn/verification/diagnostic_variants.py",
     "pinn/verification/diagnostic_similarity.py",
+    "pinn/verification/diagnostic_power.py",
 })
 
 #: The Phase 66 registrations and their run records (registration, record).

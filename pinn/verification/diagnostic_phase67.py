@@ -1084,7 +1084,7 @@ def phase67_confirmation(experiment, contrasts, *, declared_arms):
 
 
 def main(argv=None, *, repo_root=None, read_power=None, run=None, now=None,
-         load_orbit=None, load_reference=None):
+         load_orbit=None, load_reference=None, supervisor=None):
     """The Phase 67 command line (``python -B -m pinn.verification.
     diagnostic_phase67``).
 
@@ -1187,6 +1187,7 @@ def main(argv=None, *, repo_root=None, read_power=None, run=None, now=None,
             record = capture_phase67_metadata(
                 experiment, **common, load_orbit=load_orbit,
                 load_reference=load_reference, read_power=read_power, now=now,
+                supervisor=supervisor,
             )
             print(f"PHASE67-METADATA-WRITTEN orbits={len(record['orbits'])}")
             return 0
@@ -1209,7 +1210,7 @@ def main(argv=None, *, repo_root=None, read_power=None, run=None, now=None,
         if args.command == "launch-row":
             return int(launch_phase67_row(
                 experiment, args.kind, args.case, args.arm, **common,
-                read_power=read_power, run=run, now=now,
+                read_power=read_power, run=run, now=now, supervisor=supervisor,
             ))
         if args.command == "check-row":
             report = check_row(
@@ -1260,6 +1261,9 @@ def main(argv=None, *, repo_root=None, read_power=None, run=None, now=None,
         return 2
     except Phase67CommandRefused as exc:
         print(f"PHASE67-REFUSED: {exc}", file=sys.stderr)
+        return 2
+    except Exception as exc:  # controlled exit 2, never an unhandled traceback
+        print(f"PHASE67-REFUSED: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 2
 
 

@@ -37,6 +37,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 import re
 import subprocess
 import sys
@@ -192,6 +193,130 @@ PHASE67_DEPENDENCIES = (
 )
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
+
+#: The default outer-supervisor start method: a spawned child that owns its
+#: own process group, so a supervised stop reaches every descendant.
+_SUPERVISOR_CONTEXT = None  # resolved lazily; tests patch to inject a context
+
+
+def _supervisor_context():
+    import multiprocessing
+
+    if _SUPERVISOR_CONTEXT is not None:
+        return _SUPERVISOR_CONTEXT
+    return multiprocessing.get_context("spawn")
+
+
+def _become_process_group_leader():
+    """Own a fresh process group, but only when actually spawned.
+
+    An injected inline supervisor runs the operation in the caller's own
+    process; re-grouping that process would detach the host from its group,
+    so the guard checks the multiprocessing process name first.
+    """
+    import multiprocessing
+
+    if multiprocessing.current_process().name == "MainProcess":
+        return
+    try:
+        os.setpgid(0, 0)
+    except (ProcessLookupError, PermissionError, OSError):
+        pass  # already a group leader or unsupported: the parent still owns us
+
+
+def _run_outer_supervised(operation, args=(), *, timeout, terminate_grace=10.0,
+                          kill_grace=5.0):
+    """Run one real operation in a supervised child that owns its group.
+
+    The child calls ``_become_process_group_leader()`` first, so every
+    descendant it starts — including the fixed-argv caffeinate/fit launch
+    chain — joins the child's process group. The parent joins with the
+    whole-launch ``timeout`` (its monotonic timer starts at the spawn, before
+    power/admission); a child that outlives the cap is stopped with SIGTERM
+    to the whole group, then SIGKILL, so no orphan work survives. No retry,
+    no extension. The queue is appended to ``args``, matching the injectable
+    supervisor seam ``supervised(target, args, *, timeout)``. Returns
+    ``("timeout", None)`` or ``("exited", queue payload)``.
+    """
+    context = _supervisor_context()
+    queue = context.Queue()
+    process = context.Process(target=operation, args=(*args, queue))
+    process.start()
+    process.join(timeout)
+    if process.is_alive():
+        try:
+            os.killpg(os.getpgid(process.pid), 15)  # SIGTERM the whole group
+        except (ProcessLookupError, PermissionError):
+            process.terminate()
+        process.join(terminate_grace)
+        if process.is_alive():
+            try:
+                os.killpg(os.getpgid(process.pid), 9)  # SIGKILL the group
+            except (ProcessLookupError, PermissionError):
+                process.kill()
+            process.join(kill_grace)
+        return "timeout", None
+    payload = None
+    try:
+        payload = queue.get(block=False)
+    except Exception:  # empty, closed or cross-platform quirk: no payload
+        payload = None
+    return "exited", payload
+
+
+def _require_free_bytes(directory, byte_bound):
+    """Refuse when the target filesystem cannot hold the evidence bound."""
+    import shutil
+
+    usage = shutil.disk_usage(str(directory))
+    if usage.free < int(byte_bound):
+        raise Phase67CommandRefused(
+            f"the output filesystem holds {usage.free} free bytes, below the "
+            f"registered evidence byte bound {int(byte_bound)}; refusing "
+            "before any protected work"
+        )
+
+
+def _phase67_gate(cap_seconds, *, read_power=None, now=None):
+    """The complete admission chain before any protected work.
+
+    The existing AC-power and weekend-window eligibility plus the full-cap
+    remaining-window admission (plan 67-06, D-07/D-10): the registered
+    whole-launch allowance must fit before the weekend closes, exact
+    equality admitted. Returns the pmset first line, the local weekend
+    instant and the remaining-window evidence for the receipt.
+    """
+    from pinn.verification.diagnostic_power import (
+        require_ac_power,
+        require_remaining_window,
+        require_weekend_window,
+    )
+
+    first_line = require_ac_power(read_power=read_power)
+    local = require_weekend_window(now)
+    evidence = require_remaining_window(cap_seconds, local=local)
+    return first_line, local, evidence
+
+
+def _open_diagnostic_context(**kwargs):
+    """The guarded Stage-0 context opener (patchable seam; lazy import)."""
+    from pinn.verification.diagnostic_data import open_diagnostic_context
+
+    return open_diagnostic_context(**kwargs)
+
+
+def _load_diagnostic_data(spec, context, **kwargs):
+    """The Stage-0 loader (patchable seam; lazy import)."""
+    from pinn.verification.diagnostic_data import load_diagnostic_data
+
+    return load_diagnostic_data(spec, context, **kwargs)
+
+
+def _one_orbit_spec(key):
+    """The one-orbit fit spec (patchable seam; lazy import)."""
+    from pinn.verification.diagnostic_data import one_orbit_spec
+
+    return one_orbit_spec(key)
 
 
 class Phase67CommandRefused(RuntimeError):
@@ -1232,40 +1357,121 @@ def _phase_increments(times, frequency):
     }
 
 
+def _capture_operation(
+    experiment, root_str, phase_str, load_orbit, load_reference,
+    read_power, now, queue,
+):
+    """The supervised metadata-capture body (its own process group)."""
+    _become_process_group_leader()
+    try:
+        record = _capture_body(
+            experiment, Path(root_str), Path(phase_str), load_orbit,
+            load_reference, read_power, now,
+        )
+    except Phase67CommandRefused as exc:
+        queue.put({"status": "refused", "reason": str(exc)})
+    except BaseException as exc:  # deadline, interruption: incomplete
+        queue.put({"status": "incomplete", "reason": f"{type(exc).__name__}: {exc}"})
+    else:
+        queue.put({"status": "complete", "orbits": sorted(record["orbits"])})
+
+
 def capture_phase67_metadata(
     experiment, *, repo_root=None, phase_dir=None, load_orbit=None,
-    load_reference=None, read_power=None, now=None,
+    load_reference=None, read_power=None, now=None, supervisor=None,
 ):
     """The registered gated metadata-only capture for both panel systems.
 
-    Admits the committed metadata registration, gates on AC power inside the
-    owner's weekend window, claims the output exclusively, then — in this
-    command only — loads the registered TRAIN gold records through the
-    injected/default orbit loader, derives the exact grid evidence and the
-    independently checked same-window baselines for every used window, and
-    records the census frequency and harmonic-phase evidence. No optimizer
-    and no model is ever constructed. The record and attempt are published
-    only after every window's evidence exists; any refusal leaves the
-    attempt explicitly incomplete and publishes nothing.
+    Admits the committed metadata registration, then runs the whole real
+    operation — the AC/weekend/remaining-window admission, the writable-space
+    check, the exclusive attempt claim, the registered TRAIN gold loads, the
+    exact grid and baseline evidence, and the record/receipt publication —
+    inside one bounded outer supervisor whose monotonic timer starts before
+    the power check and whose registered 900-second cap covers every
+    overhead, not just the scoring. A timeout marks the attempt explicitly
+    incomplete (``wall_cap_expired``) and publishes nothing; the refusal and
+    completion paths surface as controlled exit-2 refusals, never a
+    traceback. No optimizer and no model is ever constructed.
     """
-    from pinn.verification.diagnostic_power import (
-        PowerRefused,
-        require_ac_power,
-        require_weekend_window,
-    )
-    from pinn.verification.feasibility_scorecard import load_scorecard
-
     root = _repo_root(repo_root)
     phase = _phase_directory(phase_dir, root)
     registration = phase / f"evidence/{experiment}/metadata-registration.json"
     _admit_root, doc = admit_phase67_metadata_registration(
         registration, repo_root=root
     )
-    try:
-        first_line = require_ac_power(read_power=read_power)
-        local = require_weekend_window(now)
-    except PowerRefused as exc:
-        raise Phase67CommandRefused(str(exc)) from exc
+    cap = float(doc["algorithm"]["cap_seconds"])
+    directory = phase / f"evidence/{experiment}/metadata"
+    record_path = directory / "record.json"
+    if record_path.exists():
+        raise Phase67CommandRefused(
+            "a metadata capture record already exists; the first completed "
+            "capture is the evidence and a second never replaces it"
+        )
+    supervised = supervisor if supervisor is not None else _run_outer_supervised
+    status, payload = supervised(
+        _capture_operation,
+        (experiment, str(root), str(phase), load_orbit, load_reference,
+         read_power, now),
+        timeout=cap,
+    )
+    if status == "timeout" or payload is None \
+            or payload.get("status") != "complete":
+        if status == "timeout":
+            reason = "wall_cap_expired"
+        elif payload is None:
+            reason = "the supervised capture exited without reporting"
+        else:
+            reason = str(payload.get("reason", "unknown"))
+        attempt_path = directory / "attempt.json"
+        if status == "timeout":
+            _ensure_incomplete_attempt(attempt_path, reason)
+        raise Phase67CommandRefused(
+            f"the metadata capture stays incomplete and publishes nothing: "
+            f"{reason}"
+        )
+    return {"orbits": payload["orbits"]}
+
+
+def _ensure_incomplete_attempt(attempt_path, reason):
+    """Mark the attempt incomplete; create the claim record if it is missing."""
+    path = Path(attempt_path)
+    if path.exists():
+        try:
+            payload = json.loads(path.read_bytes().decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            payload = {"schema": METADATA_ATTEMPT_SCHEMA}
+        payload["status"] = "incomplete"
+        payload["reason"] = reason
+        payload["ended_utc"] = datetime.now(timezone.utc).isoformat(
+            timespec="seconds"
+        )
+        path.write_bytes(_canonical_json(payload).encode("utf-8"))
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(_canonical_json({
+        "schema": METADATA_ATTEMPT_SCHEMA,
+        "status": "incomplete",
+        "reason": reason,
+        "started_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "ended_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }).encode("utf-8"))
+
+
+def _capture_body(experiment, root, phase, load_orbit, load_reference,
+                  read_power, now):
+    """The gated metadata capture itself (runs inside the supervisor)."""
+    registration = phase / f"evidence/{experiment}/metadata-registration.json"
+    _admit_root, doc = admit_phase67_metadata_registration(
+        registration, repo_root=root
+    )
+    cap = float(doc["algorithm"]["cap_seconds"])
+    first_line, local, window_evidence = _phase67_gate(
+        cap, read_power=read_power, now=now,
+    )
+    # One aware gate instant for every timestamped artifact: the receipt's
+    # checked_utc is the gate moment itself, so the recorded closing instant
+    # and remaining allowance are recheckable against each other exactly.
+    checked_utc = local.astimezone(timezone.utc).isoformat(timespec="seconds")
     directory = phase / f"evidence/{experiment}/metadata"
     record_path = directory / "record.json"
     attempt_path = directory / "attempt.json"
@@ -1275,6 +1481,7 @@ def capture_phase67_metadata(
             "a metadata capture record already exists; the first completed "
             "capture is the evidence and a second never replaces it"
         )
+    _require_free_bytes(phase, int(doc["algorithm"]["byte_bound"]))
     directory.mkdir(parents=True, exist_ok=True)
     _exclusive_json_write(attempt_path, {
         "schema": METADATA_ATTEMPT_SCHEMA,
@@ -1283,16 +1490,14 @@ def capture_phase67_metadata(
         "registration": _entry(
             _relative(root, registration), _sha256_file(registration)
         ),
-        "whole_run_cap_seconds": float(
-            doc["algorithm"]["cap_seconds"]
-        ),
+        "whole_run_cap_seconds": cap,
     })
     try:
         loader = load_orbit if load_orbit is not None else _default_load_orbit
         reference_loader = (
             load_reference if load_reference is not None else _default_load_reference
         )
-        scorecard = load_scorecard()
+        scorecard = _load_scorecard()
         orbits = {}
         for orbit_key in doc["orbits"]:
             data = loader(orbit_key, float(scorecard.section("scoring_grid")["t_max"]))
@@ -1342,7 +1547,7 @@ def capture_phase67_metadata(
                 _relative(root, registration), _sha256_file(registration)
             ),
             "harness_freeze": doc["harness_freeze"],
-            "checked_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "checked_utc": checked_utc,
             "window": {
                 "timezone": "America/Chicago",
                 "local_time": local.isoformat(timespec="seconds"),
@@ -1365,16 +1570,23 @@ def capture_phase67_metadata(
             "registration": _relative(root, registration),
             "output": _relative(root, record_path),
             "window": record["window"],
+            "remaining_window": {
+                "cap_seconds": window_evidence["cap_seconds"],
+                "closing_utc": window_evidence["closing_utc"],
+                "remaining_allowance_seconds": (
+                    window_evidence["remaining_allowance_seconds"]
+                ),
+                "checked_utc": checked_utc,
+                "note": "the full registered whole-launch allowance fits "
+                        "before the Sunday 22:00 closing instant; recheck: "
+                        "closing_utc - checked_utc >= cap_seconds",
+            },
             "metadata_only": True,
         }
         _exclusive_json_write(record_path, record)
         _exclusive_json_write(receipt_path, receipt)
     except BaseException as exc:
-        payload = json.loads(attempt_path.read_bytes().decode("utf-8"))
-        payload["status"] = "incomplete"
-        payload["ended_utc"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        payload["reason"] = f"{type(exc).__name__}: {exc}"
-        attempt_path.write_bytes(_canonical_json(payload).encode("utf-8"))
+        _ensure_incomplete_attempt(attempt_path, f"{type(exc).__name__}: {exc}")
         raise
     payload = json.loads(attempt_path.read_bytes().decode("utf-8"))
     payload["status"] = "published"
@@ -1382,6 +1594,12 @@ def capture_phase67_metadata(
     payload["record_sha256"] = _sha256_file(record_path)
     attempt_path.write_bytes(_canonical_json(payload).encode("utf-8"))
     return record
+
+
+def _load_scorecard():
+    from pinn.verification.feasibility_scorecard import load_scorecard
+
+    return load_scorecard()
 
 
 def _census_n_in(orbit_key):
@@ -1411,18 +1629,19 @@ def _window_times(loader, orbit_key, scorecard):
 
 
 def _default_load_orbit(orbit_key, window_length):
-    """The real registered metadata loader (plan 67-06 task 2)."""
-    from pinn.verification.diagnostic_data import (
-        load_diagnostic_data,
-        one_orbit_spec,
-        open_diagnostic_context,
-    )
+    """The real registered metadata loader (plan 67-06 task 2).
+
+    The registered Stage-0 TRAIN seam: the guarded context (the
+    Stage0TrainingReader and the retained normalizer), the one-orbit spec of
+    the registered gold key and the exact-window loader. Held-out and
+    later-stage keys refuse inside the reader before any record opens.
+    """
     from pinn.verification.feasibility_scorecard import load_scorecard
     from pinn.verification.diagnostic_fit import _parse_orbit_key
 
-    context = open_diagnostic_context(repo_root=None)
-    spec = one_orbit_spec(_parse_orbit_key(orbit_key))
-    return load_diagnostic_data(
+    context = _open_diagnostic_context(repo_root=None)
+    spec = _one_orbit_spec(_parse_orbit_key(orbit_key))
+    return _load_diagnostic_data(
         spec, context, scorecard=load_scorecard(), dtype=torch_dtype(),
         device=torch_device(), window_length=float(window_length),
     )
@@ -1430,13 +1649,10 @@ def _default_load_orbit(orbit_key, window_length):
 
 def _default_load_reference(orbit_key):
     """The real raw gold reference for the EXP-05 prefix selection."""
-    from pinn.verification.diagnostic_data import (
-        open_diagnostic_context,
-    )
     from pinn.verification.production_reference import load_reference
     from pinn.verification.diagnostic_fit import _parse_orbit_key
 
-    context = open_diagnostic_context(repo_root=None)
+    context = _open_diagnostic_context(repo_root=None)
     return load_reference(context.reader, _parse_orbit_key(orbit_key))
 
 
@@ -1898,18 +2114,69 @@ def launch_phase67_row(
         f"an output record already exists at {_relative(root, output)}; the "
         "first completed run is the result and a second run never replaces it",
     )
-    from pinn.verification.diagnostic_power import (
-        PowerRefused,
-        launch as power_launch,
+    doc = json.loads(registration.read_bytes().decode("utf-8"))
+    cap = float(doc["settings"]["whole_run_cap_seconds"])
+    output.parent.mkdir(parents=True, exist_ok=True)
+    byte_bound = int(
+        float(_rule()["size_fraction"]) * int(_rule()["size_limit_bytes"])
     )
+    _require_free_bytes(output.parent, byte_bound)
+    supervised = supervisor if supervisor is not None else _run_outer_supervised
+    status, payload = supervised(
+        _launch_operation,
+        (str(registration), str(output), str(root), cap, read_power, run, now),
+        timeout=cap,
+    )
+    if status == "timeout":
+        _ensure_incomplete_attempt(
+            output.parent / "attempt.json", "wall_cap_expired"
+        )
+        raise Phase67CommandRefused(
+            "the launch exceeded its whole-launch cap and was stopped with "
+            "its process group; the attempt stays incomplete and nothing is "
+            "accepted"
+        )
+    if payload is not None and "refused" in payload:
+        raise Phase67CommandRefused(payload["refused"])
+    if payload is None or "code" not in payload:
+        reason = "the supervised launch exited without reporting"
+        _ensure_incomplete_attempt(
+            output.parent / "attempt.json", reason
+        )
+        raise Phase67CommandRefused(reason)
+    return int(payload["code"])
+
+
+def _launch_operation(registration, output, root, cap, read_power, run, now,
+                      queue):
+    """The supervised launch body: gate, receipt, child, publication.
+
+    Runs in its own process group; the AC/weekend/remaining-window admission
+    happens inside the supervised operation so the outer cap covers it, then
+    the existing power launcher runs unchanged with its fixed argv — the
+    caffeinate/fit descendants join this process group, so a supervised stop
+    leaves no orphan work. Publication completes inside the child before the
+    launcher returns.
+    """
+    _become_process_group_leader()
+    from pinn.verification.diagnostic_power import PowerRefused
 
     try:
-        return power_launch(
-            registration, output, repo_root=root,
+        _phase67_gate(float(cap), read_power=read_power, now=now)
+    except (PowerRefused, Phase67CommandRefused) as exc:
+        queue.put({"refused": str(exc)})
+        return
+    from pinn.verification.diagnostic_power import launch as power_launch
+
+    try:
+        code = power_launch(
+            Path(registration), Path(output), repo_root=Path(root),
             read_power=read_power, run=run, now=now,
         )
-    except PowerRefused as exc:
-        raise Phase67CommandRefused(str(exc)) from exc
+    except Exception as exc:
+        queue.put({"refused": str(exc)})
+        return
+    queue.put({"code": int(code)})
 
 
 def check_row(experiment, kind, case, arm, *, repo_root=None, phase_dir=None):
@@ -2433,6 +2700,7 @@ def check_matrix(experiment, kind, *, repo_root=None, phase_dir=None):
     from pinn.verification.diagnostic_fit import (
         DiagnosticFitRefused,
         check_fit_registration,
+        validate_smoke_settings,
     )
     from pinn.verification.diagnostic_guard import DiagnosticRegistrationRefused
 
@@ -2472,6 +2740,16 @@ def check_matrix(experiment, kind, *, repo_root=None, phase_dir=None):
                 f"admit: {exc}"
             ) from exc
         doc = json.loads(registration.read_bytes().decode("utf-8"))
+        try:
+            # The settings validation of the run door (metadata-only): a row
+            # whose declared runtime is unavailable on this Mac — e.g. an mps
+            # registration without MPS — refuses here, before any launch.
+            validate_smoke_settings(doc)
+        except DiagnosticFitRefused as exc:
+            raise Phase67CommandRefused(
+                f"the registration of {row['case']}/{row['arm']} does not "
+                f"admit: {exc}"
+            ) from exc
         settings = doc["settings"]
         _require(
             settings["variant"]["name"] == row["variant_name"]
