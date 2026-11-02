@@ -21,10 +21,10 @@ import json
 import math
 import unittest
 from types import SimpleNamespace
+from unittest import mock
 
 import numpy as np
 import torch
-from unittest import mock
 
 from pinn.constants import T_CHARACTERISTIC_TIME
 from pinn.verification.diagnostic_data import (

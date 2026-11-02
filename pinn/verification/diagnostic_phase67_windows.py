@@ -25,7 +25,7 @@ Contract highlights (D-06/D-11, EXP-05):
 - ``L*10/N_in`` appears only as a labelled rough planning duration, never as
   the endpoint rule.
 
-:symbol:`same_window_expectations` then verifies, on exactly the selected
+``same_window_expectations`` then verifies, on exactly the selected
 samples, that the harness's matched-window constant and two-Kepler
 comparisons agree with an independent recomputation through the same frozen
 ``score_trajectory``/``two_kepler_prediction`` functions — a
