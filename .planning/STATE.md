@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: Completed 67-02-PLAN.md (the ladders and internal Fourier models), ready for 67-03
-last_updated: "2026-11-02T06:00:00.000Z"
+stopped_at: Completed 67-03-PLAN.md (signed-lap windows), ready for 67-04
+last_updated: "2026-11-02T19:06:39.000Z"
 last_activity: 2026-11-02
-last_activity_desc: Plan 67-02 complete (ladder catalog, internal Fourier time features, truthful encoded logger)
-state_head: f4be10d7
+last_activity_desc: Plan 67-03 complete (exact signed-lap prefixes, same-window baseline verification)
+state_head: d9b3a035
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 13
-  percent: 48
+  completed_plans: 14
+  percent: 52
 ---
 
 # Project State
@@ -30,10 +30,59 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 3 of 16
-Status: Executing Phase 67 (67-01, 67-02 complete)
-Last activity: 2026-11-02 — plan 67-02, the exact ladder catalog, the internal
-Fourier time-feature models and the truthful encoded logger
+Plan: 4 of 16
+Status: Executing Phase 67 (67-01, 67-02, 67-03 complete; Wave 2 done)
+Last activity: 2026-11-02 — plan 67-03, the exact sampled signed-lap
+prefixes and the independently checked same-window baselines
+
+### Decisions from 67-03 (2026-11-02, tasks 67-03-01 and 67-03-02)
+
+- **The D-06 window prefixes are exact sampled selections, implemented and
+  tested without any corpus read (TDD, both RED gates machine-verified
+  RED_EVIDENCE_OK — task 1's RED from the interrupted prior executor was
+  re-verified at resume before GREEN).** `first_lap_prefixes(reference,
+  lap_counts)` in the new `diagnostic_phase67_windows.py` accumulates the
+  census's signed atan2 steps about the initial orbit normal from exactly
+  zero on the first sample and selects, per requested count, the earliest
+  existing gold sample whose cumulative signed turns reach it: the endpoint
+  is the exact float64 gold timestamp, retention is the loader's exact
+  inclusive `physical_window` mask (never the census t_max tolerance), tau
+  keeps the locked global T_CHARACTERISTIC_TIME normalization (never
+  rescaled to a prefix), and no sample is interpolated. Evidence per
+  prefix: the full preceding/current bracket (indices, timestamps, turns),
+  endpoint, last retained timestamp, sample count, actual coverage, max
+  step and the physical/tau sha256s; `rough_planning_duration` L*T/N_in is
+  emitted only when census_n_in is supplied and labelled approximate,
+  never the endpoint rule. Reversals are signed steps (absolute turning
+  never substitutes), and refusals cover non-finite data, duplicate or
+  non-increasing times, a nonzero physical start, an undefined normal,
+  unreached counts, counts below one lap, duplicate counts, a grid whose
+  requested counts share a crossing sample, and endpoints outside (0, 10].
+- **The census aliasing guard measures two things against one limit.** The
+  observed principal arctan2 step can never reach pi (a true increment
+  beyond pi wraps silently), so the guard also checks the increment
+  predicted by the local angular rate about the same normal (trapezoid
+  over the recorded separation and its derivative) against the frozen
+  scorecard census_rules limit pi — a 1.5-pi-per-step grid refuses naming
+  3.141592653589793, a 0.99-pi-per-step grid is admitted.
+- **Same-window baselines are independently cross-checked on exactly the
+  selected samples (D-13, T-67-09).** `same_window_expectations(data,
+  scorecard, prefix=None)` reuses the harness `_comparison_rows` and
+  independently reconstructs the window-mean constant (zero velocities) and
+  the direct frozen `two_kepler_prediction` call before frozen scoring,
+  agreeing at rtol 1e-8 / atol 1e-10 — a serialization/consistency check,
+  never a new science bar. A formula refusal stays explicit
+  (not_applicable or the frozen solver message) on both paths and never
+  becomes a manufactured score; an applicability disagreement refuses.
+  When prefix evidence is supplied, the retained grid's physical/tau
+  hashes, endpoint and sample count must match exactly, so another lap's
+  window, a tampered interior timestamp or the full-window [0,10] EXP-01
+  grid cannot lend its constants (T-67-08). GAP-59-08 rides every evidence
+  mapping with no energy-threshold ruling. Tests: 26 in test_windows
+  (20 prefix + 6 expectation, including tampered-window, tampered-grid and
+  manufactured-applicability controls); phase67 discovery 98 OK; no file
+  pinned by a Phase 65/66 registration was edited, so the live-pin
+  transition state is unchanged from 67-02's record.
 
 ### Decisions from 67-02 (2026-11-02, tasks 67-02-01 and 67-02-02)
 
