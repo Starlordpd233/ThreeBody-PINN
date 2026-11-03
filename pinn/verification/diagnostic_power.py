@@ -15,7 +15,8 @@ child's working directory.
 Plan 66-02 completes the gate (D-08): launch also enforces the owner's verbatim
 compute window in code — ``require_weekend_window`` passes only on Saturday or
 on Sunday before 22:00 in ``WINDOW_TIMEZONE``, refusing a naive clock or an
-unloadable zone — and runs, before the receipt, the output-exists precheck and
+unloadable zone — plus the owner's one-shot 2026-11-03 weekday amendment
+(``AMENDMENT_DEADLINE_LOCAL``), and runs, before the receipt, the output-exists precheck and
 the metadata-only ``check_fit_registration`` admission precheck, so a spent
 directory or an inadmissible registration creates nothing. The read-only
 ``check`` subcommand prints the gate's verdict and writes nothing. The gate
@@ -38,6 +39,7 @@ from pinn.verification.learnability_arms import FirstResultExists, write_record_
 
 __all__ = [
     "AC_SOURCE",
+    "AMENDMENT_DEADLINE_LOCAL",
     "CAFFEINATE",
     "FIT_MODULE",
     "PMSET",
@@ -70,6 +72,17 @@ WINDOW_TIMEZONE = "America/Chicago"
 #: launched before Sunday 22:00 ends before Sunday 23:00 even at the full cap
 #: plus termination grace — no run spills into a weekday.
 WINDOW_SUNDAY_LAST_HOUR = 22
+#: Owner amendment 2026-11-03 (verbatim instruction: "we're bypassing"): the
+#: weekend-only window is waived for a one-shot weekday extension. A weekday
+#: launch is admitted only while the local instant is before this deadline,
+#: and the deadline is the closing instant the remaining-window check uses,
+#: so every registered whole-launch cap must fit entirely before it — no new
+#: run can start after the deadline and no admitted run can outlive it.
+#: After the deadline the original D-08 weekend window applies unchanged; the
+#: AC check, the caps and every other refusal keep their behavior.
+AMENDMENT_DEADLINE_LOCAL = datetime(
+    2026, 11, 4, 7, 30, tzinfo=ZoneInfo(WINDOW_TIMEZONE)
+)
 
 #: The only acceptable pmset first line: an anchored positive match, first
 #: line only, so a later-line mention never reads as safe.
@@ -138,9 +151,12 @@ def require_weekend_window(now=None):
     ``WINDOW_TIMEZONE`` before the check, so a UTC instant reads as its Chicago
     local time. It passes on isoweekday 6 (Saturday) and on isoweekday 7
     (Sunday) before ``WINDOW_SUNDAY_LAST_HOUR``:00 local, returning the local
-    datetime. A naive datetime, a failed zone lookup, or any time outside the
-    window raises :class:`PowerRefused` naming the local time; nothing is
-    written or run by the caller on a refusal.
+    datetime. The owner's 2026-11-03 amendment additionally admits a weekday
+    (isoweekday 1–5) instant before ``AMENDMENT_DEADLINE_LOCAL``. A naive
+    datetime, a failed zone lookup, or any time outside the window (including
+    a weekday at or after the amendment deadline) raises :class:`PowerRefused`
+    naming the local time; nothing is written or run by the caller on a
+    refusal.
     """
     try:
         zone = ZoneInfo(WINDOW_TIMEZONE)
@@ -158,21 +174,31 @@ def require_weekend_window(now=None):
     weekday = local.isoweekday()
     if weekday == 6 or (weekday == 7 and local.hour < WINDOW_SUNDAY_LAST_HOUR):
         return local
+    if weekday <= 5 and local < AMENDMENT_DEADLINE_LOCAL:
+        # Owner amendment 2026-11-03 ("we're bypassing"): weekdays are
+        # admitted through AMENDMENT_DEADLINE_LOCAL; see that constant.
+        return local
     raise PowerRefused(
         f"the local time {local.isoformat(timespec='seconds')} is outside the "
         "owner's weekend window (Saturday, or Sunday before "
-        f"{WINDOW_SUNDAY_LAST_HOUR:02d}:00 in {WINDOW_TIMEZONE}); refusing to launch"
+        f"{WINDOW_SUNDAY_LAST_HOUR:02d}:00 in {WINDOW_TIMEZONE}; the "
+        f"weekday amendment expired at "
+        f"{AMENDMENT_DEADLINE_LOCAL.isoformat(timespec='seconds')}); "
+        "refusing to launch"
     )
 
 
 def weekend_closing_utc(local):
-    """This weekend's Sunday 22:00 closing instant, as an aware UTC datetime.
+    """This window's closing instant, as an aware UTC datetime.
 
-    ``local`` is the aware local datetime the weekend window check returned
-    (Saturday or Sunday in ``WINDOW_TIMEZONE``). A Saturday derives the next
-    day's 22:00; a Sunday the same day's. The closing instant is constructed
-    on the Chicago wall clock (so a DST transition inside the weekend is
-    exact) and converted to UTC, where all duration arithmetic happens.
+    ``local`` is the aware local datetime the window check returned (Saturday,
+    Sunday, or an amended weekday in ``WINDOW_TIMEZONE``). A Saturday derives
+    the next day's 22:00; a Sunday the same day's. Under the owner's
+    2026-11-03 amendment a pre-deadline weekday closes at
+    ``AMENDMENT_DEADLINE_LOCAL`` itself, so every registered cap must fit
+    entirely before the deadline. The closing instant is constructed on the
+    Chicago wall clock (so a DST transition inside the weekend is exact) and
+    converted to UTC, where all duration arithmetic happens.
     """
     if not isinstance(local, datetime) or local.tzinfo is None \
             or local.tzinfo.utcoffset(local) is None:
@@ -181,6 +207,8 @@ def weekend_closing_utc(local):
         day = local.date() + timedelta(days=1)
     elif local.isoweekday() == 7:
         day = local.date()
+    elif local.isoweekday() <= 5 and local < AMENDMENT_DEADLINE_LOCAL:
+        return AMENDMENT_DEADLINE_LOCAL.astimezone(timezone.utc)
     else:
         raise PowerRefused(
             f"the local time {local.isoformat(timespec='seconds')} has no "
