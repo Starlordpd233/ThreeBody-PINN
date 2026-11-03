@@ -1,0 +1,21 @@
+{
+  "checked_utc": "2026-11-03T17:57:47+00:00",
+  "metadata_only": true,
+  "output": ".planning/phases/67-design-settings-ladders/evidence/exp02/metadata/record.json",
+  "pmset_first_line": "Now drawing from 'AC Power'",
+  "power_source": "AC Power",
+  "registration": ".planning/phases/67-design-settings-ladders/evidence/exp02/metadata-registration.json",
+  "remaining_window": {
+    "cap_seconds": 900.0,
+    "checked_utc": "2026-11-03T17:57:47+00:00",
+    "closing_utc": "2026-11-04T13:30:00+00:00",
+    "note": "the full registered whole-launch allowance fits before the Sunday 22:00 closing instant; recheck: closing_utc - checked_utc >= cap_seconds",
+    "remaining_allowance_seconds": 70332.474528
+  },
+  "schema": "phase66-power-gate/v1",
+  "window": {
+    "isoweekday": 2,
+    "local_time": "2026-11-03T11:57:47-06:00",
+    "timezone": "America/Chicago"
+  }
+}
