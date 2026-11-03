@@ -26,10 +26,15 @@ PHASE65_DIR = ROOT / ".planning/phases/65-probe-on-the-record-fit-harness"
 SMOKE_REGISTRATION = PHASE65_DIR / "evidence/fit/smoke-registration.json"
 SMOKE_RECORD = PHASE65_DIR / "evidence/fit/1632-smoke/record.json"
 
-#: The four smoke-pinned modules this plan never edits (decision 1).
+#: The two smoke-pinned modules this plan and phase 67 never edit.
 UNEDITED_PINS = (
     "pinn/verification/diagnostic_guard.py",
     "pinn/verification/diagnostic_data.py",
+)
+
+#: The smoke-pinned modules edited across Phase 66 and 67 (D-12/D-13 transition).
+EDITED_PINS = (
+    "pinn/verification/diagnostic_fit.py",
     "pinn/verification/diagnostic_variants.py",
     "pinn/verification/diagnostic_similarity.py",
 )
@@ -44,13 +49,26 @@ class HistoricalPhase65Tests(unittest.TestCase):
             ["git", *args], cwd=str(ROOT), capture_output=True, check=True
         ).stdout
 
-    def test_four_unedited_pins_equal_the_recorded_digests(self):
+    def test_unedited_pins_equal_the_recorded_digests(self):
         doc = json.loads(SMOKE_REGISTRATION.read_bytes())
         recorded = {entry["path"]: entry["sha256"] for entry in doc["code_dependencies"]}
         for relative in UNEDITED_PINS:
             with self.subTest(path=relative):
                 live = hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()
                 self.assertEqual(live, recorded[relative])
+
+    def test_live_new_run_admission_refuses_the_changed_dependencies(self):
+        from pinn.verification.diagnostic_guard import (
+            DiagnosticRegistrationRefused,
+            require_committed_registration,
+        )
+
+        with self.assertRaises(DiagnosticRegistrationRefused) as caught:
+            require_committed_registration(
+                SMOKE_REGISTRATION, repo_root=ROOT, weight_digests=False
+            )
+        message = str(caught.exception)
+        self.assertTrue(any(path in message for path in EDITED_PINS))
 
     def test_the_smoke_identity_holds_at_the_record_commit(self):
         doc = json.loads(SMOKE_REGISTRATION.read_bytes())

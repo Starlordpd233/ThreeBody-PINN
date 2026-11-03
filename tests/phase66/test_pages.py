@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -216,9 +217,20 @@ class TimingPageTests(unittest.TestCase):
             "pinn/verification/diagnostic_power.py",
         ]
         self.assertEqual([entry["path"] for entry in doc["code_dependencies"]], expected_paths)
+        anchor = subprocess.run(
+            [
+                "git", "log", "-n1", "--format=%H", "--diff-filter=A", "--",
+                _TIMING_REGISTRATION.relative_to(_REPO_ROOT).as_posix(),
+            ],
+            cwd=str(_REPO_ROOT), capture_output=True, check=True
+        ).stdout.decode().strip()
+        self.assertTrue(anchor, "the timing registration has no introducing commit")
         for entry in doc["code_dependencies"]:
-            live = hashlib.sha256((_REPO_ROOT / entry["path"]).read_bytes()).hexdigest()
-            self.assertEqual(live, entry["sha256"], entry["path"])
+            committed = subprocess.run(
+                ["git", "show", f"{anchor}:{entry['path']}"],
+                cwd=str(_REPO_ROOT), capture_output=True, check=True
+            ).stdout
+            self.assertEqual(hashlib.sha256(committed).hexdigest(), entry["sha256"], entry["path"])
 
     def test_the_copied_blocks_equal_the_smoke_registration(self):
         doc = self._registration()
@@ -423,16 +435,28 @@ class ExperimentRegistrationTests(unittest.TestCase):
         ]
         for stem in self.REGISTRATION_STEMS:
             with self.subTest(registration=stem):
+                reg_rel = (
+                    _PHASE_DIR / "evidence/exp01" / f"{stem}-registration.json"
+                ).relative_to(_REPO_ROOT).as_posix()
+                anchor = subprocess.run(
+                    [
+                        "git", "log", "-n1", "--format=%H", "--diff-filter=A", "--",
+                        reg_rel,
+                    ],
+                    cwd=str(_REPO_ROOT), capture_output=True, check=True
+                ).stdout.decode().strip()
+                self.assertTrue(anchor, f"{stem} registration has no introducing commit")
                 doc = self._registration(stem)
                 self.assertEqual(
                     [entry["path"] for entry in doc["code_dependencies"]],
                     expected_paths,
                 )
                 for entry in doc["code_dependencies"]:
-                    live = hashlib.sha256(
-                        (_REPO_ROOT / entry["path"]).read_bytes()
-                    ).hexdigest()
-                    self.assertEqual(live, entry["sha256"], entry["path"])
+                    committed = subprocess.run(
+                        ["git", "show", f"{anchor}:{entry['path']}"],
+                        cwd=str(_REPO_ROOT), capture_output=True, check=True
+                    ).stdout
+                    self.assertEqual(hashlib.sha256(committed).hexdigest(), entry["sha256"], entry["path"])
 
     def test_the_copied_blocks_equal_the_smoke_registration(self):
         smoke = json.loads(_SMOKE_REGISTRATION.read_bytes().decode("utf-8"))

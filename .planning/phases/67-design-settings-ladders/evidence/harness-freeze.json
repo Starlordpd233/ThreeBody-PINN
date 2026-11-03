@@ -1,0 +1,171 @@
+{
+  "schema": "phase67-harness-freeze/v1",
+  "title": "Phase 67 final harness freeze manifest",
+  "source_commit": "847543095084bc8feac2aa4443f94ea28dff29cc",
+  "files": [
+    {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/audit/reader_acceptance.json",
+      "sha256": "11a6cf7bc3342a5ccee5bb30bb85fc94429faeeb1bc9ea58e5ff51e9b12522c0"
+    },
+    {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/manifest.json",
+      "sha256": "41e35850f6195d076ee553516319ac2327f87a17f90cd729ff4bc08988006cbc"
+    },
+    {
+      "path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/fit/1632-smoke/diagnostic.weights",
+      "sha256": "12115adda4f9b11538091d40da8922c880a14728ed6e92f883affca85710320e"
+    },
+    {
+      "path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/fit/1632-smoke/record.json",
+      "sha256": "f6faee77d5278aef139052a694e9e17b3090201aac17000eb9453fadd108d6ea"
+    },
+    {
+      "path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/fit/smoke-registration.json",
+      "sha256": "ba54e8124a33bb8b172256c6c7150b1f37e3dde1c52c682635bc49e169140d8e"
+    },
+    {
+      "path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/probe/logger-parity.json",
+      "sha256": "4f908f39b500d9976a2cd82fa549db0087b7405bc7443b2f2d33a70b731da6b5"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/66-PREDICTION.md",
+      "sha256": "7ec16fe90c34cd01406fe227217916754128a283bc6409ed77f4e1811058d8be"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/66-RESULT.md",
+      "sha256": "bf143995410ae48a57845b5cf7f5500dc059c4fd0af96486a1b43801b88d26a9"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/66-REVIEW.md",
+      "sha256": "ccab30a6766f9e15a9f637994c78f13cafcdd361ec3a0b6bcffd0d1efe109592"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/66-TIMING-PREDICTION.md",
+      "sha256": "ec54a05e0c98e6b92d303516c4d19ec466064c296ad6227df0efab7ab3e2aaed"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/exp01/main-1632-s42-registration.json",
+      "sha256": "b0d79585131c198a4c09f9dea4f1667b57eed8e38fb0d0fd3b11e5071964dcce"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/exp01/main-1632-s42/diagnostic.weights",
+      "sha256": "bdf95cc1c8b0a148e415892eb2bf9f4ec2eee844f92479ccbd3df3afc0ce31c6"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/exp01/main-1632-s42/record.json",
+      "sha256": "774a5a451bda97c79e39e3e10d146bcde8a5a5551b19a0d3cf59022b4b301007"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/exp01/repeat-1632-s41-registration.json",
+      "sha256": "48a15ad60f4a018c17eab10211153a48df577a292f9853d68eccd4e38592a8f1"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/exp01/repeat-1632-s41/diagnostic.weights",
+      "sha256": "957af465d74fb55455cf44b9836f32b4ae566d9e942ee67fc65bf4ff8530aabb"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/exp01/repeat-1632-s41/record.json",
+      "sha256": "4146675b56990ca145fa9db777f7922476b1d64ab4cf8f708acb1acec2137c2a"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/exp01/repeat-851-s42-registration.json",
+      "sha256": "40754fb93ac4b8a4aa70c580ec233b6fbf7f15fb95dad002a969215062646f36"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/exp01/repeat-851-s42/diagnostic.weights",
+      "sha256": "f73519dffd0e23fd6b8f029c8f38e787fdcd436eb60461e8352b409e9422c62c"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/exp01/repeat-851-s42/record.json",
+      "sha256": "9166311284ea857ea835813ea74b5ea6a30323d0cb4036341b722dcf56add05b"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/timing/1632-s42/diagnostic.weights",
+      "sha256": "68b6ac60987557e693fd22f1a062850a5d8f749b6bee8ad508af796f1712dcc7"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/timing/1632-s42/record.json",
+      "sha256": "128fe093dac017e1b9c0da900d07db8d768ccfacb9d8f22088b97a938859d671"
+    },
+    {
+      "path": ".planning/phases/66-small-network-control/evidence/timing/timing-registration.json",
+      "sha256": "794daa6e334e44c0f3c0c5a040c635614de20d8143629b9f020e71ac998421c6"
+    },
+    {
+      "path": "pinn/architecture_spec.py",
+      "sha256": "3cc1b9c21c6a483b6acfa4be551ea533784aee1872d46b365e66fc50806f5085"
+    },
+    {
+      "path": "pinn/constants.py",
+      "sha256": "3edb6372166d2b5d604068193d1b456589674a508c65fc5437aac2e329c8cc87"
+    },
+    {
+      "path": "pinn/network.py",
+      "sha256": "af993b79c7ebeab4b28adcd58dfa6febfa75ef9186b57a6aa67487f40a980a81"
+    },
+    {
+      "path": "pinn/verification/diagnostic_data.py",
+      "sha256": "47b9d99dd991c2a899cb8a4308273643c1d98ea591b851546373e44bcf429836"
+    },
+    {
+      "path": "pinn/verification/diagnostic_fit.py",
+      "sha256": "97c459b69ff054cdb0fff663f93e66d8bbbbd8665a761651247fda3d77bb6912"
+    },
+    {
+      "path": "pinn/verification/diagnostic_guard.py",
+      "sha256": "8dd577a263c28bf7886a0795336ac613fe3fde7c8ebf424fcd6eaf2e80fef540"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase66.py",
+      "sha256": "cb0577fe6e976f3ed75ecf95e01f235e0c3cc94289ce316c731fe42581bc4ec7"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase67.py",
+      "sha256": "d01c4ab037805fc9584c001b304f63b1bde811337fd7be1eb3e78b9152e92b72"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase67_catalog.py",
+      "sha256": "e277a404b9fe5ab041b83fd543c3f58f53a694cd1597260fa2b39a3bbcc96a0f"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase67_execution.py",
+      "sha256": "e36a0e3ad8681b2fca7ac1701e6505f6018c3a8b2b4f176ba931f6e2fb2b1c40"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase67_records.py",
+      "sha256": "f3bb2e165436f7d8e32cae8452c7fe07be4201ddecfa99593c0f648d10275fef"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase67_windows.py",
+      "sha256": "f776dd74dee242c789cf430406dd0ea365cd17c583108530bbefe252746fa03a"
+    },
+    {
+      "path": "pinn/verification/diagnostic_power.py",
+      "sha256": "be7fa371537b588f40edf163725ffcd4aa15d77e75360c711e4a5fa47c099d78"
+    },
+    {
+      "path": "pinn/verification/diagnostic_similarity.py",
+      "sha256": "6625c483ae47b7a87eb283dfb6328087f87065d4a9275521c6a9d07890d7eb23"
+    },
+    {
+      "path": "pinn/verification/diagnostic_time_features.py",
+      "sha256": "24243b6c9963d5238e4351c5670d73b61c00e92108fa31b17b67e996354139ba"
+    },
+    {
+      "path": "pinn/verification/diagnostic_variants.py",
+      "sha256": "5840824e6cb141312a993cb41647f1d3ec7f5f9e781b112d53e91d065d5a24ef"
+    },
+    {
+      "path": "pinn/verification/feasibility_scorecard.py",
+      "sha256": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5"
+    },
+    {
+      "path": "pinn/verification/feasibility_scorer.py",
+      "sha256": "00edf81d59396fe189d476dd3e69473c4291b71bc6af6171da758f68b61f2bc7"
+    },
+    {
+      "path": "pinn/verification/learnability_protocol.py",
+      "sha256": "03a391895180f2bf8a0b573b96d0d4a6653544b75feea1e9c867ea60560df51e"
+    }
+  ]
+}
