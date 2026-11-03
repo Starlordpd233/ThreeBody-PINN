@@ -132,7 +132,7 @@
     "orbit_key": "hierarchical/gold/1632",
     "orbit_note": "the registered repeat-1632-s41 case",
     "physical_window": {
-      "t_end": 9.999999999999831,
+      "t_end": 10.0,
       "t_start": 0.0
     },
     "reading_rule": {

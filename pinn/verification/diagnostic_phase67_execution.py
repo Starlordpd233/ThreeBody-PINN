@@ -1091,10 +1091,20 @@ def phase67_run_matrix(experiment, kind, *, metadata, metadata_sha=None,
                             f"the {arm} window endpoint of {orbit_key!r}")
             if experiment == "exp05":
                 variant_name = f"exp05-{arm}-{orbit_key.rsplit('/', 1)[-1]}"
+                # The materialized lap variant's window_length is the exact
+                # observed prefix endpoint (67-03), so the declared window
+                # and the observed endpoint are the same number there.
+                declared_t_end = t_end
             else:
-                variant_name = phase67_arm_variant(
-                    experiment, arm, orbit_key
-                ).name
+                declaration = phase67_arm_variant(experiment, arm, orbit_key)
+                variant_name = declaration.name
+                # The declared window is the variant's nominal window length
+                # (the locked [0, 10] for the full-window experiments), never
+                # the observed grid's float64 endpoint: the real gold grid
+                # ends at 9.999999999999831, and the settings door requires
+                # the declared endpoint to equal the variant's window length
+                # (Phase 66's committed real registrations declare 10.0).
+                declared_t_end = float(declaration.window_length)
             schedule = {
                 "optimizer_steps": steps,
                 "warmup_steps": warmup,
@@ -1118,9 +1128,9 @@ def phase67_run_matrix(experiment, kind, *, metadata, metadata_sha=None,
                 "orbit_key": orbit_key,
                 "seed": seed,
                 "variant_name": variant_name,
-                "t_end": t_end,
+                "t_end": declared_t_end,
                 "metadata_sha256": digest,
-                "physical_window": {"t_start": 0.0, "t_end": t_end},
+                "physical_window": {"t_start": 0.0, "t_end": declared_t_end},
                 "registration_path": (
                     f"evidence/{experiment}/{kind}/{case}/{arm}/registration.json"
                 ),

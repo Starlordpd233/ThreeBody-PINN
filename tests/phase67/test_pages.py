@@ -318,6 +318,25 @@ class MatrixTests(unittest.TestCase):
         self.assertEqual(set(ends), {"lap1", "lap2", "lap5", "lap10"})
         self.assertTrue(all(0.0 < end < 10.0 for end in ends.values()))
 
+    def test_the_declared_window_is_the_variant_length_not_the_grid_endpoint(self):
+        # The real gold grid ends at 9.999999999999831 (the committed capture
+        # attests it), while every full-window variant declares the locked
+        # 10.0 window; the rows declare the variant's window length (Phase
+        # 66's committed real registrations declare 10.0), never the
+        # observed float64 grid endpoint.
+        metadata = _metadata_record("exp02")
+        for orbit in metadata["orbits"].values():
+            orbit["windows"]["full"] = _window(9.999999999999831)
+        rows = self.execution.phase67_run_matrix(
+            "exp02", "timing", metadata=metadata
+        )
+        self.assertTrue(rows)
+        for row in rows:
+            self.assertEqual(row["t_end"], 10.0)
+            self.assertEqual(
+                row["physical_window"], {"t_start": 0.0, "t_end": 10.0}
+            )
+
     def test_the_timing_and_science_schedules_come_from_the_registered_rule(self):
         from pinn.verification.diagnostic_phase67 import (
             PHASE67_BUDGET_RULE,
