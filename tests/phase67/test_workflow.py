@@ -42,6 +42,9 @@ from tests.phase67._fixtures import (
 
 AC_LINE = "Now drawing from 'AC Power'"
 SATURDAY = "2026-10-31T12:00:00-05:00"
+#: The owner's 2026-11-03 weekday amendment: a pre-deadline Tuesday instant
+#: (the amendment admits weekdays only before 2026-11-04 07:30 Chicago).
+TUESDAY_AMENDED = "2026-11-03T11:57:47-06:00"
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
 #: The workflow's patched arm table: one contrasted pair on the real registry.
@@ -99,8 +102,13 @@ def _relabel(data, orbit_key):
     return SimpleNamespace(**{**vars(data), "records": records})
 
 
-def _build_chain():
-    """Run the complete synthetic chain once; the holder keeps every path."""
+def _build_chain(clock_iso=SATURDAY, cache=None):
+    """Run the complete synthetic chain once; the holder keeps every path.
+
+    ``clock_iso`` is the aware instant every gated command sees; the default
+    Saturday predates the owner's 2026-11-03 weekday amendment, and the
+    weekday-amendment chain builds with a pre-deadline Tuesday instead.
+    """
     stack = ExitStack()  # stays open for the process lifetime
     _STACK_HOLDER.append(stack)
     fixture = stack.enter_context(gold_corpus_fixture())
@@ -190,7 +198,7 @@ def _build_chain():
         code, _stdout, stderr = run_cli(
             ["launch-row", "--experiment", "exp02", "--kind", kind,
              "--case", case, "--arm", arm],
-            read_power=fake_pmset(AC_LINE), run=runner, now=fake_clock(SATURDAY),
+            read_power=fake_pmset(AC_LINE), run=runner, now=fake_clock(clock_iso),
             supervisor=inline_supervisor,
         )
         assert code == 0, f"launch-row {kind}/{case}/{arm} refused: {stderr}"
@@ -200,12 +208,12 @@ def _build_chain():
         "scorecard": scorecard, "data": data, "execution": execution,
         "run_cli": run_cli, "launch": launch, "orbit_data": orbit_data,
     }
-    _stages(state)
-    _CHAIN.update(state)
+    _stages(state, clock_iso)
+    (cache if cache is not None else _CHAIN).update(state)
     return state
 
 
-def _stages(state):
+def _stages(state, clock_iso=SATURDAY):
     root, phase, run_cli = state["root"], state["phase"], state["run_cli"]
 
     # 1-2) The frozen design, its page and the metadata registration.
@@ -223,7 +231,7 @@ def _stages(state):
 
     code, _out, err = run_cli(
         ["capture-metadata", "--experiment", "exp02"],
-        read_power=fake_pmset(AC_LINE), now=fake_clock(SATURDAY),
+        read_power=fake_pmset(AC_LINE), now=fake_clock(clock_iso),
         load_orbit=load_orbit, supervisor=inline_supervisor,
     )
     assert code == 0, f"capture-metadata refused: {err}"
@@ -379,6 +387,60 @@ class _ChainTestCase(unittest.TestCase):
                 contextlib.redirect_stderr(stderr):
             code = phase67_cli.main(argv, repo_root=self.root, **kwargs)
         return code, stdout.getvalue(), stderr.getvalue()
+
+
+_WEEKDAY_CHAIN: dict = {}
+
+
+class WeekdayAmendmentChainTests(unittest.TestCase):
+    """The complete chain also runs on a pre-deadline weekday.
+
+    The owner's 2026-11-03 amendment admits weekday operations before
+    2026-11-04 07:30 America/Chicago; the whole synthetic chain built on a
+    pre-deadline Tuesday proves every gated command (capture, matrix,
+    launches, budget) admits and audits the amended weekday receipts.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        if not _WEEKDAY_CHAIN:
+            _build_chain(clock_iso=TUESDAY_AMENDED, cache=_WEEKDAY_CHAIN)
+        for name, value in _WEEKDAY_CHAIN.items():
+            if name not in ("patches", "run_cli", "launch"):
+                setattr(cls, name, value)
+
+    def run_cli(self, argv, **kwargs):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout), \
+                contextlib.redirect_stderr(stderr):
+            code = phase67_cli.main(argv, repo_root=self.root, **kwargs)
+        return code, stdout.getvalue(), stderr.getvalue()
+
+    def test_the_weekday_capture_admits_and_records_the_amendment_window(self):
+        receipt = json.loads(
+            (self.phase / "evidence/exp02/metadata/power-gate.json").read_bytes()
+        )
+        self.assertEqual(receipt["window"]["isoweekday"], 2)
+        self.assertEqual(receipt["window"]["local_time"], TUESDAY_AMENDED)
+        self.assertEqual(
+            receipt["remaining_window"]["closing_utc"],
+            "2026-11-04T13:30:00+00:00",
+        )
+        code, out, _err = self.run_cli(["check-metadata", "--experiment", "exp02"])
+        self.assertEqual(code, 0)
+        self.assertIn("PHASE67-METADATA-OK", out)
+
+    def test_the_weekday_row_receipts_admit_through_the_reader(self):
+        record_path = (
+            self.phase / "evidence/exp02/timing/main-1632-s42/d2/record.json"
+        )
+        self.assertTrue(record_path.is_file())
+        code, out, _err = self.run_cli(
+            ["check-row", "--experiment", "exp02", "--kind", "timing",
+             "--case", "main-1632-s42", "--arm", "d2"]
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("PHASE67-ROW-OK", out)
 
 
 class WorkflowChainTests(_ChainTestCase):

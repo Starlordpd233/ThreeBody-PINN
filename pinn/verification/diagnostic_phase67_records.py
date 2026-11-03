@@ -59,16 +59,19 @@ from pinn.verification.diagnostic_phase67_catalog import (
 )
 from pinn.verification.diagnostic_power import (
     AC_SOURCE,
+    PowerRefused,
     RECEIPT_SCHEMA,
-    WINDOW_SUNDAY_LAST_HOUR,
     WINDOW_TIMEZONE,
     power_source,
+    require_weekend_window,
+    weekend_closing_utc,
 )
 
 __all__ = [
     "Phase67RecordRefused",
     "read_phase67_record",
     "read_phase67_run_directory",
+    "receipt_window_ok",
     "registered_layers",
 ]
 
@@ -130,7 +133,7 @@ _PROBLEM_LAUNCH_WALL = (
     "the launch-to-end wall exceeds the registered whole-launch cap"
 )
 _PROBLEM_SUNDAY_CAP = (
-    "the registered whole-launch cap does not fit before the Sunday 22:00 "
+    "the registered whole-launch cap does not fit before the owner's "
     "closing instant"
 )
 _PROBLEM_AC_FIRST_LINE = "the receipt's recorded pmset first line does not name AC Power"
@@ -182,25 +185,20 @@ def _float64_digest(values):
     return hashlib.sha256(packed).hexdigest()
 
 
-def _sunday_closing(local):
-    """That weekend's Sunday 22:00 ``WINDOW_TIMEZONE`` closing instant.
+def _window_closing(local):
+    """The owner's closing instant derived from the receipt's local instant.
 
-    ``local`` is the receipt's own aware instant in the window timezone. A
-    Saturday derives the next day's 22:00; a Sunday derives the same day's
-    22:00; any other weekday has no closing instant (the window check is what
-    flags it). Wall-clock construction keeps DST transitions exact.
+    ``local`` is the receipt's own aware instant in the window timezone. The
+    amended power rule (``weekend_closing_utc``) is the single source: a
+    Saturday derives the next day's 22:00, a Sunday the same day's 22:00,
+    and a weekday before the owner's 2026-11-03 amendment deadline closes at
+    that deadline; any other instant has no closing instant (the window
+    check is what flags it). Wall-clock construction keeps DST exact.
     """
-    if local.isoweekday() == 6:
-        day = local.date() + timedelta(days=1)
-    elif local.isoweekday() == 7:
-        day = local.date()
-    else:
+    try:
+        return weekend_closing_utc(local)
+    except PowerRefused:
         return None
-    return datetime(
-        day.year, day.month, day.day,
-        int(WINDOW_SUNDAY_LAST_HOUR), 0, 0,
-        tzinfo=ZoneInfo(WINDOW_TIMEZONE),
-    )
 
 
 def _tier_consistent(score, card):
@@ -328,12 +326,14 @@ def _aware_datetime(value):
     return moment
 
 
-def _receipt_window_ok(window):
+def receipt_window_ok(window):
     """The receipt's window block, audited on its own local time.
 
     The declared ``isoweekday`` must agree with the weekday the recorded
     ``local_time`` itself carries (a self-declared weekday is not evidence),
-    and the Chicago local time must sit inside the owner's weekend window.
+    and the Chicago local time must sit inside the owner's window as the
+    amended power rule admits it: the weekend, or a weekday before the
+    owner's 2026-11-03 amendment deadline.
     """
     if not isinstance(window, Mapping):
         return False
@@ -351,9 +351,11 @@ def _receipt_window_ok(window):
         return False
     if local.isoweekday() != declared:
         return False
-    return local.isoweekday() == 6 or (
-        local.isoweekday() == 7 and local.hour < WINDOW_SUNDAY_LAST_HOUR
-    )
+    try:
+        require_weekend_window(lambda: local)
+    except PowerRefused:
+        return False
+    return True
 
 
 def _split_opens(record):
@@ -541,7 +543,7 @@ def read_phase67_record(registration_path, run_dir, *, repo_root, include_scores
             mechanical.append(_PROBLEM_RECEIPT_SCHEMA)
         if receipt.get("power_source") != AC_SOURCE:
             mechanical.append(_PROBLEM_RECEIPT_SOURCE)
-        if not _receipt_window_ok(receipt.get("window")):
+        if not receipt_window_ok(receipt.get("window")):
             mechanical.append(_PROBLEM_RECEIPT_WINDOW)
 
     # 4) The exclusive attempt claim: published, digest-faithful, not preceded
@@ -1063,7 +1065,7 @@ def read_phase67_run_directory(
             mechanical.append(_PROBLEM_RECEIPT_SCHEMA)
         if receipt.get("power_source") != AC_SOURCE:
             mechanical.append(_PROBLEM_RECEIPT_SOURCE)
-        if not _receipt_window_ok(receipt.get("window")):
+        if not receipt_window_ok(receipt.get("window")):
             mechanical.append(_PROBLEM_RECEIPT_WINDOW)
         first_line = receipt.get("pmset_first_line")
         if not isinstance(first_line, str) \
@@ -1124,7 +1126,7 @@ def read_phase67_run_directory(
                 except (ValueError, OSError):
                     local = None
                 if local is not None:
-                    closing = _sunday_closing(local)
+                    closing = _window_closing(local)
                     if closing is not None and local + timedelta(
                         seconds=cap
                     ) > closing:

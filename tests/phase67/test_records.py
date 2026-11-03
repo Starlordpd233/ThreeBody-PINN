@@ -78,7 +78,7 @@ ATTEMPT_CAP = "the attempt's whole-run cap disagrees with the registration"
 ATTEMPT_STEPS = "the attempt's completed steps disagree with the record"
 LAUNCH_WALL = "the launch-to-end wall exceeds the registered whole-launch cap"
 SUNDAY_CAP = (
-    "the registered whole-launch cap does not fit before the Sunday 22:00 "
+    "the registered whole-launch cap does not fit before the owner's "
     "closing instant"
 )
 AC_FIRST_LINE = "the receipt's recorded pmset first line does not name AC Power"
@@ -664,6 +664,74 @@ class ReceiptAndAttemptTests(_RunTestCase):
                     _rewrite(target / "power-gate.json", lambda r: r.update(receipt_overrides))
                 reading = self._read(target)
                 self.assertIn(problem, reading["mechanical_problems"])
+
+    def test_a_weekday_receipt_inside_the_owner_amendment_reads_clean(self):
+        # The real 2026-11-03 capture instant: a Tuesday before the
+        # owner's 2026-11-04 07:30 amendment deadline.
+        weekday = _copy_run(self.run_dir.parent / "weekday-amended", self.run_dir)
+        _engineer_times(
+            weekday,
+            checked_utc="2026-11-03T17:57:47+00:00",
+            local_time="2026-11-03T11:57:47-06:00",
+            isoweekday=2,
+            started_utc="2026-11-03T17:57:48+00:00",
+            ended_utc="2026-11-03T17:58:47+00:00",
+        )
+        reading = self._read(weekday)
+        self.assertEqual(reading["mechanical_problems"], [])
+
+    def test_the_cap_fits_the_amendment_closing_exactly_and_not_one_instant_later(self):
+        # A pre-deadline Wednesday receipt closes at the 2026-11-04 07:30
+        # amendment deadline; the 900 s cap fits exactly at 07:15 and not
+        # one microsecond later.
+        exact = _copy_run(self.run_dir.parent / "weekday-exact", self.run_dir)
+        _engineer_times(
+            exact,
+            checked_utc="2026-11-04T13:14:00+00:00",
+            local_time="2026-11-04T07:15:00-06:00",
+            isoweekday=3,
+            started_utc="2026-11-04T13:14:01+00:00",
+            ended_utc="2026-11-04T13:15:00+00:00",
+        )
+        reading = self._read(exact)
+        self.assertEqual(reading["mechanical_problems"], [])
+
+        late = _copy_run(self.run_dir.parent / "weekday-next", self.run_dir)
+        _engineer_times(
+            late,
+            checked_utc="2026-11-04T13:14:00+00:00",
+            local_time="2026-11-04T07:15:00.000001-06:00",
+            isoweekday=3,
+            started_utc="2026-11-04T13:14:01+00:00",
+            ended_utc="2026-11-04T13:15:00+00:00",
+        )
+        reading = self._read(late)
+        self.assertIn(SUNDAY_CAP, reading["mechanical_problems"])
+
+    def test_a_weekday_at_or_after_the_amendment_deadline_refuses(self):
+        cases = [
+            ("deadline instant", "2026-11-04T07:30:00-06:00", 3),
+            ("after the deadline", "2026-11-05T12:00:00-06:00", 4),
+        ]
+        for name, local_time, isoweekday in cases:
+            with self.subTest(case=name):
+                target = _copy_run(
+                    self.run_dir.parent / f"weekday-refused-{name}",
+                    self.run_dir,
+                )
+                _engineer_times(
+                    target,
+                    checked_utc="2026-11-05T18:00:00+00:00",
+                    local_time=local_time,
+                    isoweekday=isoweekday,
+                    started_utc="2026-11-05T18:00:01+00:00",
+                    ended_utc="2026-11-05T18:01:00+00:00",
+                )
+                reading = self._read(target)
+                self.assertIn(
+                    "the receipt window is outside the weekend window",
+                    reading["mechanical_problems"],
+                )
 
     def test_forged_weekdays_and_foreign_first_lines_refuse(self):
         cases = [

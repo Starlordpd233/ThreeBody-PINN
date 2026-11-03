@@ -1578,7 +1578,7 @@ def _capture_body(experiment, root, phase, load_orbit, load_reference,
                 ),
                 "checked_utc": checked_utc,
                 "note": "the full registered whole-launch allowance fits "
-                        "before the Sunday 22:00 closing instant; recheck: "
+                        "before the window's closing instant; recheck: "
                         "closing_utc - checked_utc >= cap_seconds",
             },
             "metadata_only": True,
@@ -2614,11 +2614,11 @@ def check_metadata(experiment, *, repo_root=None, phase_dir=None):
         power_source(str(receipt.get("pmset_first_line", ""))) == "AC Power",
         "the metadata receipt's pmset first line does not name AC Power",
     )
+    from pinn.verification.diagnostic_phase67_records import receipt_window_ok
+
     window = receipt.get("window")
     _require(
-        isinstance(window, Mapping)
-        and window.get("timezone") == "America/Chicago"
-        and window.get("isoweekday") in (6, 7),
+        isinstance(window, Mapping) and receipt_window_ok(window),
         "the metadata receipt's window is outside the owner's weekend window",
     )
     reads = (record.get("access") or {}).get("reads") or {}
