@@ -305,7 +305,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 |-------|----------------|--------|-----------|
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
-| 67. Design & Settings Ladders | 7/16 | In Progress |  |
+| 67. Design & Settings Ladders | 7/16 | In Progress (67-08 tasks 1-2 done; task 3 halted at the AC-power gate, 15 rows deferred unstarted — see 67-08-SUMMARY.md) |  |
 | 68. Yardstick | 0/TBD | Not started | - |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |
 
