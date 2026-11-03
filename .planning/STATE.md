@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: Completed 67-06-PLAN.md (execution/page commands + real-operation gates), ready for 67-07
-last_updated: "2026-11-02T23:50:00.000Z"
+stopped_at: Completed 67-07-PLAN.md (compatibility gate and harness freeze; Wave 6 complete; paused before Wave 7)
+last_updated: "2026-11-03T03:37:00.000Z"
 last_activity: 2026-11-02
-last_activity_desc: Plan 67-06 complete (thirteen execution commands, real-operation admission/deadline gates)
-state_head: 469f6e26
+last_activity_desc: Plan 67-07 complete (compatibility gate, harness freeze, multi-phase test discovery verification)
+state_head: f32f2b03
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 17
-  percent: 63
+  completed_plans: 18
+  percent: 67
 ---
 
 # Project State
@@ -30,10 +30,34 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 7 of 16
-Status: Executing Phase 67 (67-01..67-06 complete; Wave 5 done)
-Last activity: 2026-11-02 — plan 67-06, the thirteen execution/page
-commands and the real-operation admission/deadline gates
+Plan: 8 of 16
+Status: Executing Phase 67 (67-01..67-07 complete; Wave 6 done; paused before Wave 7)
+Last activity: 2026-11-02 — plan 67-07, the compatibility gate and harness
+freeze across all historical and current diagnostic suites
+
+### Decisions from 67-07 (2026-11-02, task 67-07-01)
+
+- **The final diagnostic implementation is pinned in
+  `evidence/harness-freeze.json` (41 files) before any Phase 67
+  experiment registration can be created (plans 67-08..67-15).**
+  `verify_harness_freeze` validates all 41 entries read-only without
+  corpus access at source commit `84754309`. The pinned manifest covers
+  all 13 diagnostic modules, frozen scorer/scorecard/protocol,
+  production locks, retained normalizers, and historical evidence
+  artifacts.
+- **Historical dependency pins are verified against their introducing commit
+  ancestry, strictly upholding the D-12/D-13 protocol separation.**
+  `tests/phase66/test_pages.py` and `tests/phase66/test_historical.py`
+  verify that historical run identity holds at the anchor commit
+  (`--diff-filter=A`) while live admission refuses changed dependencies.
+- **Multi-phase compatibility is proven across all active test suites.**
+  `tests/phase65` discovery passes clean (204 tests), `tests/phase66`
+  discovery passes clean (100 tests), `tests/phase67` discovery passes
+  clean (237 tests), and `load_protocol()` succeeds with `PROTOCOL-OK`.
+  Locked raw construction preserves exact bitwise parameter and
+  forward-pass parity with `build_network(ArchitectureSpec(seed=SEED))` on
+  CPU float64, and all 20 historical Phase 65 and 66 pages,
+  registrations, records, and weights remain byte-identical.
 
 ### Decisions from 67-06 (2026-11-02, tasks 67-06-01 and 67-06-02)
 
