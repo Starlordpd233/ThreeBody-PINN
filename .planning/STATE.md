@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: 67-08 halted at the AC-power admission gate (tasks 1-2 complete; timing row 1 refused unstarted on battery; 15 rows deferred — window closes 2026-11-04 07:30 America/Chicago)
-last_updated: "2026-11-03T22:30:00.000Z"
+stopped_at: 67-08 complete (15/15 exp02 timing rows measured and committed, budget N=152900, all science registrations committed; no science run started) — ready for 67-09
+last_updated: "2026-11-04T02:45:00.000Z"
 last_activity: 2026-11-03
-last_activity_desc: 67-08 tasks 1-2 complete (design, metadata capture, timing registrations; t_end deviation fixed and re-pinned); task 3 deferred at the AC gate
-state_head: c6dfb15c
+last_activity_desc: 67-08 complete on the AC-power resume (15 serial timing rows, cost-only budget N=152900, science registrations; PHASE67-BUDGET-OK and science PHASE67-MATRIX-OK)
+state_head: 652d1a9d
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 18
-  percent: 67
+  completed_plans: 19
+  percent: 70
 ---
 
 # Project State
@@ -30,49 +30,48 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 8 of 16
-Status: Executing Phase 67 (67-01..67-07 complete; 67-08 tasks 1-2 done, task 3 halted at the AC gate; rows 1-15 deferred unstarted)
-Last activity: 2026-11-03 — plan 67-08 completed its design, TRAIN metadata
-capture and all 15 prospective timing registrations (t_end deviation fixed
-and the freeze chain re-pinned), then halted at the designed AC-power
-admission gate: launch-row refused on battery power before any protected
-work, so the 15 timing rows, budget and science registrations are deferred
-unstarted (amendment window closes 2026-11-04 07:30 America/Chicago)
+Plan: 9 of 16 (next: 67-09)
+Status: Executing Phase 67 (67-01..67-08 complete; wave 8 next)
+Last activity: 2026-11-03 — plan 67-08 completed on the AC-power resume:
+  all 15 declared exp02 timing rows launched serially inside the amendment
+  window (each check-matrix -> eligibility -> earlier-rows-committed ->
+  launch once -> check-row PHASE67-ROW-OK -> per-row commit; zero retries,
+  zero refusals), then the Plan04 cost-only budget froze the common science
+  N=152900 with both pages, science-matrix.json and all 15 science
+  registrations committed before any science launch (652d1a9d);
+  check-budget PHASE67-BUDGET-OK and check-matrix science PHASE67-MATRIX-OK
 
-### Decisions from 67-08 (2026-11-03, tasks 67-08-01/02 complete; 67-08-03 deferred)
+### Decisions from 67-08 (2026-11-03, all three tasks complete — the AC halt resolved)
 
-- **EXP-02 is fully pre-registered with one clean TRAIN metadata capture,
-  and every launch precondition is committed — the halt is power, not
-  science.** The committed design (75424795), the owner-authorized one-shot
-  weekday amendment (73bcbc74: weekday launches admitted only before
-  2026-11-04 07:30 America/Chicago, which is also the closing instant of
-  the remaining-window check), the guarded metadata capture receipt
-  (9106f40b), the amended single-sourced receipt-window audits (41095975),
-  and the timing matrix plus all 15 case-major row registrations (c9c994eb)
-  leave only the serial measurement for the resume.
+- **EXP-02 is pre-registered, timed and budgeted end to end; no science run
+  started.** The committed design (75424795), the owner-authorized weekday
+  amendment (73bcbc74: weekday launches admitted only before 2026-11-04
+  07:30 America/Chicago, also the remaining-window closing instant), the
+  guarded TRAIN metadata capture (9106f40b/41095975), the 15 prospective
+  registrations (c9c994eb, corrected e2a3a380/c6dfb15c), the 15 measured
+  timing rows (a05542df..288d81df, 5.9-19.2 s walls, 4.4-13.8 ms/step by
+  depth) and the budget boundary (652d1a9d) leave EXP-02's science rows
+  launch-ready for the later execution sequence.
+- **The AC-power halt resolved exactly as designed and the resume changed
+  nothing.** The refusal fired before any protected work (zero burned
+  directories), so the declared row order replayed unchanged with a
+  caffeinate wake assertion covering the inter-row gaps; every row was
+  committed before the next launch. WINDOWS entries 3 (t_end deviation)
+  and 4 (unrun task-3 gates) are marked fixed.
+- **The common science budget is N=152900 (warmup 200, measured 152700),
+  measured costs only.** The largest 100-step quantum with every case/arm
+  projection <= 0.75*3540 s: slowest row repeat-1632-s41/d12 projects
+  2654.31 s against the 2655 s target, the experiment 25466.89 s over 15
+  declared runs (measured_projection basis in the phase cost ledger). No
+  score, loss, tier or cosine value entered the projection, and no timing
+  E was screened at any point.
 - **Row declarations carry the variant's nominal window length, never the
-  observed gold-grid endpoint (deviation fix e2a3a380).** The predecessor's
-  register-timing run stamped the observed float64 endpoint
-  9.999999999999831 into the exp02 timing rows; the settings door requires
-  the declared endpoint to equal the variant's window length (10.0, as
-  Phase 66's committed real registrations declare). phase67_run_matrix now
-  declares float(declaration.window_length) for full-window experiments,
-  keeps the exact observed prefix endpoint for exp05 (its variants are
-  prefixes), and a regression test pins the rule; the regenerated matrix
-  and 15 registrations declare t_end 10.0.
-- **The pre-launch re-pin convention extends to timing registrations'
-  code_dependencies (c6dfb15c).** The 15 committed registrations were
-  stamped while the harness was at 7c8a4f09.., so the deviation fix made
-  the fit door refuse every row; register-timing's exclusive write refuses
-  replacement, so each registration's harness pin and manifest digest were
-  hand re-pinned per the 41095975 convention and verified against live
-  bytes. check-metadata PHASE67-METADATA-OK and check-matrix
-  PHASE67-MATRIX-OK confirm the task-2 boundary clean.
-- **Suites at the final code commit: phase65 204 OK, phase66 101 OK
-  (clean), phase67 244 OK.** The deferral created zero attempts: launch-row
-  refused before any protected work (battery power, 100% discharging), no
-  directory exists under timing/*/record.json, and WINDOWS.md carries the
-  deviation (entry 3) and the unrun task-3 verify gates (entry 4).
+  observed gold-grid endpoint (deviation fix e2a3a380); pre-launch re-pins
+  follow the 41095975 convention (c6dfb15c).** Both carried forward from
+  the halted sessions; the resume needed neither.
+- **Suites at the final code commit (unchanged this resume): phase65 204
+  OK, phase66 101 OK (clean), phase67 244 OK.** This resume edited no code:
+  the 41-file harness freeze pins held for all 15 admissions.
 
 ### Decisions from 67-07 (2026-11-02, task 67-07-01)
 

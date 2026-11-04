@@ -226,7 +226,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 67-08-PLAN.md
+- [x] 67-08-PLAN.md
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
@@ -305,7 +305,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 |-------|----------------|--------|-----------|
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
-| 67. Design & Settings Ladders | 7/16 | In Progress (67-08 tasks 1-2 done; task 3 halted at the AC-power gate, 15 rows deferred unstarted — see 67-08-SUMMARY.md) |  |
+| 67. Design & Settings Ladders | 8/16 | In Progress (67-08 complete: EXP-02 pre-registered, 15/15 timing rows measured, budget N=152900, science registrations committed, no science run — see 67-08-SUMMARY.md) |  |
 | 68. Yardstick | 0/TBD | Not started | - |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |
 
