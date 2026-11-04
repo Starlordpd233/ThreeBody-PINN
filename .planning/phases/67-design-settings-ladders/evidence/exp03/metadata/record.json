@@ -1,0 +1,129 @@
+{
+  "access": {
+    "note": "metadata-only TRAIN gold reads for the registered orbits; no model is constructed and no training step runs",
+    "reads": {
+      "train": 2
+    }
+  },
+  "algorithm": {
+    "baselines": "same_window_expectations (67-03) per window: the window-mean constant and the two-Kepler comparison, independently cross-checked",
+    "byte_bound": 9437184,
+    "cap_seconds": 900.0,
+    "frequency": "N_in from the committed Phase 59 panels row; f = N_in/10 cycles per physical time unit on both backbones",
+    "harmonic_phase_increment": "max adjacent 2*pi*k*f*dt per harmonic k; strictly below pi or EXP-04 timing refuses without retuning",
+    "harmonics": {
+      "f1": [
+        1
+      ],
+      "f12": [
+        1,
+        2
+      ]
+    },
+    "normalizer": "the retained Phase 59 recorded normalizer; never refit",
+    "reader": "pinn.verification.diagnostic_data.Stage0TrainingReader"
+  },
+  "checked_utc": "2026-11-04T09:07:53+00:00",
+  "experiment": "exp03",
+  "harness_freeze": {
+    "path": ".planning/phases/67-design-settings-ladders/evidence/harness-freeze.json",
+    "sha256": "dc916d2f8d64233409dbfcd8e8855f1901be55db80b732d92d649d418d8d61a6"
+  },
+  "orbits": {
+    "hierarchical/gold/1632": {
+      "census": {
+        "N_in": 10.471994061054543,
+        "panels_path": ".planning/phases/59-read-only-baseline-scorecard/evidence/census/panels.json"
+      },
+      "frequency": {
+        "f_cycles_per_physical_unit": 1.0471994061054544,
+        "harmonics": {
+          "f1": [
+            1
+          ],
+          "f12": [
+            1,
+            2
+          ]
+        }
+      },
+      "max_adjacent_phase_increment_rad": {
+        "harmonic_1": 0.06579747922129131,
+        "harmonic_2": 0.13159495844258262
+      },
+      "windows": {
+        "full": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.9168487091299374,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.1538408194255343
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 9.999999999999831,
+          "normalized_tau_sha256": "7788cfcd9cdbd9fadab51078d0428db3eedab6ac4b038a7980808d253d3fbb8c",
+          "physical_times_sha256": "56715afa76002573bef3d599b38627daede33499f9073e7b6e25aa74ca62a6d1",
+          "sample_count": 1001,
+          "t_end": 9.999999999999831
+        }
+      }
+    },
+    "hierarchical/gold/851": {
+      "census": {
+        "N_in": 18.612048388702,
+        "panels_path": ".planning/phases/59-read-only-baseline-scorecard/evidence/census/panels.json"
+      },
+      "frequency": {
+        "f_cycles_per_physical_unit": 1.8612048388702,
+        "harmonics": {
+          "f1": [
+            1
+          ],
+          "f12": [
+            1,
+            2
+          ]
+        }
+      },
+      "max_adjacent_phase_increment_rad": {
+        "harmonic_1": 0.1169429489724106,
+        "harmonic_2": 0.2338858979448212
+      },
+      "windows": {
+        "full": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.4312597209593449,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.233696866477104
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 9.999999999999831,
+          "normalized_tau_sha256": "7788cfcd9cdbd9fadab51078d0428db3eedab6ac4b038a7980808d253d3fbb8c",
+          "physical_times_sha256": "56715afa76002573bef3d599b38627daede33499f9073e7b6e25aa74ca62a6d1",
+          "sample_count": 1001,
+          "t_end": 9.999999999999831
+        }
+      }
+    }
+  },
+  "registration": {
+    "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/metadata-registration.json",
+    "sha256": "47af0fc2dbbff4a12e8ce7d150efb3afefd14cc36759f906fbd39bec73476b2b"
+  },
+  "schema": "phase67-metadata/v1",
+  "status": "complete",
+  "window": {
+    "isoweekday": 3,
+    "local_time": "2026-11-04T03:07:53-06:00",
+    "timezone": "America/Chicago"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "ended_utc": "2026-11-04T09:07:53+00:00",
+  "record_sha256": "51a2eeb13a9f91c3b6d58e1c4b2bfd8b2a4c2b973342fbc3e400462cb3eb3beb",
+  "registration": {
+    "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/metadata-registration.json",
+    "sha256": "47af0fc2dbbff4a12e8ce7d150efb3afefd14cc36759f906fbd39bec73476b2b"
+  },
+  "schema": "phase67-metadata-attempt/v1",
+  "started_utc": "2026-11-04T09:07:53+00:00",
+  "status": "published",
+  "whole_run_cap_seconds": 900.0
+}
