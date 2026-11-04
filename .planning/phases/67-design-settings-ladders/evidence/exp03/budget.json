@@ -1,0 +1,250 @@
+{
+  "common_optimizer_steps": 155100,
+  "experiment": "exp03",
+  "experiment_projected_seconds": {
+    "exp03": 39055.08603667113
+  },
+  "inputs": {
+    "cap_seconds": 3540.0,
+    "min_steps": 300,
+    "rate_margin": 0.25,
+    "rows": {
+      "exp03|lr1e-3|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 3646090,
+        "published_bytes": 3631444,
+        "residual_seconds": 4.951147882267833,
+        "seconds_per_step": 0.013342685419949703,
+        "warmup_seconds": 2.6936651989235543
+      },
+      "exp03|lr1e-3|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 3646072,
+        "published_bytes": 3631426,
+        "residual_seconds": 4.411409249762073,
+        "seconds_per_step": 0.013277421673818025,
+        "warmup_seconds": 2.714852493547369
+      },
+      "exp03|lr1e-3|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 3646081,
+        "published_bytes": 3631435,
+        "residual_seconds": 3.7661358021432534,
+        "seconds_per_step": 0.013345859206106979,
+        "warmup_seconds": 2.6860381996957585
+      },
+      "exp03|lr1e-4|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 3645828,
+        "published_bytes": 3631182,
+        "residual_seconds": 4.6303320155711845,
+        "seconds_per_step": 0.013467594028217717,
+        "warmup_seconds": 2.696695873164572
+      },
+      "exp03|lr1e-4|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 3645828,
+        "published_bytes": 3631182,
+        "residual_seconds": 3.502570828422904,
+        "seconds_per_step": 0.01355755709967343,
+        "warmup_seconds": 2.7076941138366237
+      },
+      "exp03|lr1e-4|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 3645814,
+        "published_bytes": 3631168,
+        "residual_seconds": 5.019913930387702,
+        "seconds_per_step": 0.013334910443634726,
+        "warmup_seconds": 2.6876010851119645
+      },
+      "exp03|lr1e-5|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 3646055,
+        "published_bytes": 3631409,
+        "residual_seconds": 4.018753694079351,
+        "seconds_per_step": 0.013370521478296723,
+        "warmup_seconds": 2.693291327683255
+      },
+      "exp03|lr1e-5|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 3646046,
+        "published_bytes": 3631400,
+        "residual_seconds": 4.618348092073575,
+        "seconds_per_step": 0.013642324828426354,
+        "warmup_seconds": 2.718501497351099
+      },
+      "exp03|lr1e-5|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 3646018,
+        "published_bytes": 3631372,
+        "residual_seconds": 4.9634916769573465,
+        "seconds_per_step": 0.013249733653618022,
+        "warmup_seconds": 2.6840975863160565
+      },
+      "exp03|lr3e-4|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 3645937,
+        "published_bytes": 3631291,
+        "residual_seconds": 3.4834079917054623,
+        "seconds_per_step": 0.013661160601768642,
+        "warmup_seconds": 2.6858245735638775
+      },
+      "exp03|lr3e-4|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 3645923,
+        "published_bytes": 3631277,
+        "residual_seconds": 4.661358858749736,
+        "seconds_per_step": 0.013453796681773383,
+        "warmup_seconds": 2.685843418643344
+      },
+      "exp03|lr3e-4|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 3645941,
+        "published_bytes": 3631295,
+        "residual_seconds": 4.041761639120523,
+        "seconds_per_step": 0.01328605115483515,
+        "warmup_seconds": 2.700032623077277
+      },
+      "exp03|lr3e-5|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 3646087,
+        "published_bytes": 3631441,
+        "residual_seconds": 4.645484532578848,
+        "seconds_per_step": 0.013389539721189067,
+        "warmup_seconds": 2.7173349942313507
+      },
+      "exp03|lr3e-5|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 3646080,
+        "published_bytes": 3631434,
+        "residual_seconds": 4.037958717206493,
+        "seconds_per_step": 0.013343219822680111,
+        "warmup_seconds": 2.7032059200573713
+      },
+      "exp03|lr3e-5|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 3646104,
+        "published_bytes": 3631458,
+        "residual_seconds": 4.134043795755133,
+        "seconds_per_step": 0.013213173619296867,
+        "warmup_seconds": 2.689209500909783
+      }
+    },
+    "size_ceiling_bytes": 9437184,
+    "step_quantum": 100,
+    "target_seconds": 2655.0,
+    "time_fraction": 0.75
+  },
+  "loss_trace_stride": 156,
+  "measured_steps": 154900,
+  "per_row_projection_seconds": {
+    "exp03|lr1e-3|hierarchical/gold/1632|41|10.0": 2593.850885231721,
+    "exp03|lr1e-3|hierarchical/gold/1632|42|10.0": 2582.317958494936,
+    "exp03|lr1e-3|hierarchical/gold/851|42|10.0": 2593.382320407748,
+    "exp03|lr1e-4|hierarchical/gold/1632|41|10.0": 2618.0313122442913,
+    "exp03|lr1e-4|hierarchical/gold/1632|42|10.0": 2634.204256756691,
+    "exp03|lr1e-4|hierarchical/gold/851|42|10.0": 2592.318247310105,
+    "exp03|lr1e-5|hierarchical/gold/1632|41|10.0": 2598.12274470807,
+    "exp03|lr1e-5|hierarchical/gold/1632|42|10.0": 2651.531782479481,
+    "exp03|lr1e-5|hierarchical/gold/851|42|10.0": 2575.6809961679405,
+    "exp03|lr3e-4|hierarchical/gold/1632|41|10.0": 2654.237286167739,
+    "exp03|lr3e-4|hierarchical/gold/1632|42|10.0": 2615.4444265249813,
+    "exp03|lr3e-4|hierarchical/gold/851|42|10.0": 2581.9418523801755,
+    "exp03|lr3e-5|hierarchical/gold/1632|41|10.0": 2603.3096954518146,
+    "exp03|lr3e-5|hierarchical/gold/1632|42|10.0": 2592.83281638746,
+    "exp03|lr3e-5|hierarchical/gold/851|42|10.0": 2567.87945595798
+  },
+  "phase_cost_ledger": {
+    "cap_seconds": 3540.0,
+    "experiments": [
+      {
+        "basis": "measured_projection",
+        "declared_runs": 15,
+        "experiment": "exp03",
+        "note": "measured timing rows; update this ledger with the measured projections before each science launch",
+        "planned_seconds": 39055.08603667113
+      }
+    ]
+  },
+  "schema": "phase67-budget/v1",
+  "score_cadence": [
+    77550,
+    116325,
+    155100
+  ],
+  "similarity_cadence": [
+    0,
+    38775,
+    77550,
+    116325,
+    155100
+  ],
+  "timing_evidence": {
+    "rows": [
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/main-1632-s42/lr1e-3/record.json",
+        "sha256": "196fb4abe858a40cdc4e55f876e111ab804b6dde254d34695735a6a44da466ac"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/main-1632-s42/lr3e-4/record.json",
+        "sha256": "de69e8d10ea2540fb1b3f32fa5208328c50c0968b8609e90370877bd95ac069d"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/main-1632-s42/lr1e-4/record.json",
+        "sha256": "2e2232d12e93f1f2783250f26ef973b79204bae9627315d73090e03255076a7b"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/main-1632-s42/lr3e-5/record.json",
+        "sha256": "112302b6fb97c00d1fb7834e9a1b0c2d64de64991f56435a7facfc84209b9bb0"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/main-1632-s42/lr1e-5/record.json",
+        "sha256": "8c148e19a577ee132a442e6fb72b67b75eaad873b6fa6c314b071c034c61e526"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/repeat-851-s42/lr1e-3/record.json",
+        "sha256": "ba2edc0379c11cfdcb26f04efe7ee289d43f63f36225b808210f410b7d0ac577"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/repeat-851-s42/lr3e-4/record.json",
+        "sha256": "aa8257152fe2f152649efc21ee2222615b4256cd51bd9688e9eca98cab012baf"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/repeat-851-s42/lr1e-4/record.json",
+        "sha256": "5264f3778257069ab644066392c1706993e7026a43fdc99021bef57cd00029aa"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/repeat-851-s42/lr3e-5/record.json",
+        "sha256": "f2ff0724a590ae10c5cad22abb3ea678ed8308f20edfcd30274a7ea8549b108e"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/repeat-851-s42/lr1e-5/record.json",
+        "sha256": "9583697e56dafe6dba1770aad2b12fc561afffe280255b63aa5d556426b766f2"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/repeat-1632-s41/lr1e-3/record.json",
+        "sha256": "d335bcdd02dd2c70c58d6c7b04cd04609e6553a9ef4d3a2ea9f15e60228475f3"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/repeat-1632-s41/lr3e-4/record.json",
+        "sha256": "af8e5c61b5e41f6ad9ace4d071cb8a46d2463753dda7f68354f7153c527ff11c"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/repeat-1632-s41/lr1e-4/record.json",
+        "sha256": "83ed9c6015be16a18fd15ada0e95ab3ee3d6396941fe547a7c264873ef4b3e4c"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/repeat-1632-s41/lr3e-5/record.json",
+        "sha256": "5e1f2e9e1a38809c97c050f91be2b54217ef0f40be15bcd02c325451920601e3"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp03/timing/repeat-1632-s41/lr1e-5/record.json",
+        "sha256": "b92237fb503b79805ac690ab7673b486efde3068e868375853ed9161408158ba"
+      }
+    ]
+  },
+  "timing_evidence_digests": {
+    "exp03|lr1e-3|hierarchical/gold/1632|41|10.0": null,
+    "exp03|lr1e-3|hierarchical/gold/1632|42|10.0": null,
+    "exp03|lr1e-3|hierarchical/gold/851|42|10.0": null,
+    "exp03|lr1e-4|hierarchical/gold/1632|41|10.0": null,
+    "exp03|lr1e-4|hierarchical/gold/1632|42|10.0": null,
+    "exp03|lr1e-4|hierarchical/gold/851|42|10.0": null,
+    "exp03|lr1e-5|hierarchical/gold/1632|41|10.0": null,
+    "exp03|lr1e-5|hierarchical/gold/1632|42|10.0": null,
+    "exp03|lr1e-5|hierarchical/gold/851|42|10.0": null,
+    "exp03|lr3e-4|hierarchical/gold/1632|41|10.0": null,
+    "exp03|lr3e-4|hierarchical/gold/1632|42|10.0": null,
+    "exp03|lr3e-4|hierarchical/gold/851|42|10.0": null,
+    "exp03|lr3e-5|hierarchical/gold/1632|41|10.0": null,
+    "exp03|lr3e-5|hierarchical/gold/1632|42|10.0": null,
+    "exp03|lr3e-5|hierarchical/gold/851|42|10.0": null
+  },
+  "warmup_steps": 200,
+  "whole_run_cap_seconds": 3540.0
+}
