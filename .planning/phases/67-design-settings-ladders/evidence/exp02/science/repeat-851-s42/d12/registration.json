@@ -1,0 +1,193 @@
+{
+  "code_dependencies": [
+    {
+      "path": "pinn/verification/diagnostic_fit.py",
+      "sha256": "97c459b69ff054cdb0fff663f93e66d8bbbbd8665a761651247fda3d77bb6912"
+    },
+    {
+      "path": "pinn/verification/diagnostic_guard.py",
+      "sha256": "8dd577a263c28bf7886a0795336ac613fe3fde7c8ebf424fcd6eaf2e80fef540"
+    },
+    {
+      "path": "pinn/verification/diagnostic_data.py",
+      "sha256": "47b9d99dd991c2a899cb8a4308273643c1d98ea591b851546373e44bcf429836"
+    },
+    {
+      "path": "pinn/verification/diagnostic_variants.py",
+      "sha256": "5840824e6cb141312a993cb41647f1d3ec7f5f9e781b112d53e91d065d5a24ef"
+    },
+    {
+      "path": "pinn/verification/diagnostic_similarity.py",
+      "sha256": "6625c483ae47b7a87eb283dfb6328087f87065d4a9275521c6a9d07890d7eb23"
+    },
+    {
+      "path": "pinn/verification/diagnostic_power.py",
+      "sha256": "b28af13cf0cba3d62f572ae074c2953023e6a0d6259965b71793cdb1ca0145a3"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase66.py",
+      "sha256": "cb0577fe6e976f3ed75ecf95e01f235e0c3cc94289ce316c731fe42581bc4ec7"
+    },
+    {
+      "path": "pinn/verification/diagnostic_time_features.py",
+      "sha256": "24243b6c9963d5238e4351c5670d73b61c00e92108fa31b17b67e996354139ba"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase67.py",
+      "sha256": "d01c4ab037805fc9584c001b304f63b1bde811337fd7be1eb3e78b9152e92b72"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase67_catalog.py",
+      "sha256": "e277a404b9fe5ab041b83fd543c3f58f53a694cd1597260fa2b39a3bbcc96a0f"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase67_records.py",
+      "sha256": "efa82cf9bcbb35d2cfb1f6aa21d05dec43580cdefb67f0982514fb8828877a48"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase67_windows.py",
+      "sha256": "f776dd74dee242c789cf430406dd0ea365cd17c583108530bbefe252746fa03a"
+    },
+    {
+      "path": "pinn/verification/diagnostic_phase67_execution.py",
+      "sha256": "28896b3ce4120fc2b75c0b5f9ba8fff371310ec281c28b51aa9757a089eaca49"
+    }
+  ],
+  "committed_before": "the first real optimizer step of this row",
+  "context": {
+    "note": "the historical lead's registered branch (144/144 required fields reproduced) is recorded but never required for the independent fit mechanics; the smoke does not rescue, refute or re-interpret it",
+    "probe_result": {
+      "path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/probe/reproduction.json",
+      "sha256": "b83528011ca045b15ffd449f38d9d1e69860cb8a21cfd726a22ef62b66f02ef8"
+    },
+    "probe_verdict": "retained"
+  },
+  "frozen": [
+    {
+      "path": "pinn/verification/feasibility_scorer.py",
+      "sha256": "00edf81d59396fe189d476dd3e69473c4291b71bc6af6171da758f68b61f2bc7"
+    },
+    {
+      "path": "pinn/verification/feasibility_scorecard.py",
+      "sha256": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5"
+    },
+    {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/audit/reader_acceptance.json",
+      "sha256": "11a6cf7bc3342a5ccee5bb30bb85fc94429faeeb1bc9ea58e5ff51e9b12522c0"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/splits.json",
+      "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+    }
+  ],
+  "harness_freeze": {
+    "path": ".planning/phases/67-design-settings-ladders/evidence/harness-freeze.json",
+    "sha256": "df16b2960a4862c8a332967abe3588cfa0d95f92a7efc47826277755544d0859"
+  },
+  "logger_parity": {
+    "arm": "r1-1632",
+    "note": "D-10: the real-arm logger-parity receipt from the registered probe run precedes this smoke; admission verifies the receipt is a successful measurement whose bytes match the recorded run commit",
+    "receipt": {
+      "path": ".planning/phases/65-probe-on-the-record-fit-harness/evidence/probe/logger-parity.json",
+      "sha256": "4f908f39b500d9976a2cd82fa549db0087b7405bc7443b2f2d33a70b731da6b5"
+    },
+    "run_commit": "22cee7d241f10286594c3c5cc1a2a6817663d4a7",
+    "state": "polish"
+  },
+  "page": {
+    "path": ".planning/phases/67-design-settings-ladders/67-EXP02-PREDICTION.md",
+    "sha256": "7ec8e09d7d6d88c69b659068600e0952f6c674021e7e29fcb705ac879820c207"
+  },
+  "phase67_row": {
+    "arm": "d12",
+    "case": "repeat-851-s42",
+    "experiment": "exp02",
+    "kind": "science",
+    "metadata_sha256": "e8805054ea3524298d9ad64624b3ecd00f3403c0876cd19b65911c077e310c86"
+  },
+  "pinned": {
+    "modules": 33,
+    "note": "admission revalidates all 33 PINNED_MODULES digests through load_protocol()",
+    "protocol": {
+      "path": ".planning/phases/60-single-system-learnability/evidence/run-protocol.json",
+      "sha256": "93486d240f129bb5947cddb56d2eb18936ac0cbad7ac0bceeb0af0372b850383"
+    }
+  },
+  "schema": "phase65-fit-registration/v1",
+  "settings": {
+    "loss": {
+      "kind": "data_only"
+    },
+    "loss_trace_stride": 153,
+    "measured_steps": 152700,
+    "optimizer": {
+      "clipping": null,
+      "kind": "adam_constant_rate",
+      "lr": 0.0001,
+      "physics_term": null,
+      "polish": null,
+      "scheduler": null
+    },
+    "optimizer_steps": 152900,
+    "orbit_key": "hierarchical/gold/851",
+    "orbit_note": "the registered repeat-851-s42 case",
+    "physical_window": {
+      "t_end": 10.0,
+      "t_start": 0.0
+    },
+    "reading_rule": {
+      "branch_rule": "phase67_contrast/phase67_confirmation (67-05)",
+      "incomplete": "an interrupted or over-cap attempt stays incomplete and is never a result",
+      "mechanical_pass": "every registered step and event completes finite and the audit is clean",
+      "out_of_branch": "the phase67 contrast and confirmation rules read the branch; no threshold is re-set here"
+    },
+    "runtime": {
+      "device": "mps",
+      "dtype": "float32"
+    },
+    "score_cadence": [
+      76450,
+      114675,
+      152900
+    ],
+    "seed": 42,
+    "similarity_cadence": [
+      0,
+      38225,
+      76450,
+      114675,
+      152900
+    ],
+    "timing_definitions": "synchronized completed-work segments around setup, warmup, measured updates, per-event logging/scoring and publication",
+    "variant": {
+      "depth": 12,
+      "first_omega_0": 30.0,
+      "hidden_omega_0": 1.0,
+      "learning_rate": 0.0001,
+      "name": "exp02-d12-w256-o30",
+      "time_features": "raw_tau_ic13",
+      "width": 256,
+      "window_length": 10.0
+    },
+    "variant_registry": "phase67",
+    "warmup_steps": 200,
+    "whole_run_cap_seconds": 3540.0
+  },
+  "title": "EXP-02 science row repeat-851-s42/d12",
+  "window_baselines": {
+    "two_kepler": {
+      "E": 0.4312597209593449,
+      "applicable": true
+    },
+    "window_mean_constant": {
+      "E": 1.233696866477104
+    }
+  },
+  "window_metadata": {
+    "first_time": 0.0,
+    "last_time": 9.999999999999831,
+    "normalized_tau_sha256": "7788cfcd9cdbd9fadab51078d0428db3eedab6ac4b038a7980808d253d3fbb8c",
+    "physical_times_sha256": "56715afa76002573bef3d599b38627daede33499f9073e7b6e25aa74ca62a6d1",
+    "sample_count": 1001
+  }
+}
