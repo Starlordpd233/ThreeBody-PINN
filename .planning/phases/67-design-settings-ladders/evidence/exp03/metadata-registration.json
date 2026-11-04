@@ -25,7 +25,7 @@
   "experiment": "exp03",
   "harness_freeze": {
     "path": ".planning/phases/67-design-settings-ladders/evidence/harness-freeze.json",
-    "sha256": "dc916d2f8d64233409dbfcd8e8855f1901be55db80b732d92d649d418d8d61a6"
+    "sha256": "58e90bc63e09a363a1126300f980b49fcf5fd5869e465e6ccb00963b15de9c70"
   },
   "orbits": [
     "hierarchical/gold/1632",

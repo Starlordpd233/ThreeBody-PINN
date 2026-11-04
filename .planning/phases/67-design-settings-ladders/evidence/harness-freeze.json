@@ -141,7 +141,7 @@
     },
     {
       "path": "pinn/verification/diagnostic_power.py",
-      "sha256": "b28af13cf0cba3d62f572ae074c2953023e6a0d6259965b71793cdb1ca0145a3"
+      "sha256": "95f1c05ca1f11a45175e3c1e177efef98f63c43617b637cb47482ba6d62f1f54"
     },
     {
       "path": "pinn/verification/diagnostic_similarity.py",

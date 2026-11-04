@@ -42,8 +42,9 @@ from tests.phase67._fixtures import (
 
 AC_LINE = "Now drawing from 'AC Power'"
 SATURDAY = "2026-10-31T12:00:00-05:00"
-#: The owner's 2026-11-03 weekday amendment: a pre-deadline Tuesday instant
-#: (the amendment admits weekdays only before 2026-11-04 07:30 Chicago).
+#: The owner's weekday amendment: a pre-deadline Tuesday instant (admitted
+#: by the expired 2026-11-04 07:30 deadline and its 2026-11-05 07:30
+#: successor alike).
 TUESDAY_AMENDED = "2026-11-03T11:57:47-06:00"
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -106,7 +107,7 @@ def _build_chain(clock_iso=SATURDAY, cache=None):
     """Run the complete synthetic chain once; the holder keeps every path.
 
     ``clock_iso`` is the aware instant every gated command sees; the default
-    Saturday predates the owner's 2026-11-03 weekday amendment, and the
+    Saturday predates the owner's weekday amendment, and the
     weekday-amendment chain builds with a pre-deadline Tuesday instead.
     """
     stack = ExitStack()  # stays open for the process lifetime
@@ -395,8 +396,8 @@ _WEEKDAY_CHAIN: dict = {}
 class WeekdayAmendmentChainTests(unittest.TestCase):
     """The complete chain also runs on a pre-deadline weekday.
 
-    The owner's 2026-11-03 amendment admits weekday operations before
-    2026-11-04 07:30 America/Chicago; the whole synthetic chain built on a
+    The owner's 2026-11-04 amendment admits weekday operations before
+    2026-11-05 07:30 America/Chicago; the whole synthetic chain built on a
     pre-deadline Tuesday proves every gated command (capture, matrix,
     launches, budget) admits and audits the amended weekday receipts.
     """
@@ -424,7 +425,7 @@ class WeekdayAmendmentChainTests(unittest.TestCase):
         self.assertEqual(receipt["window"]["local_time"], TUESDAY_AMENDED)
         self.assertEqual(
             receipt["remaining_window"]["closing_utc"],
-            "2026-11-04T13:30:00+00:00",
+            "2026-11-05T13:30:00+00:00",
         )
         code, out, _err = self.run_cli(["check-metadata", "--experiment", "exp02"])
         self.assertEqual(code, 0)

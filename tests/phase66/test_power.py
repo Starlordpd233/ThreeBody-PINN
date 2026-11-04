@@ -176,7 +176,7 @@ class Phase66PowerTests(unittest.TestCase):
         refusals.extend(
             datetime(2026, 11, 9 + offset, 12, 0, tzinfo=CHICAGO)
             for offset in range(5)  # Monday to Friday noon, after the
-            # 2026-11-04 07:30 amendment deadline admits earlier weekdays
+            # 2026-11-05 07:30 amendment deadline admits earlier weekdays
         )
         for moment in refusals:
             with self.subTest(moment=moment.isoformat()):
@@ -184,8 +184,9 @@ class Phase66PowerTests(unittest.TestCase):
                     power.require_weekend_window(clock_at(moment))
 
     def test_the_owner_amendment_admits_weekdays_before_its_deadline(self):
-        # 2026-11-03 owner instruction ("we're bypassing"): weekdays are
-        # admitted through AMENDMENT_DEADLINE_LOCAL, Sunday night still
+        # 2026-11-04 owner instruction ("we can start a new round for the
+        # training continuing from where the previous cutoff is"): weekdays
+        # are admitted through AMENDMENT_DEADLINE_LOCAL, Sunday night still
         # refuses, and the deadline is the weekday closing instant.
         tuesday = datetime(2026, 11, 3, 11, 45, tzinfo=CHICAGO)
         local = power.require_weekend_window(clock_at(tuesday))
@@ -195,7 +196,7 @@ class Phase66PowerTests(unittest.TestCase):
                 clock_at(datetime(2026, 11, 1, 22, 0, tzinfo=CHICAGO))
             )
         closing = power.weekend_closing_utc(local)
-        self.assertEqual(closing.isoformat(), "2026-11-04T13:30:00+00:00")
+        self.assertEqual(closing.isoformat(), "2026-11-05T13:30:00+00:00")
 
     def test_the_weekend_window_refuses_a_naive_clock_and_a_failed_zone(self):
         with self.assertRaises(power.PowerRefused):
