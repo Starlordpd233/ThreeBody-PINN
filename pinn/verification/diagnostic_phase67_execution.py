@@ -670,7 +670,6 @@ def _variant_table(experiment):
 def _prediction_table(experiment):
     """Every arm's hypothesis prediction and its alternatives, equally."""
     arms = ARM_ORDER[experiment]
-    control = arms[-1]
     phrase = {
         "exp02": "shallower depth",
         "exp03": "learning-rate sensitivity",
@@ -679,10 +678,14 @@ def _prediction_table(experiment):
     }[experiment]
     table = {}
     for arm in arms:
-        if arm == control:
+        # An arm carries the control row when it is its own registered
+        # control (phase67_control_arm): d12, lr1e-4, both raw backbones of
+        # EXP-04, lap10. The last arm of a ladder is not the control in
+        # general (EXP-03's registered control is lr1e-4, not lr1e-5).
+        if phase67_control_arm(experiment, arm) == arm:
             table[arm] = {
                 "hypothesis": (
-                    f"the control arm {control!r} defines the contrast "
+                    f"the control arm {arm!r} defines the contrast "
                     "reference; the hypothesis predicts "
                     f"{phrase} against it"
                 ),
@@ -743,6 +746,9 @@ def phase67_design(experiment):
         "cap_seconds": float(rule["timing_cap_seconds"]),
     }
     arms = ARM_ORDER[experiment]
+    own_controls = [
+        arm for arm in arms if phase67_control_arm(experiment, arm) == arm
+    ]
     design = {
         "schema": DESIGN_SCHEMA,
         "experiment": experiment,
@@ -764,7 +770,7 @@ def phase67_design(experiment):
         "controls": {
             arm: phase67_control_arm(experiment, arm) for arm in arms
         },
-        "control_arm": arms[-1],
+        "control_arm": own_controls[0] if len(own_controls) == 1 else None,
         "schedule": {
             "timing": timing,
             "science": {
@@ -2284,7 +2290,9 @@ def write_review(experiment, *, repo_root=None, phase_dir=None):
         for case_id, _orbit, _seed in CASES:
             arm_readings[_case_role(case_id)] = {
                 "arm": readings[(case_id, arm)],
-                "control": readings[(case_id, arms[-1])],
+                "control": readings[
+                    (case_id, phase67_control_arm(experiment, arm))
+                ],
             }
         contrast = phase67_contrast(experiment, arm, arm_readings)
         disposition = phase67_scope_disposition(contrast["confirmation"])

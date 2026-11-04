@@ -184,6 +184,8 @@ class DesignTests(unittest.TestCase):
                               design["positive_control_note"])
 
     def test_every_hypothesis_prediction_matches_the_plan_direction(self):
+        from pinn.verification.diagnostic_phase67 import phase67_control_arm
+
         directions = {
             "exp02": "shallower depth",
             "exp03": "learning-rate sensitivity",
@@ -195,7 +197,7 @@ class DesignTests(unittest.TestCase):
                 design = self._design(experiment)
                 self.assertIn(phrase, design["hypothesis"]["prediction"])
                 for arm in EXPECTED_ARMS[experiment]:
-                    if arm == design["control_arm"]:
+                    if phase67_control_arm(experiment, arm) == arm:
                         continue
                     self.assertIn(
                         phrase,
@@ -212,7 +214,29 @@ class DesignTests(unittest.TestCase):
                 self.assertEqual(
                     design["controls"][arm], phase67_control_arm(experiment, arm)
                 )
-            self.assertEqual(design["control_arm"], arms[-1])
+            own = [
+                arm for arm in arms
+                if phase67_control_arm(experiment, arm) == arm
+            ]
+            self.assertEqual(
+                design["control_arm"], own[0] if len(own) == 1 else None
+            )
+
+    def test_exp03_declares_the_registered_lr1e4_control(self):
+        design = self._design("exp03")
+        self.assertEqual(design["control_arm"], "lr1e-4")
+        self.assertIn(
+            "the control arm 'lr1e-4' defines the contrast reference",
+            design["prediction_table"]["lr1e-4"]["hypothesis"],
+        )
+        self.assertNotIn(
+            "defines the contrast reference",
+            design["prediction_table"]["lr1e-5"]["hypothesis"],
+        )
+        self.assertIn(
+            "this arm's E is below the control's",
+            design["prediction_table"]["lr1e-5"]["hypothesis"],
+        )
 
     def test_the_design_records_depth_sizes_and_encoded_confounds(self):
         exp02 = self._design("exp02")
