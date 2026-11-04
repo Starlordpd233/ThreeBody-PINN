@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: 67-08 complete (15/15 exp02 timing rows measured and committed, budget N=152900, all science registrations committed; no science run started) — ready for 67-09
-last_updated: "2026-11-04T02:45:00.000Z"
-last_activity: 2026-11-03
-last_activity_desc: 67-08 complete on the AC-power resume (15 serial timing rows, cost-only budget N=152900, science registrations; PHASE67-BUDGET-OK and science PHASE67-MATRIX-OK)
-state_head: 652d1a9d
+stopped_at: 67-09 complete (15/15 exp02 science rows run, checked and committed serially; review committed on the unsettled continue route, dependent_launch_allowed=true; no ruling needed) — ready for 67-10
+last_updated: "2026-11-04T08:55:00.000Z"
+last_activity: 2026-11-04
+last_activity_desc: 67-09 complete overnight in the amendment window (15 serial science rows at N=152900, PHASE67-ALL-ROWS-OK; review/result committed, PHASE67-REVIEW-OK; observed branch unsettled continue, EXP-03 unblocked)
+state_head: 490ce41b
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 19
-  percent: 70
+  completed_plans: 20
+  percent: 74
 ---
 
 # Project State
@@ -30,16 +30,52 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 9 of 16 (next: 67-09)
-Status: Executing Phase 67 (67-01..67-08 complete; wave 8 next)
-Last activity: 2026-11-03 — plan 67-08 completed on the AC-power resume:
-  all 15 declared exp02 timing rows launched serially inside the amendment
-  window (each check-matrix -> eligibility -> earlier-rows-committed ->
-  launch once -> check-row PHASE67-ROW-OK -> per-row commit; zero retries,
-  zero refusals), then the Plan04 cost-only budget froze the common science
-  N=152900 with both pages, science-matrix.json and all 15 science
-  registrations committed before any science launch (652d1a9d);
-  check-budget PHASE67-BUDGET-OK and check-matrix science PHASE67-MATRIX-OK
+Plan: 10 of 16 (next: 67-10)
+Status: Executing Phase 67 (67-01..67-09 complete; wave 9 next)
+Last activity: 2026-11-04 — plan 67-09 completed overnight inside the
+  amendment window: all 15 declared exp02 science rows launched serially at
+  the common N=152900 (each check-matrix -> eligibility ->
+  earlier-rows-committed -> launch once -> check-row PHASE67-ROW-OK with
+  scores hidden -> per-row commit; zero retries, zero refusals, all
+  attempts published; PHASE67-ALL-ROWS-OK), then the machine review and
+  result page committed (PHASE67-REVIEW-ARTIFACTS-OK, PHASE67-REVIEW-OK
+  after the embed fix 490ce41b). Observed branch: the registered unsettled
+  continue route — dependent_launch_allowed=true, scope49 none, no ruling
+  file; the EXP-03 rate ladder (67-10) is unblocked under D-01.
+
+### Decisions from 67-09 (2026-11-04, tasks 1-2 executed; task 3 skipped by its own condition)
+
+- **EXP-02's science matrix is complete and committed: all 15 rows ran
+  serially at N=152900 inside the amendment window on AC power** (launches
+  2026-11-03 20:45:54 through 2026-11-04 02:38:44 CST; measured walls
+  693.6-2135.6 s, total 19,750.2 s vs the 25,466.9 s projection; every row
+  inside its 3540 s cap and per-row projection; zero gate refusals, zero
+  reused directories). One commit per complete row before the next launch
+  (09a60d00..c9b68e6e); scores were never screened — check-row's
+  value-free audit was the only per-row verdict.
+- **The observed branch is the registered unsettled continue route.** Every
+  noncontrol arm's confirmation label is unsettled: the d12 control's own
+  main-case endpoint is unsettled (final-quarter improvement > 5%), which
+  blocks confirmation for every arm of the main case, plus further arm-side
+  unsettled endpoints. Directions at this budget: d2 worsens on all three
+  cases (tier 0 vs control tier 1, relative effects 0.243-2.491); d8
+  improves on all three but does not qualify on main (4.0% < 20%, no tier
+  change); d4/d6 are mixed. The registered depth hypothesis is not
+  supported on any arm and nothing is confirmed — observed fits only, with
+  the depth/parameter-count confound recorded (D-03).
+- **No owner ruling was required or created.** Task 67-09-03's
+  blocking-human checkpoint fires only on dependent_launch_allowed=false;
+  the committed review reads true (scope49_disposition=none,
+  proposed_change=null), so the checkpoint was skipped per its own
+  condition and check-review passed directly (PHASE67-REVIEW-OK).
+- **check-review's result-page embed contract:** the page must contain the
+  byte-exact json.dumps(review, indent=2, sort_keys=True) serialization;
+  reference-by-path refuses (Rule-3 fix 490ce41b on top of the review
+  commit 94c121c1). review.json itself is unchanged.
+- Commit-message wall/rate figures for rows 3, 7 and 9 were hand-summarized
+  slightly off their records (records authoritative; exact values carried in
+  67-09-SUMMARY.md and 67-EXP02-RESULT.md — see the SUMMARY's Issues
+  Encountered). No evidence file is affected.
 
 ### Decisions from 67-08 (2026-11-03, all three tasks complete — the AC halt resolved)
 

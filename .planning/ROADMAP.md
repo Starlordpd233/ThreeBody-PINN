@@ -230,7 +230,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 67-09-PLAN.md
+- [x] 67-09-PLAN.md
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
