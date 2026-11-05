@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 2
+open_count: 3
 waived_count: 0
 fixed_count: 2
-total_count: 4
-last_updated: 2026-11-04T02:36:12.699Z
+total_count: 5
+last_updated: 2026-11-05T09:05:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -19,6 +19,7 @@ last_updated: 2026-11-04T02:36:12.699Z
 | 2 | 57 | stub | .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/run-ledger.md | 23 | The empty Phase-57 run ledger is an intentional pre-run scaffold; Plan 57-05 owns the operator-authorized smoke/band append. | open |  | 2026-09-08T10:05:39.098Z |  |
 | 3 | 67 | deviation | pinn/verification/diagnostic_phase67_execution.py | 1091 | 67-08 deviation: timing/science rows declared the observed gold-grid float64 endpoint 9.999999999999831 as t_end; the settings door requires the variant's nominal window length (10.0). Fixed in e2a3a380 with regression test; registrations re-pinned in c6dfb15c. | fixed |  | 2026-11-03T22:23:01.675Z | 2026-11-04T02:36:12.627Z |
 | 4 | 67 | unrun-verify | .planning/phases/67-design-settings-ladders/67-08-PLAN.md |  | 67-08 task 3 verify gates never ran: launch-row refused at the AC-power admission gate (pmset Battery Power) before row 1 of 15; all timing rows, budget and science registrations are deferred until the Mac is on AC (window closes 2026-11-04 07:30 America/Chicago). check-budget/check-matrix-science unrun. | fixed |  | 2026-11-03T22:23:13.193Z | 2026-11-04T02:36:12.699Z |
+| 5 | 67 | unrun-verify | .planning/phases/67-design-settings-ladders/67-11-PLAN.md |  | 67-11 task-3 verify (check-review --experiment exp03) is deliberately unrun: the committed review reads dependent_launch_allowed=false with scope49_disposition=proposal-pending (lr1e-3 confirmed-worsening, a refuted lead), so check-review requires the owner's actual SCOPE-49 ruling first. EXP-04 (67-12) blocked until then. | open |  | 2026-11-05T09:05:00.000Z |  |
 
 ````json
 [
@@ -69,6 +70,18 @@ last_updated: 2026-11-04T02:36:12.699Z
     "reason": "",
     "recorded_at": "2026-11-03T22:23:13.193Z",
     "resolved_at": "2026-11-04T02:36:12.699Z"
+  },
+  {
+    "id": 5,
+    "kind": "unrun-verify",
+    "phase": "67",
+    "file": ".planning/phases/67-design-settings-ladders/67-11-PLAN.md",
+    "line": null,
+    "description": "67-11 task-3 verify (check-review --experiment exp03) is deliberately unrun: the committed review reads dependent_launch_allowed=false with scope49_disposition=proposal-pending (lr1e-3 confirmed-worsening, a refuted lead), so check-review requires the owner's actual SCOPE-49 ruling first. EXP-04 (67-12) blocked until then.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-11-05T09:05:00.000Z",
+    "resolved_at": null
   }
 ]
 ````

@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: 67-09 complete (15/15 exp02 science rows run, checked and committed serially; review committed on the unsettled continue route, dependent_launch_allowed=true; no ruling needed) — ready for 67-10
-last_updated: "2026-11-04T08:55:00.000Z"
-last_activity: 2026-11-04
-last_activity_desc: 67-09 complete overnight in the amendment window (15 serial science rows at N=152900, PHASE67-ALL-ROWS-OK; review/result committed, PHASE67-REVIEW-OK; observed branch unsettled continue, EXP-03 unblocked)
-state_head: 490ce41b
+stopped_at: 67-11 halted at its task-3 owner checkpoint (15/15 exp03 science rows run, checked and committed serially at N=155100; review committed on the refuted-lead reserved route — lr1e-3 confirmed-worsening, scope49 proposal-pending, dependent_launch_allowed=false) — awaiting the owner's SCOPE-49 instruction; EXP-04 (67-12) blocked until the ruling
+last_updated: "2026-11-05T09:05:00.000Z"
+last_activity: 2026-11-05
+last_activity_desc: 67-11 tasks 1-2 complete overnight in the amendment window (15 serial science rows at N=155100, PHASE67-ALL-ROWS-OK; review/result committed, PHASE67-REVIEW-ARTIFACTS-OK; observed branch refuted lead, owner checkpoint open)
+state_head: bfd85916
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 20
-  percent: 74
+  completed_plans: 21
+  percent: 78
 ---
 
 # Project State
@@ -30,18 +30,61 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 10 of 16 (next: 67-10)
-Status: Executing Phase 67 (67-01..67-09 complete; wave 9 next)
-Last activity: 2026-11-04 — plan 67-09 completed overnight inside the
-  amendment window: all 15 declared exp02 science rows launched serially at
-  the common N=152900 (each check-matrix -> eligibility ->
-  earlier-rows-committed -> launch once -> check-row PHASE67-ROW-OK with
-  scores hidden -> per-row commit; zero retries, zero refusals, all
-  attempts published; PHASE67-ALL-ROWS-OK), then the machine review and
-  result page committed (PHASE67-REVIEW-ARTIFACTS-OK, PHASE67-REVIEW-OK
-  after the embed fix 490ce41b). Observed branch: the registered unsettled
-  continue route — dependent_launch_allowed=true, scope49 none, no ruling
-  file; the EXP-03 rate ladder (67-10) is unblocked under D-01.
+Plan: 11 of 16 (67-11 halted at its task-3 blocking-human owner checkpoint;
+  67-12/EXP-04 blocked by the pending SCOPE-49 proposal until the ruling)
+Status: Executing Phase 67 (67-01..67-10 complete; 67-11 tasks 1-2 complete,
+  awaiting the owner)
+Last activity: 2026-11-05 — plan 67-11 tasks 1-2 completed overnight inside
+  the amendment window: all 15 declared exp03 science rows launched serially
+  at the common N=155100 (rows 1-5 by the predecessor executor across its
+  usage-cap death — row 5 recovered on disk, checked read-only and committed
+  without relaunch; rows 6-15 by the continuation; each check-matrix ->
+  eligibility -> earlier-rows-committed -> launch once -> check-row
+  PHASE67-ROW-OK with scores hidden -> per-row commit; zero retries, zero
+  refusals, all attempts published; PHASE67-ALL-ROWS-OK), then the machine
+  review and result page committed (PHASE67-REVIEW-ARTIFACTS-OK). Observed
+  branch: the REFUTED-LEAD reserved route — lr1e-3 is confirmed-worsening
+  (the registered rate-sensitivity-improves hypothesis is refuted at
+  confirmation grade), scope49_disposition=proposal-pending,
+  dependent_launch_allowed=false, no ruling file; task 67-11-03's
+  blocking-human checkpoint is OPEN and EXP-04 (67-12) is blocked until the
+  actual owner instruction.
+
+### Decisions from 67-11 (2026-11-05, tasks 1-2 executed; task 3 HALTED at the blocking-human owner checkpoint)
+
+- **EXP-03's science matrix is complete and committed: all 15 rows ran
+  serially at N=155100 inside the owner amendment window on AC power**
+  (launches 2026-11-04 15:40:08 CST through 2026-11-05 02:24:15 CST;
+  measured walls 2069-2385 s, total 32,185 s vs the 39,055.09 s
+  projection; every row inside its 3540 s cap; zero gate refusals, zero
+  retries, zero reused directories). One commit per complete row before
+  the next launch (ddd241bf..4c7c8d24 predecessor rows 1-4; 948e7951 the
+  recovered row 5; 892b728f..517475e1 continuation rows 6-15); scores
+  were never screened — check-row's value-free audit was the only
+  per-row verdict. Task-1 aggregate verify: PHASE67-ALL-ROWS-OK.
+- **The observed branch is the REFUTED-LEAD reserved route.** lr1e-3 is
+  confirmed-worsening: worsening in all three cases with a matching tier
+  change and >=20% relative E effect in each, all six endpoints settled
+  (main case E 1.4552 tier 0 vs control E 0.04069 tier 1, relative
+  effect 34.76) — the registered rate-sensitivity-improves hypothesis is
+  refuted at confirmation grade. lr3e-4/lr3e-5 are direction-mixed
+  (worsening/improvement/worsening; lr3e-4's repeat-seed arm endpoint
+  unsettled); lr1e-5 worsens on all three but its repeat-seed endpoint
+  is unsettled. Nothing is confirmed-improving. Review/result committed
+  at bfd85916 (PHASE67-REVIEW-ARTIFACTS-OK; scope49=proposal-pending,
+  dependent_launch_allowed=false).
+- **The owner checkpoint is OPEN and dependent work is stopped.**
+  Task 67-11-03 fires exactly on its condition (the review reads
+  dependent_launch_allowed=false): no ruling file exists, no owner
+  answer has been received, check-review is deliberately unrun (it
+  requires resolution of the recorded proposal; WINDOWS entry 5), and
+  EXP-04 (67-12) launches stay blocked until the actual owner
+  instruction under SCOPE-47/SCOPE-49.
+- **The predecessor's usage-cap death changed no evidence.** Row 5
+  (main-1632-s42/lr1e-5) completed on disk inside the amendment window
+  (attempt published at 18:26:37 CST launch); the continuation verified
+  it read-only (PHASE67-ROW-OK) and committed it as-is — never
+  relaunched, per the exclusive single-use attempt identity.
 
 ### Decisions from 67-09 (2026-11-04, tasks 1-2 executed; task 3 skipped by its own condition)
 
