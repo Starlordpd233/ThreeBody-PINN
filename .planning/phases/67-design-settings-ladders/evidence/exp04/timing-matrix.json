@@ -1,0 +1,660 @@
+{
+  "experiment": "exp04",
+  "kind": "timing",
+  "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+  "rows": [
+    {
+      "arm": "locked-raw",
+      "case": "main-1632-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/main-1632-s42/locked-raw/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/main-1632-s42/locked-raw/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-locked-raw"
+    },
+    {
+      "arm": "locked-f1",
+      "case": "main-1632-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/main-1632-s42/locked-f1/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/main-1632-s42/locked-f1/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-locked-f1"
+    },
+    {
+      "arm": "locked-f12",
+      "case": "main-1632-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/main-1632-s42/locked-f12/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/main-1632-s42/locked-f12/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-locked-f12"
+    },
+    {
+      "arm": "exp01-raw",
+      "case": "main-1632-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/main-1632-s42/exp01-raw/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/main-1632-s42/exp01-raw/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-exp01-raw"
+    },
+    {
+      "arm": "exp01-f1",
+      "case": "main-1632-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/main-1632-s42/exp01-f1/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/main-1632-s42/exp01-f1/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-exp01-f1"
+    },
+    {
+      "arm": "exp01-f12",
+      "case": "main-1632-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/main-1632-s42/exp01-f12/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/main-1632-s42/exp01-f12/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-exp01-f12"
+    },
+    {
+      "arm": "locked-raw",
+      "case": "repeat-851-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/851",
+      "output_path": "evidence/exp04/timing/repeat-851-s42/locked-raw/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-851-s42/locked-raw/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-locked-raw"
+    },
+    {
+      "arm": "locked-f1",
+      "case": "repeat-851-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/851",
+      "output_path": "evidence/exp04/timing/repeat-851-s42/locked-f1/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-851-s42/locked-f1/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-locked-f1-851"
+    },
+    {
+      "arm": "locked-f12",
+      "case": "repeat-851-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/851",
+      "output_path": "evidence/exp04/timing/repeat-851-s42/locked-f12/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-851-s42/locked-f12/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-locked-f12-851"
+    },
+    {
+      "arm": "exp01-raw",
+      "case": "repeat-851-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/851",
+      "output_path": "evidence/exp04/timing/repeat-851-s42/exp01-raw/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-851-s42/exp01-raw/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-exp01-raw"
+    },
+    {
+      "arm": "exp01-f1",
+      "case": "repeat-851-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/851",
+      "output_path": "evidence/exp04/timing/repeat-851-s42/exp01-f1/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-851-s42/exp01-f1/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-exp01-f1-851"
+    },
+    {
+      "arm": "exp01-f12",
+      "case": "repeat-851-s42",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/851",
+      "output_path": "evidence/exp04/timing/repeat-851-s42/exp01-f12/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-851-s42/exp01-f12/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 10.0,
+      "variant_name": "exp04-exp01-f12-851"
+    },
+    {
+      "arm": "locked-raw",
+      "case": "repeat-1632-s41",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/repeat-1632-s41/locked-raw/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-1632-s41/locked-raw/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 41,
+      "t_end": 10.0,
+      "variant_name": "exp04-locked-raw"
+    },
+    {
+      "arm": "locked-f1",
+      "case": "repeat-1632-s41",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/repeat-1632-s41/locked-f1/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-1632-s41/locked-f1/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 41,
+      "t_end": 10.0,
+      "variant_name": "exp04-locked-f1"
+    },
+    {
+      "arm": "locked-f12",
+      "case": "repeat-1632-s41",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/repeat-1632-s41/locked-f12/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-1632-s41/locked-f12/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 41,
+      "t_end": 10.0,
+      "variant_name": "exp04-locked-f12"
+    },
+    {
+      "arm": "exp01-raw",
+      "case": "repeat-1632-s41",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/repeat-1632-s41/exp01-raw/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-1632-s41/exp01-raw/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 41,
+      "t_end": 10.0,
+      "variant_name": "exp04-exp01-raw"
+    },
+    {
+      "arm": "exp01-f1",
+      "case": "repeat-1632-s41",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/repeat-1632-s41/exp01-f1/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-1632-s41/exp01-f1/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 41,
+      "t_end": 10.0,
+      "variant_name": "exp04-exp01-f1"
+    },
+    {
+      "arm": "exp01-f12",
+      "case": "repeat-1632-s41",
+      "experiment": "exp04",
+      "kind": "timing",
+      "metadata_sha256": "ba8bd33e1b9f2adc39aadd15e55664fb357e86874fe6df123aabf5a4392ebcda",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp04/timing/repeat-1632-s41/exp01-f12/record.json",
+      "physical_window": {
+        "t_end": 10.0,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp04/timing/repeat-1632-s41/exp01-f12/registration.json",
+      "schedule": {
+        "cap_seconds": 900.0,
+        "loss_trace_stride": 2,
+        "measured_steps": 1000,
+        "optimizer_steps": 1200,
+        "score_cadence": [
+          600,
+          900,
+          1200
+        ],
+        "similarity_cadence": [
+          0,
+          300,
+          600,
+          900,
+          1200
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 41,
+      "t_end": 10.0,
+      "variant_name": "exp04-exp01-f12"
+    }
+  ],
+  "schedule": {
+    "cap_seconds": 900.0,
+    "optimizer_steps": 1200
+  },
+  "schema": "phase67-run-matrix/v1"
+}
