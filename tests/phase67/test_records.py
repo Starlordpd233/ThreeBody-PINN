@@ -667,8 +667,8 @@ class ReceiptAndAttemptTests(_RunTestCase):
 
     def test_a_weekday_receipt_inside_the_owner_amendment_reads_clean(self):
         # The real 2026-11-03 capture instant: a Tuesday the owner's
-        # amendment admits (deadline 2026-11-05 07:30, like the expired
-        # 2026-11-04 07:30 original it supersedes).
+        # amendment admits (deadline 2026-11-07 07:30, like its expired
+        # 2026-11-04 07:30 and 2026-11-05 07:30 predecessors).
         weekday = _copy_run(self.run_dir.parent / "weekday-amended", self.run_dir)
         _engineer_times(
             weekday,
@@ -681,38 +681,45 @@ class ReceiptAndAttemptTests(_RunTestCase):
         reading = self._read(weekday)
         self.assertEqual(reading["mechanical_problems"], [])
 
-    def test_the_cap_fits_the_amendment_closing_exactly_and_not_one_instant_later(self):
-        # A pre-deadline Thursday receipt closes at the 2026-11-05 07:30
-        # amendment deadline; the 900 s cap fits exactly at 07:15 and not
-        # one microsecond later.
-        exact = _copy_run(self.run_dir.parent / "weekday-exact", self.run_dir)
+    def test_a_pre_deadline_friday_receipt_fits_the_cap_before_the_saturday_closing(self):
+        # The 2026-11-07 07:30 amendment deadline is a Saturday morning, so
+        # every admitted Friday instant closes at that deadline with hours
+        # of runway: the 900 s cap fits at 07:15 and at the last
+        # pre-midnight instant alike. The exact cap boundary is only
+        # constructible at the Sunday closing (covered above) — a weekday
+        # boundary case cannot exist against a next-morning-Saturday
+        # deadline, and the post-deadline weekday refusal is covered by
+        # test_a_weekday_after_the_amendment_deadline_refuses.
+        early = _copy_run(self.run_dir.parent / "weekday-early", self.run_dir)
         _engineer_times(
-            exact,
-            checked_utc="2026-11-05T13:14:00+00:00",
-            local_time="2026-11-05T07:15:00-06:00",
-            isoweekday=4,
-            started_utc="2026-11-05T13:14:01+00:00",
-            ended_utc="2026-11-05T13:15:00+00:00",
+            early,
+            checked_utc="2026-11-06T13:14:00+00:00",
+            local_time="2026-11-06T07:15:00-06:00",
+            isoweekday=5,
+            started_utc="2026-11-06T13:14:01+00:00",
+            ended_utc="2026-11-06T13:15:00+00:00",
         )
-        reading = self._read(exact)
+        reading = self._read(early)
         self.assertEqual(reading["mechanical_problems"], [])
 
-        late = _copy_run(self.run_dir.parent / "weekday-next", self.run_dir)
+        last = _copy_run(self.run_dir.parent / "weekday-last", self.run_dir)
         _engineer_times(
-            late,
-            checked_utc="2026-11-05T13:14:00+00:00",
-            local_time="2026-11-05T07:15:00.000001-06:00",
-            isoweekday=4,
-            started_utc="2026-11-05T13:14:01+00:00",
-            ended_utc="2026-11-05T13:15:00+00:00",
+            last,
+            checked_utc="2026-11-07T05:59:00+00:00",
+            local_time="2026-11-06T23:59:00-06:00",
+            isoweekday=5,
+            started_utc="2026-11-07T05:59:01+00:00",
+            ended_utc="2026-11-07T06:00:00+00:00",
         )
-        reading = self._read(late)
-        self.assertIn(SUNDAY_CAP, reading["mechanical_problems"])
+        reading = self._read(last)
+        self.assertEqual(reading["mechanical_problems"], [])
 
-    def test_a_weekday_at_or_after_the_amendment_deadline_refuses(self):
+    def test_a_weekday_after_the_amendment_deadline_refuses(self):
+        # The 2026-11-07 07:30 deadline instant itself is a Saturday, so it
+        # is weekend-admitted; the weekday refusals are the days after it.
         cases = [
-            ("deadline instant", "2026-11-05T07:30:00-06:00", 4),
-            ("after the deadline", "2026-11-05T12:00:00-06:00", 4),
+            ("monday after the deadline", "2026-11-09T12:00:00-06:00", 1),
+            ("tuesday after the deadline", "2026-11-10T12:00:00-06:00", 2),
         ]
         for name, local_time, isoweekday in cases:
             with self.subTest(case=name):
@@ -722,11 +729,11 @@ class ReceiptAndAttemptTests(_RunTestCase):
                 )
                 _engineer_times(
                     target,
-                    checked_utc="2026-11-05T18:00:00+00:00",
+                    checked_utc="2026-11-09T18:00:00+00:00",
                     local_time=local_time,
                     isoweekday=isoweekday,
-                    started_utc="2026-11-05T18:00:01+00:00",
-                    ended_utc="2026-11-05T18:01:00+00:00",
+                    started_utc="2026-11-09T18:00:01+00:00",
+                    ended_utc="2026-11-09T18:01:00+00:00",
                 )
                 reading = self._read(target)
                 self.assertIn(

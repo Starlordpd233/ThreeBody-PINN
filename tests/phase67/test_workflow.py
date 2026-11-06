@@ -42,9 +42,8 @@ from tests.phase67._fixtures import (
 
 AC_LINE = "Now drawing from 'AC Power'"
 SATURDAY = "2026-10-31T12:00:00-05:00"
-#: The owner's weekday amendment: a pre-deadline Tuesday instant (admitted
-#: by the expired 2026-11-04 07:30 deadline and its 2026-11-05 07:30
-#: successor alike).
+#: The owner's weekday amendment: a pre-deadline Tuesday instant (before
+#: the 2026-11-07 07:30 deadline, as under its expired predecessors).
 TUESDAY_AMENDED = "2026-11-03T11:57:47-06:00"
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -396,8 +395,8 @@ _WEEKDAY_CHAIN: dict = {}
 class WeekdayAmendmentChainTests(unittest.TestCase):
     """The complete chain also runs on a pre-deadline weekday.
 
-    The owner's 2026-11-04 amendment admits weekday operations before
-    2026-11-05 07:30 America/Chicago; the whole synthetic chain built on a
+    The owner's 2026-11-06 amendment admits weekday operations before
+    2026-11-07 07:30 America/Chicago; the whole synthetic chain built on a
     pre-deadline Tuesday proves every gated command (capture, matrix,
     launches, budget) admits and audits the amended weekday receipts.
     """
@@ -425,7 +424,7 @@ class WeekdayAmendmentChainTests(unittest.TestCase):
         self.assertEqual(receipt["window"]["local_time"], TUESDAY_AMENDED)
         self.assertEqual(
             receipt["remaining_window"]["closing_utc"],
-            "2026-11-05T13:30:00+00:00",
+            "2026-11-07T13:30:00+00:00",
         )
         code, out, _err = self.run_cli(["check-metadata", "--experiment", "exp02"])
         self.assertEqual(code, 0)

@@ -22,7 +22,7 @@
     },
     {
       "path": "pinn/verification/diagnostic_power.py",
-      "sha256": "95f1c05ca1f11a45175e3c1e177efef98f63c43617b637cb47482ba6d62f1f54"
+      "sha256": "9599c55d9b14ab74c52acf5bde460eb4117f1a25a5f7adae946efd3e0778406c"
     },
     {
       "path": "pinn/verification/diagnostic_phase66.py",
@@ -82,7 +82,7 @@
   ],
   "harness_freeze": {
     "path": ".planning/phases/67-design-settings-ladders/evidence/harness-freeze.json",
-    "sha256": "58e90bc63e09a363a1126300f980b49fcf5fd5869e465e6ccb00963b15de9c70"
+    "sha256": "7f40b511b0b9cbb4f4a42cd798e735fa538684b0f111c2222e259b9735497340"
   },
   "logger_parity": {
     "arm": "r1-1632",

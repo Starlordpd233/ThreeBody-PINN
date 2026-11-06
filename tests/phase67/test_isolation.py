@@ -141,11 +141,11 @@ class RemainingWindowTests(unittest.TestCase):
 
     def test_a_weekday_or_a_naive_clock_refuses_before_the_arithmetic(self):
         power = self._module()
-        # A weekday after the 2026-11-05 07:30 amendment deadline; earlier
+        # A weekday after the 2026-11-07 07:30 amendment deadline; earlier
         # weekdays are admitted by the owner amendment until then.
-        thursday = datetime(2026, 11, 5, 12, 0, tzinfo=CHICAGO)
+        monday = datetime(2026, 11, 9, 12, 0, tzinfo=CHICAGO)
         with self.assertRaises(power.PowerRefused):
-            power.require_remaining_window(900.0, local=thursday)
+            power.require_remaining_window(900.0, local=monday)
         with self.assertRaises(power.PowerRefused):
             power.require_remaining_window(
                 900.0, local=datetime(2026, 10, 31, 12, 0)
@@ -274,9 +274,9 @@ class GateOrderingTests(unittest.TestCase, _CaptureFixture):
         self._assert_nothing_created()
 
     def test_02_a_weekday_refuses_before_anything_is_created(self):
-        # A weekday after the 2026-11-05 07:30 amendment deadline.
-        thursday = _clock_at(datetime(2026, 11, 5, 12, 0, tzinfo=CHICAGO))
-        code, _out, err = self.capture(read_power=_ac_power, now=thursday)
+        # A weekday after the 2026-11-07 07:30 amendment deadline.
+        monday = _clock_at(datetime(2026, 11, 9, 12, 0, tzinfo=CHICAGO))
+        code, _out, err = self.capture(read_power=_ac_power, now=monday)
         self.assertEqual(code, 2)
         self.assertIn("weekend window", err)
         self._assert_nothing_created()

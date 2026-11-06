@@ -15,7 +15,7 @@ child's working directory.
 Plan 66-02 completes the gate (D-08): launch also enforces the owner's verbatim
 compute window in code — ``require_weekend_window`` passes only on Saturday or
 on Sunday before 22:00 in ``WINDOW_TIMEZONE``, refusing a naive clock or an
-unloadable zone — plus the owner's one-shot 2026-11-04 weekday amendment
+unloadable zone — plus the owner's one-shot 2026-11-06 weekday amendment
 (``AMENDMENT_DEADLINE_LOCAL``), and runs, before the receipt, the output-exists precheck and
 the metadata-only ``check_fit_registration`` admission precheck, so a spent
 directory or an inadmissible registration creates nothing. The read-only
@@ -72,18 +72,19 @@ WINDOW_TIMEZONE = "America/Chicago"
 #: launched before Sunday 22:00 ends before Sunday 23:00 even at the full cap
 #: plus termination grace — no run spills into a weekday.
 WINDOW_SUNDAY_LAST_HOUR = 22
-#: Owner amendment 2026-11-04 (verbatim instruction: "we can start a new
-#: round for the training continuing from where the previous cutoff is"):
-#: the weekend-only window is waived for a one-shot weekday extension
-#: superseding the expired 2026-11-03 amendment. A weekday launch is
-#: admitted only while the local instant is before this deadline, and the
-#: deadline is the closing instant the remaining-window check uses, so
+#: Owner amendment 2026-11-06 (verbatim instruction: "continue with
+#: amendment"): the weekend-only window is waived for a one-shot weekday
+#: bridge superseding the expired 2026-11-04 amendment. A weekday launch
+#: is admitted only while the local instant is before this deadline, and
+#: the deadline is the closing instant the remaining-window check uses, so
 #: every registered whole-launch cap must fit entirely before it — no new
 #: run can start after the deadline and no admitted run can outlive it.
-#: After the deadline the original D-08 weekend window applies unchanged; the
-#: AC check, the caps and every other refusal keep their behavior.
+#: The deadline is a pure bridge: it lands on a Saturday morning, and from
+#: Saturday 00:00 the weekend branch admits with the Sunday 22:00 closing
+#: regardless, so this constant governs only pre-midnight Friday launches.
+#: The AC check, the caps and every other refusal keep their behavior.
 AMENDMENT_DEADLINE_LOCAL = datetime(
-    2026, 11, 5, 7, 30, tzinfo=ZoneInfo(WINDOW_TIMEZONE)
+    2026, 11, 7, 7, 30, tzinfo=ZoneInfo(WINDOW_TIMEZONE)
 )
 
 #: The only acceptable pmset first line: an anchored positive match, first
@@ -153,7 +154,7 @@ def require_weekend_window(now=None):
     ``WINDOW_TIMEZONE`` before the check, so a UTC instant reads as its Chicago
     local time. It passes on isoweekday 6 (Saturday) and on isoweekday 7
     (Sunday) before ``WINDOW_SUNDAY_LAST_HOUR``:00 local, returning the local
-    datetime. The owner's 2026-11-04 amendment additionally admits a weekday
+    datetime. The owner's 2026-11-06 amendment additionally admits a weekday
     (isoweekday 1–5) instant before ``AMENDMENT_DEADLINE_LOCAL``. A naive
     datetime, a failed zone lookup, or any time outside the window (including
     a weekday at or after the amendment deadline) raises :class:`PowerRefused`
@@ -177,8 +178,7 @@ def require_weekend_window(now=None):
     if weekday == 6 or (weekday == 7 and local.hour < WINDOW_SUNDAY_LAST_HOUR):
         return local
     if weekday <= 5 and local < AMENDMENT_DEADLINE_LOCAL:
-        # Owner amendment 2026-11-04 ("we can start a new round for the
-        # training continuing from where the previous cutoff is"): weekdays
+        # Owner amendment 2026-11-06 ("continue with amendment"): weekdays
         # are admitted through AMENDMENT_DEADLINE_LOCAL; see that constant.
         return local
     raise PowerRefused(
@@ -197,7 +197,7 @@ def weekend_closing_utc(local):
     ``local`` is the aware local datetime the window check returned (Saturday,
     Sunday, or an amended weekday in ``WINDOW_TIMEZONE``). A Saturday derives
     the next day's 22:00; a Sunday the same day's. Under the owner's
-    2026-11-04 amendment a pre-deadline weekday closes at
+    2026-11-06 amendment a pre-deadline weekday closes at
     ``AMENDMENT_DEADLINE_LOCAL`` itself, so every registered cap must fit
     entirely before the deadline. The closing instant is constructed on the
     Chicago wall clock (so a DST transition inside the weekend is exact) and
