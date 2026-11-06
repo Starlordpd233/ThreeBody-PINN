@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: 67-11 halted at its task-3 owner checkpoint (15/15 exp03 science rows run, checked and committed serially at N=155100; review committed on the refuted-lead reserved route — lr1e-3 confirmed-worsening, scope49 proposal-pending, dependent_launch_allowed=false) — awaiting the owner's SCOPE-49 instruction; EXP-04 (67-12) blocked until the ruling
-last_updated: "2026-11-05T09:05:00.000Z"
+stopped_at: 67-11 complete — the owner's SCOPE-49 ruling is committed at 67-EXP03-RULING.md (eab52f7d, verbatim "proceed with option 1" = authorize-recorded-proposal; PHASE67-REVIEW-OK, WINDOWS entry 5 fixed); EXP-04 (67-12) is unblocked under its existing committed registration — next: 67-12 pre-registration
+last_updated: "2026-11-06T02:42:22.000Z"
 last_activity: 2026-11-05
-last_activity_desc: 67-11 tasks 1-2 complete overnight in the amendment window (15 serial science rows at N=155100, PHASE67-ALL-ROWS-OK; review/result committed, PHASE67-REVIEW-ARTIFACTS-OK; observed branch refuted lead, owner checkpoint open)
-state_head: bfd85916
+last_activity_desc: 67-11 task 3 resolved by the owner's actual ruling (authorize-recorded-proposal, digest-bound to the unchanged review/result); check-review green; plan closed complete
+state_head: bae7a4dc
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 21
-  percent: 78
+  completed_plans: 22
+  percent: 81
 ---
 
 # Project State
@@ -30,27 +30,22 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 11 of 16 (67-11 halted at its task-3 blocking-human owner checkpoint;
-  67-12/EXP-04 blocked by the pending SCOPE-49 proposal until the ruling)
-Status: Executing Phase 67 (67-01..67-10 complete; 67-11 tasks 1-2 complete,
-  awaiting the owner)
+Plan: 12 of 16 (67-11 complete with the owner's committed ruling; next 67-12)
+Status: Executing Phase 67 (67-01..67-11 complete; 67-12/EXP-04 next, unblocked)
 Last activity: 2026-11-05 — plan 67-11 tasks 1-2 completed overnight inside
-  the amendment window: all 15 declared exp03 science rows launched serially
-  at the common N=155100 (rows 1-5 by the predecessor executor across its
-  usage-cap death — row 5 recovered on disk, checked read-only and committed
-  without relaunch; rows 6-15 by the continuation; each check-matrix ->
-  eligibility -> earlier-rows-committed -> launch once -> check-row
-  PHASE67-ROW-OK with scores hidden -> per-row commit; zero retries, zero
-  refusals, all attempts published; PHASE67-ALL-ROWS-OK), then the machine
-  review and result page committed (PHASE67-REVIEW-ARTIFACTS-OK). Observed
-  branch: the REFUTED-LEAD reserved route — lr1e-3 is confirmed-worsening
-  (the registered rate-sensitivity-improves hypothesis is refuted at
-  confirmation grade), scope49_disposition=proposal-pending,
-  dependent_launch_allowed=false, no ruling file; task 67-11-03's
-  blocking-human checkpoint is OPEN and EXP-04 (67-12) is blocked until the
-  actual owner instruction.
+  the amendment window (all 15 declared exp03 science rows launched serially
+  at the common N=155100; PHASE67-ALL-ROWS-OK, PHASE67-REVIEW-ARTIFACTS-OK;
+  observed branch the REFUTED-LEAD reserved route — lr1e-3
+  confirmed-worsening, scope49 proposal-pending), then task 67-11-03 was
+  resolved by the owner's actual instruction: verbatim "proceed with option
+  1", selecting authorize-recorded-proposal. The ruling is committed
+  digest-bound at 67-EXP03-RULING.md (eab52f7d; an earlier ambiguous
+  "then option 2 let's go" was superseded by an explicit clarification
+  exchange and is recorded as context), check-review --experiment exp03
+  passes (PHASE67-REVIEW-OK; WINDOWS entry 5 fixed at bae7a4dc), and EXP-04
+  (67-12) proceeds under its existing committed registration.
 
-### Decisions from 67-11 (2026-11-05, tasks 1-2 executed; task 3 HALTED at the blocking-human owner checkpoint)
+### Decisions from 67-11 (2026-11-05; tasks 1-2 executed overnight, task 3 resolved by the owner's committed ruling)
 
 - **EXP-03's science matrix is complete and committed: all 15 rows ran
   serially at N=155100 inside the owner amendment window on AC power**
@@ -73,13 +68,18 @@ Last activity: 2026-11-05 — plan 67-11 tasks 1-2 completed overnight inside
   is unsettled. Nothing is confirmed-improving. Review/result committed
   at bfd85916 (PHASE67-REVIEW-ARTIFACTS-OK; scope49=proposal-pending,
   dependent_launch_allowed=false).
-- **The owner checkpoint is OPEN and dependent work is stopped.**
-  Task 67-11-03 fires exactly on its condition (the review reads
-  dependent_launch_allowed=false): no ruling file exists, no owner
-  answer has been received, check-review is deliberately unrun (it
-  requires resolution of the recorded proposal; WINDOWS entry 5), and
-  EXP-04 (67-12) launches stay blocked until the actual owner
-  instruction under SCOPE-47/SCOPE-49.
+- **The owner checkpoint is RESOLVED by an actual instruction.**
+  Task 67-11-03 fired exactly on its condition (the review reads
+  dependent_launch_allowed=false) and the owner answered: verbatim
+  "proceed with option 1", selecting authorize-recorded-proposal (an
+  earlier ambiguous "then option 2 let's go" was superseded by an
+  explicit clarification exchange; the final operative instruction is
+  the quoted string). The ruling is committed digest-bound to the
+  unchanged review/result/proposal at 67-EXP03-RULING.md (eab52f7d),
+  disposition=authorized, check-review green (PHASE67-REVIEW-OK;
+  WINDOWS entry 5 fixed), and EXP-04 (67-12) proceeds under its
+  existing committed registration — no plan amendment, scope or
+  pass-bar change, per SCOPE-47/SCOPE-49.
 - **The predecessor's usage-cap death changed no evidence.** Row 5
   (main-1632-s42/lr1e-5) completed on disk inside the amendment window
   (attempt published at 18:26:37 CST launch); the continuation verified
