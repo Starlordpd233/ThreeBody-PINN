@@ -1,0 +1,15 @@
+{
+  "completed_steps": 1200,
+  "ended_utc": "2026-11-07T17:24:33+00:00",
+  "output": "record.json",
+  "pid": 2892,
+  "record_sha256": "466eefdeff47781c4f812f89556cb085b5f7c70808009f37f7629ec6a9cf321d",
+  "registration": {
+    "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/main-1632-s42/exp01-f1/registration.json",
+    "sha256": "763fb72372dbcf6b121e1ed7464e28f637586b6b6231a92c66ab17c61545ca2e"
+  },
+  "schema": "phase65-fit-attempt/v1",
+  "started_utc": "2026-11-07T17:24:25+00:00",
+  "status": "published",
+  "whole_run_cap_seconds": 900.0
+}
