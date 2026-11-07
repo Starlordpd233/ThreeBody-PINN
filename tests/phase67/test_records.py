@@ -944,6 +944,47 @@ class EncodedReadingTests(_RunTestCase):
                 self.assertIs(entry.get("frequency_applicability"), False)
                 self.assertIsNotNone(entry.get("frequency_reason"))
 
+    def test_a_float32_round_trip_of_the_registered_cycles_admits(self):
+        """A faithful float32 run emits the closest float32 to the constant.
+
+        The registrations declare mps/float32 and the encoder carries its
+        registered frequencies in float32 buffers, so a real run's evidence
+        holds ``float32(registered)``; the reader must identify that as the
+        registration (the first real encoded timing row tripped the old
+        float64-exact comparison on exactly this round-trip).
+        """
+        entry = self.record["similarity"]["entries"][0]
+        registered = entry["feature_frequency_cycles"][0]
+        round_trip = struct.unpack("<f", struct.pack("<f", registered))[0]
+        self.assertNotEqual(round_trip, registered)
+
+        def to_float32(record):
+            for block in record["similarity"]["entries"]:
+                block["feature_frequency_cycles"] = [
+                    struct.unpack("<f", struct.pack("<f", value))[0]
+                    for value in block["feature_frequency_cycles"]
+                ]
+
+        target = _copy_run(self.run_dir.parent / "encoded-f32-cycles", self.run_dir)
+        _rewrite_record(target, to_float32)
+        reading = self._read(target)
+        # The rewrite invalidates the attempt's record digest by design; the
+        # frequency identity itself must read clean.
+        self.assertNotIn(ENCODED_FREQUENCY, reading["mechanical_problems"])
+
+    def test_a_near_miss_cycles_value_still_refuses(self):
+        """Neither the constant nor its float32 round-trip: a refusal."""
+        def near_miss(record):
+            for block in record["similarity"]["entries"]:
+                block["feature_frequency_cycles"] = [
+                    value + 1e-6 for value in block["feature_frequency_cycles"]
+                ]
+
+        target = _copy_run(self.run_dir.parent / "encoded-near-miss", self.run_dir)
+        _rewrite_record(target, near_miss)
+        reading = self._read(target)
+        self.assertIn(ENCODED_FREQUENCY, reading["mechanical_problems"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -711,6 +711,40 @@ def _grid_problems(grids, metadata):
     return sorted(set(problems))
 
 
+def _float32_round_trip(value):
+    """The closest float32 to ``value``, widened back to float64.
+
+    The encoder carries its registered frequencies in the run's float32
+    buffers (the registrations declare mps/float32), so a faithful run
+    emits ``float32_round_trip(registered)`` — the nearest representable
+    float32 — not the float64 registration constant itself.
+    """
+    try:
+        return struct.unpack("<f", struct.pack("<f", value))[0]
+    except (OverflowError, struct.error):
+        return None
+
+
+def _cycles_match(cycles, expected_cycles):
+    """Whether the emitted per-harmonic cycles identify the registration.
+
+    Exactly the registered float64 constant or its float32 round-trip
+    admits; any other number — another system's census frequency, a stale
+    constant, an edited value — refuses.
+    """
+    if not isinstance(cycles, list) or len(cycles) != len(expected_cycles):
+        return False
+    for recorded, expected in zip(cycles, expected_cycles):
+        if isinstance(recorded, bool) or not isinstance(recorded, (int, float)):
+            return False
+        recorded = float(recorded)
+        if recorded == expected:
+            continue
+        if recorded != _float32_round_trip(expected):
+            return False
+    return True
+
+
 def _frequency_problems(record, variant):
     """Raw frequency evidence, or the registered encoded nonapplicability."""
     entries = (record.get("similarity") or {}).get("entries")
@@ -753,7 +787,7 @@ def _frequency_problems(record, variant):
             applicable is not False
             or not isinstance(reason, str)
             or not reason
-            or cycles != expected_cycles
+            or not _cycles_match(cycles, expected_cycles)
             or emitted != list(harmonics)
             or isinstance(dimension, bool)
             or not isinstance(dimension, int)
