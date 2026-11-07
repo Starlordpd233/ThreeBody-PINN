@@ -1,0 +1,22 @@
+{
+  "checked_utc": "2026-11-07T17:25:03+00:00",
+  "launched": {
+    "module": "pinn.verification.diagnostic_fit",
+    "subcommand": "run"
+  },
+  "load_average": [
+    5.14794921875,
+    5.80322265625,
+    5.7392578125
+  ],
+  "output": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/main-1632-s42/exp01-f12/record.json",
+  "pmset_first_line": "Now drawing from 'AC Power'",
+  "power_source": "AC Power",
+  "registration": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/main-1632-s42/exp01-f12/registration.json",
+  "schema": "phase66-power-gate/v1",
+  "window": {
+    "isoweekday": 6,
+    "local_time": "2026-11-07T11:25:02-06:00",
+    "timezone": "America/Chicago"
+  }
+}
