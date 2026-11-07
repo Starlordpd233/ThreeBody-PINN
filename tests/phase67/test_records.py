@@ -986,6 +986,82 @@ class EncodedReadingTests(_RunTestCase):
         self.assertIn(ENCODED_FREQUENCY, reading["mechanical_problems"])
 
 
+class MatrixRowVariantBindingTests(unittest.TestCase):
+    """The declared matrix row binds its variant orbit-aware (D-09).
+
+    The exp04 encoded arms run orbit-specific declarations — the main-system
+    declaration on 1632 and the materialized 851 registration on 851 — so the
+    reader's row binding must resolve through the same orbit-aware resolver
+    the launch gate uses, not the static per-arm table (the first 851 encoded
+    timing row tripped the static binding on exactly this seam).
+    """
+
+    @staticmethod
+    def _row(orbit_key, arm="locked-f1"):
+        return {
+            "experiment": "exp04",
+            "arm": arm,
+            "case": "repeat-system",
+            "orbit_key": orbit_key,
+            "seed": 42,
+        }
+
+    @staticmethod
+    def _settings(orbit_key):
+        return {"orbit_key": orbit_key, "seed": 42}
+
+    def _problems(self, row, variant):
+        return _records()._matrix_row_problems(
+            row, self._settings(row["orbit_key"]), variant
+        )
+
+    def test_an_851_encoded_row_binds_the_orbit_specific_declaration(self):
+        from pinn.verification.diagnostic_phase67_catalog import (
+            EXP04_LOCKED_F1_851_VARIANT,
+        )
+
+        row = self._row("hierarchical/gold/851")
+        self.assertNotIn(
+            _records()._SETTING_ARM,
+            self._problems(row, EXP04_LOCKED_F1_851_VARIANT),
+        )
+
+    def test_the_1632_declaration_still_refuses_on_an_851_row(self):
+        from pinn.verification.diagnostic_phase67_catalog import (
+            EXP04_LOCKED_F1_VARIANT,
+        )
+
+        row = self._row("hierarchical/gold/851")
+        self.assertIn(
+            _records()._SETTING_ARM,
+            self._problems(row, EXP04_LOCKED_F1_VARIANT),
+        )
+
+    def test_a_raw_row_binds_the_static_declaration_on_any_orbit(self):
+        from pinn.verification.diagnostic_phase67_catalog import (
+            EXP04_LOCKED_RAW_VARIANT,
+        )
+
+        for orbit_key in ("hierarchical/gold/1632", "hierarchical/gold/851"):
+            row = self._row(orbit_key, arm="locked-raw")
+            self.assertNotIn(
+                _records()._SETTING_ARM,
+                self._problems(row, EXP04_LOCKED_RAW_VARIANT),
+            )
+
+    def test_an_unregistered_encoded_orbit_binds_the_static_declaration(self):
+        """An orbit with no materialized registration keeps the base case."""
+        from pinn.verification.diagnostic_phase67_catalog import (
+            EXP04_LOCKED_F1_VARIANT,
+        )
+
+        row = self._row("hierarchical/gold/999")
+        self.assertNotIn(
+            _records()._SETTING_ARM,
+            self._problems(row, EXP04_LOCKED_F1_VARIANT),
+        )
+
+
 class AsCapturedCitationTests(_RunTestCase):
     """The registration citation admits as-captured bytes after a re-pin.
 

@@ -56,7 +56,9 @@ from zoneinfo import ZoneInfo
 from pinn.verification.diagnostic_phase67_catalog import (
     PHASE67_ARMS,
     PHASE67_REGISTRY_NAME,
+    phase67_arm_variant,
 )
+from pinn.verification.diagnostic_variants import VariantRefused
 from pinn.verification.diagnostic_power import (
     AC_SOURCE,
     PowerRefused,
@@ -247,7 +249,19 @@ def _matrix_row_problems(row, settings, variant):
     if experiment not in PHASE67_ARMS and experiment != "exp05":
         problems.append(_SETTING_EXPERIMENT)
     elif experiment in PHASE67_ARMS:
-        declaration = PHASE67_ARMS[experiment].get(row["arm"])
+        # Orbit-aware binding (plan 67-06, D-09): the exp04 encoded arms run
+        # orbit-specific declarations, so the row's declared orbit resolves
+        # the expected variant — the static table only names the 1632
+        # declarations, and the launch gate resolves the same way. An orbit
+        # with no materialized registration binds the static declaration
+        # (the reader's legacy base case; the launch gate still refuses such
+        # launches for an encoded arm).
+        try:
+            declaration = phase67_arm_variant(
+                experiment, row["arm"], row["orbit_key"]
+            )
+        except (VariantRefused, StopIteration):
+            declaration = PHASE67_ARMS[experiment].get(row["arm"])
         if declaration is None or declaration.name != variant.name:
             problems.append(_SETTING_ARM)
     elif row["arm"] not in _EXP05_WINDOW_ARMS:
