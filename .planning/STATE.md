@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: 67-11 complete — the owner's SCOPE-49 ruling is committed at 67-EXP03-RULING.md (eab52f7d, verbatim "proceed with option 1" = authorize-recorded-proposal; PHASE67-REVIEW-OK, WINDOWS entry 5 fixed); EXP-04 (67-12) is unblocked under its existing committed registration — next: 67-12 pre-registration
-last_updated: "2026-11-06T02:42:22.000Z"
-last_activity: 2026-11-05
-last_activity_desc: 67-11 task 3 resolved by the owner's actual ruling (authorize-recorded-proposal, digest-bound to the unchanged review/result); check-review green; plan closed complete
-state_head: bae7a4dc
+stopped_at: 67-12 complete — EXP-04 pre-registered end to end with NO science launch (all 18 timing rows measured serially at N=1200 and committed; cost-only Plan04 budget common N=112700 with the prediction page, science matrix and all 18 science registrations frozen at 4c8b7b25; PHASE67-BUDGET-OK and both matrix gates green); next: 67-13
+last_updated: "2026-11-07T18:10:00.000Z"
+last_activity: 2026-11-07
+last_activity_desc: 67-12 closed complete — rows 2-18 measured/committed after two reader false-refusal fixes (3d640feb, 4ea20b05), budget and 18 science registrations frozen at 4c8b7b25, no science launch
+state_head: 4c8b7b25
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 22
-  percent: 81
+  completed_plans: 23
+  percent: 85
 ---
 
 # Project State
@@ -30,20 +30,59 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 12 of 16 (67-11 complete with the owner's committed ruling; next 67-12)
-Status: Executing Phase 67 (67-01..67-11 complete; 67-12/EXP-04 next, unblocked)
-Last activity: 2026-11-05 — plan 67-11 tasks 1-2 completed overnight inside
-  the amendment window (all 15 declared exp03 science rows launched serially
-  at the common N=155100; PHASE67-ALL-ROWS-OK, PHASE67-REVIEW-ARTIFACTS-OK;
-  observed branch the REFUTED-LEAD reserved route — lr1e-3
-  confirmed-worsening, scope49 proposal-pending), then task 67-11-03 was
-  resolved by the owner's actual instruction: verbatim "proceed with option
-  1", selecting authorize-recorded-proposal. The ruling is committed
-  digest-bound at 67-EXP03-RULING.md (eab52f7d; an earlier ambiguous
-  "then option 2 let's go" was superseded by an explicit clarification
-  exchange and is recorded as context), check-review --experiment exp03
-  passes (PHASE67-REVIEW-OK; WINDOWS entry 5 fixed at bae7a4dc), and EXP-04
-  (67-12) proceeds under its existing committed registration.
+Plan: 13 of 16 (67-12 complete; next 67-13)
+Status: Executing Phase 67 (67-01..67-12 complete)
+Last activity: 2026-11-07 — plan 67-12 closed complete (EXP-04
+  pre-registration, no science launch): the continuation recovered the
+  predecessor's on-disk row 2, fixed two reader false-refusals on faithful
+  evidence under the new-defect protocol (3d640feb as-captured citations
+  after a freeze re-pin; 4ea20b05 orbit-aware matrix-row binding for D-09's
+  851 encoded variants; 6 regression tests, two freeze-chain re-pins, no
+  evidence byte touched), then ran rows 3-18 serially (each launched exactly
+  once at N=1200 under the 900-second cap on AC power inside the weekend
+  window, PHASE67-ROW-OK, one commit per row), and froze the cost-only
+  Plan04 budget and all 18 science registrations at 4c8b7b25 (common
+  N=112700, worst-row projection 2653.94 s vs the 2655 s cap, experiment
+  projection 25880.3 s; PHASE67-BUDGET-OK, PHASE67-MATRIX-OK science).
+
+### Decisions from 67-12 (2026-11-07; tasks 1-2 by the predecessor executor, task 3 across both sessions)
+
+- **EXP-04 is pre-registered end to end and NO science run has started.**
+  The committed design, guarded TRAIN metadata capture (both Stage0 systems,
+  census-verified frequencies strictly below pi adjacent phase) and 18-row
+  timing matrix preceded every attempt; all 18 timing rows then ran serially
+  at N=1200 under the 900-second whole-launch cap (17 launches this
+  continuation plus the predecessor's row 1, each exactly once on AC power
+  inside the weekend window; measured total walls ~340 s across all rows
+  against 900-second caps; zero retries, zero reused directories, no timing
+  E value ever screened). One commit per complete row before the next launch
+  (478141c7 predecessor; 14b4651c..63f45c69 continuation).
+- **Two reader false-refusals on faithful evidence were fixed as harness
+  defects (no evidence byte touched, no design/prediction change):** the
+  registration citation check could not admit as-captured bytes after the
+  ee2cf509 freeze re-pin (a catch-22: re-pinned bytes fail the record's
+  citation, as-captured bytes fail admission's live-digest check) — fixed by
+  admitting the registration's exact bytes at a commit in HEAD's history
+  (3d640feb, +2 regression tests); and the matrix-row arm binding could
+  never resolve D-09's orbit-specific 851 encoded declarations through the
+  static arm table — fixed by resolving through phase67_arm_variant with the
+  row's declared orbit, exactly as the launch gate does, static base case
+  preserved for unregistered orbits (4ea20b05, +4 regression tests). Both
+  re-pinned the freeze chain per the established convention (fit digest
+  97c459b6->b336503d then records digest d13da3ba->920ad300; manifest
+  d7f7d9e1->76255d5c->9dd440c7; 81 live registrations each time); run
+  evidence keeps its as-captured citations. Suites after each fix: phase65
+  204 OK, phase66 101 OK, phase67 250->256 OK.
+- **The cost-only budget is this experiment's own (Plan04 verbatim, D-07
+  through D-10):** largest common N in 100-step quanta is 112700 optimizer
+  steps (112500 measured + 200 warmup) — the worst row (locked-f12 on 851,
+  0.018761 s/step) projects 2653.94 s against the 2655 s = 0.75 x 3540 s
+  science cap, one quantum higher would breach; the 18-run experiment
+  projects 25880.3 s. The prediction page, science matrix and all 18
+  prospective science registrations (one common N, normalized cadence
+  [0, 28175, 56350, 84525, 112700], score cadence [56350, 84525, 112700])
+  froze at 4c8b7b25 BEFORE any science launch; PHASE67-BUDGET-OK and
+  PHASE67-MATRIX-OK (science) green at the committed boundary.
 
 ### Decisions from 67-11 (2026-11-05; tasks 1-2 executed overnight, task 3 resolved by the owner's committed ruling)
 

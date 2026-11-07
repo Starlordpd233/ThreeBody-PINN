@@ -242,7 +242,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
-- [ ] 67-12-PLAN.md
+- [x] 67-12-PLAN.md
 
 **Wave 12** *(blocked on Wave 11 completion)*
 
@@ -305,7 +305,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 |-------|----------------|--------|-----------|
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
-| 67. Design & Settings Ladders | 11/16 | In Progress (67-11 complete: all 15 EXP-03 science rows run/checked/committed at N=155100, review on the refuted-lead reserved route — lr1e-3 confirmed-worsening; task 67-11-03 resolved by the owner's committed ruling eab52f7d, authorize-recorded-proposal, PHASE67-REVIEW-OK — EXP-04/67-12 unblocked under its existing registration; see 67-11-SUMMARY.md) |  |
+| 67. Design & Settings Ladders | 12/16 | In Progress (67-12 complete: EXP-04 pre-registered with no science launch — committed design/metadata/18-row timing matrix, all 18 timing rows measured serially at N=1200 and committed, cost-only Plan04 budget from the experiment's own rows (common N=112700, experiment projection 25880.3 s) with the prediction page, science matrix and all 18 science registrations frozen at 4c8b7b25; two reader false-refusals fixed with regression tests and freeze re-pins 3d640feb/4ea20b05; see 67-12-SUMMARY.md) |  |
 | 68. Yardstick | 0/TBD | Not started | - |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |
 
