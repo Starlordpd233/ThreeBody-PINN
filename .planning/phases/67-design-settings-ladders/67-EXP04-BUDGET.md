@@ -1,0 +1,304 @@
+# EXP-04 time-input designs — Budget
+
+The cost-only common-update budget derived from every committed
+timing row of this experiment (67-04's phase67_budget). No score,
+loss, tier or cosine value is read or appears here.
+
+```json phase67-budget
+{
+  "common_optimizer_steps": 112700,
+  "experiment": "exp04",
+  "experiment_projected_seconds": {
+    "exp04": 25880.314258506063
+  },
+  "inputs": {
+    "cap_seconds": 3540.0,
+    "min_steps": 300,
+    "rate_margin": 0.25,
+    "rows": {
+      "exp04|exp01-f12|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 1088074,
+        "published_bytes": 1073326,
+        "residual_seconds": 5.4995146377477795,
+        "seconds_per_step": 0.005049391411594115,
+        "warmup_seconds": 1.2322182425996289
+      },
+      "exp04|exp01-f12|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 1088064,
+        "published_bytes": 1073316,
+        "residual_seconds": 4.805189767270349,
+        "seconds_per_step": 0.004225688359467313,
+        "warmup_seconds": 0.9552413730416447
+      },
+      "exp04|exp01-f12|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 1088097,
+        "published_bytes": 1073349,
+        "residual_seconds": 5.5425255639711395,
+        "seconds_per_step": 0.004392872276017442,
+        "warmup_seconds": 0.9955563672119752
+      },
+      "exp04|exp01-f1|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 1084704,
+        "published_bytes": 1069956,
+        "residual_seconds": 5.878807990113273,
+        "seconds_per_step": 0.005110342258471064,
+        "warmup_seconds": 1.0606552074896172
+      },
+      "exp04|exp01-f1|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 1084720,
+        "published_bytes": 1069972,
+        "residual_seconds": 5.062476526945829,
+        "seconds_per_step": 0.00480695181293413,
+        "warmup_seconds": 1.044022700865753
+      },
+      "exp04|exp01-f1|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 1084694,
+        "published_bytes": 1069946,
+        "residual_seconds": 4.466930895578116,
+        "seconds_per_step": 0.005163391068112105,
+        "warmup_seconds": 1.2224335774080828
+      },
+      "exp04|exp01-raw|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 1078236,
+        "published_bytes": 1063488,
+        "residual_seconds": 5.152772036381066,
+        "seconds_per_step": 0.004772175401682034,
+        "warmup_seconds": 1.0210738119203597
+      },
+      "exp04|exp01-raw|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 1078236,
+        "published_bytes": 1063488,
+        "residual_seconds": 4.291669143829495,
+        "seconds_per_step": 0.004830433234921656,
+        "warmup_seconds": 0.9097843702184036
+      },
+      "exp04|exp01-raw|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 1078264,
+        "published_bytes": 1063516,
+        "residual_seconds": 4.8055864934576675,
+        "seconds_per_step": 0.004265002265456132,
+        "warmup_seconds": 0.9890728240134194
+      },
+      "exp04|locked-f12|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 3654054,
+        "published_bytes": 3639306,
+        "residual_seconds": 5.195013225311413,
+        "seconds_per_step": 0.016978516700095498,
+        "warmup_seconds": 3.3695976155577227
+      },
+      "exp04|locked-f12|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 3654067,
+        "published_bytes": 3639319,
+        "residual_seconds": 6.286234082304873,
+        "seconds_per_step": 0.01617021970951464,
+        "warmup_seconds": 3.2175300809321925
+      },
+      "exp04|locked-f12|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 3654044,
+        "published_bytes": 3639296,
+        "residual_seconds": 5.424074928858317,
+        "seconds_per_step": 0.018760958958417177,
+        "warmup_seconds": 3.5545105716446415
+      },
+      "exp04|locked-f1|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 3651739,
+        "published_bytes": 3636991,
+        "residual_seconds": 5.339890199014917,
+        "seconds_per_step": 0.016841022647102362,
+        "warmup_seconds": 2.948277363786474
+      },
+      "exp04|locked-f1|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 3651719,
+        "published_bytes": 3636971,
+        "residual_seconds": 4.251886669313535,
+        "seconds_per_step": 0.013994574384414591,
+        "warmup_seconds": 2.86959303135518
+      },
+      "exp04|locked-f1|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 3651817,
+        "published_bytes": 3637069,
+        "residual_seconds": 5.034251824137755,
+        "seconds_per_step": 0.014963101514033041,
+        "warmup_seconds": 3.2062037858413532
+      },
+      "exp04|locked-raw|hierarchical/gold/1632|41|10.0": {
+        "predicted_byte_bound": 3645928,
+        "published_bytes": 3631180,
+        "residual_seconds": 5.060410213423893,
+        "seconds_per_step": 0.014227602374157869,
+        "warmup_seconds": 3.202073870343156
+      },
+      "exp04|locked-raw|hierarchical/gold/1632|42|10.0": {
+        "predicted_byte_bound": 3645927,
+        "published_bytes": 3631179,
+        "residual_seconds": 4.3067188480636105,
+        "seconds_per_step": 0.013370133329881356,
+        "warmup_seconds": 2.6951340320520103
+      },
+      "exp04|locked-raw|hierarchical/gold/851|42|10.0": {
+        "predicted_byte_bound": 3645906,
+        "published_bytes": 3631158,
+        "residual_seconds": 5.022306600934826,
+        "seconds_per_step": 0.014672061359975487,
+        "warmup_seconds": 3.5504642070736736
+      }
+    },
+    "size_ceiling_bytes": 9437184,
+    "step_quantum": 100,
+    "target_seconds": 2655.0,
+    "time_fraction": 0.75
+  },
+  "loss_trace_stride": 113,
+  "measured_steps": 112500,
+  "per_row_projection_seconds": {
+    "exp04|exp01-f12|hierarchical/gold/1632|41|10.0": 719.8030722289092,
+    "exp04|exp01-f12|hierarchical/gold/1632|42|10.0": 602.1695238843084,
+    "exp04|exp01-f12|hierarchical/gold/851|42|10.0": 626.6549240780793,
+    "exp04|exp01-f1|hierarchical/gold/1632|41|10.0": 727.6433472269241,
+    "exp04|exp01-f1|hierarchical/gold/1632|42|10.0": 684.7111721689007,
+    "exp04|exp01-f1|hierarchical/gold/851|42|10.0": 734.2209578387883,
+    "exp04|exp01-raw|hierarchical/gold/1632|41|10.0": 679.6520606939702,
+    "exp04|exp01-raw|hierarchical/gold/1632|42|10.0": 686.3407530530704,
+    "exp04|exp01-raw|hierarchical/gold/851|42|10.0": 607.7194675122593,
+    "exp04|locked-f12|hierarchical/gold/1632|41|10.0": 2401.36128431072,
+    "exp04|locked-f12|hierarchical/gold/1632|42|10.0": 2292.3049621536857,
+    "exp04|locked-f12|hierarchical/gold/851|42|10.0": 2653.9377255494896,
+    "exp04|locked-f1|hierarchical/gold/1632|41|10.0": 2382.325108071681,
+    "exp04|locked-f1|hierarchical/gold/1632|42|10.0": 1979.0181027648111,
+    "exp04|locked-f1|hierarchical/gold/851|42|10.0": 2118.4908888061873,
+    "exp04|locked-raw|hierarchical/gold/1632|41|10.0": 2014.8163285527235,
+    "exp04|locked-raw|hierarchical/gold/1632|42|10.0": 1891.5876710523107,
+    "exp04|locked-raw|hierarchical/gold/851|42|10.0": 2077.5569085592465
+  },
+  "phase_cost_ledger": {
+    "cap_seconds": 3540.0,
+    "experiments": [
+      {
+        "basis": "measured_projection",
+        "declared_runs": 18,
+        "experiment": "exp04",
+        "note": "measured timing rows; update this ledger with the measured projections before each science launch",
+        "planned_seconds": 25880.314258506063
+      }
+    ]
+  },
+  "schema": "phase67-budget/v1",
+  "score_cadence": [
+    56350,
+    84525,
+    112700
+  ],
+  "similarity_cadence": [
+    0,
+    28175,
+    56350,
+    84525,
+    112700
+  ],
+  "timing_evidence": {
+    "rows": [
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/main-1632-s42/locked-raw/record.json",
+        "sha256": "130db22477bb8bc8c9a5c000e8f8c0faf4c5af052f8f763be693921546773c86"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/main-1632-s42/locked-f1/record.json",
+        "sha256": "34484eb6ac32eabc93963d191bf23cc000ff26f81784001de60efeada2cd9fb4"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/main-1632-s42/locked-f12/record.json",
+        "sha256": "ae689fbb3b9c84f527d0b6a04fab5eb534c9bf33a7273ad54b779585a9a3aee8"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/main-1632-s42/exp01-raw/record.json",
+        "sha256": "56e6cf67ef653c1799aebf6aef907179cbc4354236e967423e74792d3ecb7d42"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/main-1632-s42/exp01-f1/record.json",
+        "sha256": "466eefdeff47781c4f812f89556cb085b5f7c70808009f37f7629ec6a9cf321d"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/main-1632-s42/exp01-f12/record.json",
+        "sha256": "c65e66d19383767c2e03ab922bcc1d0f4d68c0011dbbcda8793c7556f085b549"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-851-s42/locked-raw/record.json",
+        "sha256": "54151ec3cc8f7ffcc768a90d71d2a4dc4fcf0ce7f7847e3ed6d8fb1207014401"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-851-s42/locked-f1/record.json",
+        "sha256": "de4107a78c39735574aaffc351d60a5da42978d131c4dc245367d290477ba927"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-851-s42/locked-f12/record.json",
+        "sha256": "2393e5d176338da1cc3ff266f1cbdc5363bd34c139998121c58932a107f389c6"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-851-s42/exp01-raw/record.json",
+        "sha256": "9ba4c1c3a3c692ba1a99dd7f14dd04e23515408e55723ac9f47508eeffaefeb7"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-851-s42/exp01-f1/record.json",
+        "sha256": "e5e970fc3df561641d6695f0e6042163e13092666369dafcd237a631ac8d090d"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-851-s42/exp01-f12/record.json",
+        "sha256": "ea8b5b84bd1481af1cdbad62679f78da76822e3c39086d8e65ec141ee6d0bc58"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-1632-s41/locked-raw/record.json",
+        "sha256": "9ab033edda5869620ef70c2b6b0324fcaeab5809cc3ebf0d463fda2f837d65a2"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-1632-s41/locked-f1/record.json",
+        "sha256": "f9b4df3e2949d4a03c9374dfbc85c6f9e768ceb98e3acaa28211878b02c96639"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-1632-s41/locked-f12/record.json",
+        "sha256": "ea4a9539a8de7cf78f4133edf2679190923df61adf9acd6afb373a67ddf4832d"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-1632-s41/exp01-raw/record.json",
+        "sha256": "2ea8157255d90dd7b1e885161b60bc7c86bb60b6a222aa70a65cac824d97fb44"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-1632-s41/exp01-f1/record.json",
+        "sha256": "220110dba99007ad87009dd852886376376bff7cd78a7632662eef732edc0558"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp04/timing/repeat-1632-s41/exp01-f12/record.json",
+        "sha256": "f68e64cae893f92b916b479351946c66239bdb4a50cad4285415880ce3e75cf6"
+      }
+    ]
+  },
+  "timing_evidence_digests": {
+    "exp04|exp01-f12|hierarchical/gold/1632|41|10.0": null,
+    "exp04|exp01-f12|hierarchical/gold/1632|42|10.0": null,
+    "exp04|exp01-f12|hierarchical/gold/851|42|10.0": null,
+    "exp04|exp01-f1|hierarchical/gold/1632|41|10.0": null,
+    "exp04|exp01-f1|hierarchical/gold/1632|42|10.0": null,
+    "exp04|exp01-f1|hierarchical/gold/851|42|10.0": null,
+    "exp04|exp01-raw|hierarchical/gold/1632|41|10.0": null,
+    "exp04|exp01-raw|hierarchical/gold/1632|42|10.0": null,
+    "exp04|exp01-raw|hierarchical/gold/851|42|10.0": null,
+    "exp04|locked-f12|hierarchical/gold/1632|41|10.0": null,
+    "exp04|locked-f12|hierarchical/gold/1632|42|10.0": null,
+    "exp04|locked-f12|hierarchical/gold/851|42|10.0": null,
+    "exp04|locked-f1|hierarchical/gold/1632|41|10.0": null,
+    "exp04|locked-f1|hierarchical/gold/1632|42|10.0": null,
+    "exp04|locked-f1|hierarchical/gold/851|42|10.0": null,
+    "exp04|locked-raw|hierarchical/gold/1632|41|10.0": null,
+    "exp04|locked-raw|hierarchical/gold/1632|42|10.0": null,
+    "exp04|locked-raw|hierarchical/gold/851|42|10.0": null
+  },
+  "warmup_steps": 200,
+  "whole_run_cap_seconds": 3540.0
+}
+```
+
+- common optimizer steps: 112700
+- warmup steps: 200
+- whole-run cap: 3540 seconds
+
+The science registrations are frozen from this budget before any
+science run; the timing prediction page is unchanged by this page.
