@@ -2048,7 +2048,11 @@ def phase67_prior_experiment_allowed(experiment, *, phase_dir, repo_root):
 
     Only a committed review of an EARLIER experiment in the chain carrying a
     pending SCOPE-49 proposal (or ``dependent_launch_allowed`` false) blocks;
-    the experiment's own review never blocks its own remaining rows.
+    the experiment's own review never blocks its own remaining rows. A prior
+    pending proposal resolves only through the same committed owner ruling
+    ``check-review`` verifies for that experiment (digest-faithful, explicit,
+    scope-matching, never a hold); a missing, stale, out-of-scope or hold
+    ruling keeps the block exactly as before.
     """
     root = _repo_root(repo_root)
     phase = _phase_directory(phase_dir, root)
@@ -2066,7 +2070,10 @@ def phase67_prior_experiment_allowed(experiment, *, phase_dir, repo_root):
             )
         if review.get("scope49_disposition") == "proposal-pending" or \
                 review.get("dependent_launch_allowed") is False:
-            return False
+            try:
+                _verify_ruling(prior, review, root=root, phase_dir=phase)
+            except Phase67CommandRefused:
+                return False
     return True
 
 

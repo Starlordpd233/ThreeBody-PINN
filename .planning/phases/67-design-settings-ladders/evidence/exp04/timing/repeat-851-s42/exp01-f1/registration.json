@@ -50,7 +50,7 @@
     },
     {
       "path": "pinn/verification/diagnostic_phase67_execution.py",
-      "sha256": "2c1ae0a8f2b34475beaae1fb70e47be617d6fe601fa465e3d9b8ebd03b4bfb38"
+      "sha256": "4d7ef8374da206e34cdf4bc9ff902c85b2e05a766342863826aaa25f0b19cc5f"
     }
   ],
   "committed_before": "the first real optimizer step of this row",
@@ -82,7 +82,7 @@
   ],
   "harness_freeze": {
     "path": ".planning/phases/67-design-settings-ladders/evidence/harness-freeze.json",
-    "sha256": "7f40b511b0b9cbb4f4a42cd798e735fa538684b0f111c2222e259b9735497340"
+    "sha256": "f1a082d18dc61390db2e24860c71ea48b46d45ea675c8cc6e76b3cf61340af1b"
   },
   "logger_parity": {
     "arm": "r1-1632",

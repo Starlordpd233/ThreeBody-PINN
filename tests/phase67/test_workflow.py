@@ -662,6 +662,62 @@ class CommandContractTests(_ChainTestCase):
         finally:
             _git(self.root, "revert", "--no-edit", "HEAD")
 
+    def _with_ruled_pending_proposal(self, disposition, callback, *,
+                                     stale_review_digest=False):
+        """A pending exp02 proposal plus a committed owner ruling over it.
+
+        The ruling carries the exact digests ``_verify_ruling`` demands
+        (review, result page, proposal), is committed after both reviewed
+        artifacts, and names allowed dependent work covering the prior
+        experiment the way the production exp03 ruling does.
+        """
+        review_path = self.phase / "evidence/exp02/review.json"
+        result_path = self.phase / "67-EXP02-RESULT.md"
+        review = json.loads(review_path.read_bytes())
+        review["scope49_disposition"] = "proposal-pending"
+        review["dependent_launch_allowed"] = False
+        review["proposed_change"] = "a fixture proposal"
+        review_path.write_text(json.dumps(review, indent=2, sort_keys=True))
+        _commit(self.root, "pending fixture proposal")
+        pending_sha = _git(
+            self.root, "rev-parse", "HEAD"
+        ).stdout.strip()
+        review_digest = hashlib.sha256(
+            review_path.read_bytes()
+        ).hexdigest()
+        if stale_review_digest:
+            review_digest = "0" * 64
+        ruling = {
+            "schema": "phase67-ruling/v1",
+            "experiment": "exp02",
+            "disposition": disposition,
+            "allowed_dependent_work": [
+                "exp03 proceeds as the dependent launch of this exp02 ruling",
+            ],
+            "owner_words_verbatim": "proceed with option 1",
+            "review_sha256": review_digest,
+            "result_page_sha256": hashlib.sha256(
+                result_path.read_bytes()
+            ).hexdigest(),
+            "proposal_sha256": hashlib.sha256(
+                json.dumps(
+                    json.loads(review_path.read_bytes())["proposed_change"],
+                    sort_keys=True,
+                ).encode("utf-8")
+            ).hexdigest(),
+        }
+        ruling_path = self.phase / "67-EXP02-RULING.md"
+        ruling_path.write_text(json.dumps(ruling, indent=2, sort_keys=True))
+        _commit(self.root, "fixture owner ruling")
+        try:
+            callback()
+        finally:
+            ruling_sha = _git(
+                self.root, "rev-parse", "HEAD"
+            ).stdout.strip()
+            _git(self.root, "revert", "--no-edit", ruling_sha)
+            _git(self.root, "revert", "--no-edit", pending_sha)
+
     def test_a_pending_proposal_blocks_only_the_dependent_experiment(self):
         execution = self.execution
 
@@ -674,6 +730,41 @@ class CommandContractTests(_ChainTestCase):
             ))
 
         self._with_pending_proposal(check)
+
+    def test_a_committed_owner_ruling_admits_the_dependent_launch(self):
+        execution = self.execution
+
+        def check():
+            self.assertTrue(execution.phase67_prior_experiment_allowed(
+                "exp03", phase_dir=self.phase, repo_root=self.root
+            ))
+            self.assertTrue(execution.phase67_prior_experiment_allowed(
+                "exp04", phase_dir=self.phase, repo_root=self.root
+            ))
+
+        self._with_ruled_pending_proposal("authorized", check)
+
+    def test_a_hold_ruling_keeps_the_dependent_launch_blocked(self):
+        execution = self.execution
+
+        def check():
+            self.assertFalse(execution.phase67_prior_experiment_allowed(
+                "exp03", phase_dir=self.phase, repo_root=self.root
+            ))
+
+        self._with_ruled_pending_proposal("hold", check)
+
+    def test_a_stale_digest_ruling_keeps_the_dependent_launch_blocked(self):
+        execution = self.execution
+
+        def check():
+            self.assertFalse(execution.phase67_prior_experiment_allowed(
+                "exp03", phase_dir=self.phase, repo_root=self.root
+            ))
+
+        self._with_ruled_pending_proposal(
+            "authorized", check, stale_review_digest=True
+        )
 
     def test_check_review_refuses_when_a_proposal_is_pending(self):
         def check():
