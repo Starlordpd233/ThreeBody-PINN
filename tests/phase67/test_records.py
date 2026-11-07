@@ -986,5 +986,65 @@ class EncodedReadingTests(_RunTestCase):
         self.assertIn(ENCODED_FREQUENCY, reading["mechanical_problems"])
 
 
+class AsCapturedCitationTests(_RunTestCase):
+    """The registration citation admits as-captured bytes after a re-pin.
+
+    A freeze-chain re-pin (the 7290bf58/ed93f359/88d17045/ee2cf509
+    convention) moves a live registration's bytes between a run's capture
+    and its commit-boundary check; run evidence keeps its as-captured
+    citation, so the verifier must admit a citation naming the
+    registration's exact bytes at a commit in HEAD's history — and only
+    those.
+    """
+
+    @staticmethod
+    def _git(root, *args):
+        import subprocess
+
+        return subprocess.run(
+            ["git", *args], cwd=str(root), capture_output=True, text=True, check=True
+        )
+
+    def test_an_as_captured_citation_admits_after_a_committed_re_pin(self):
+        """A re-pinned registration still admits the pre-re-pin citation."""
+        root, registration, run_dir, record = self._make_run(
+            name="as-captured-admits"
+        )
+        cited = record["registration"]["sha256"]
+        self.assertEqual(cited, fit_module._sha256_file(registration))
+        # The re-pin shape: the module bytes move and the registration's
+        # declared dependency digest follows, committed together.
+        dep_raw = b"FIT_DEPENDENCY = 2\n"
+        (root / "fit_dep.py").write_bytes(dep_raw)
+        _rewrite(registration, lambda doc: doc["code_dependencies"][0].update(
+            sha256=hashlib.sha256(dep_raw).hexdigest()
+        ))
+        self._git(root, "add", "fit_dep.py", "reg/smoke-registration.json")
+        self._git(root, "commit", "-q", "-m", "re-pin the moved dependency")
+        self.assertNotEqual(cited, fit_module._sha256_file(registration))
+        reading = self._read(
+            registration, run_dir, root,
+            expected_case=self._matrix_row(record),
+        )
+        self.assertEqual(reading["mechanical_problems"], [])
+
+    def test_a_citation_absent_from_the_registration_history_refuses(self):
+        """Real committed bytes from another path are never a citation."""
+        root, registration, run_dir, record = self._make_run(
+            name="as-captured-fabricated"
+        )
+        receipt_sha = hashlib.sha256(
+            (root / "reg/logger-parity.json").read_bytes()
+        ).hexdigest()
+        _rewrite_record(
+            run_dir, lambda r: r["registration"].update(sha256=receipt_sha)
+        )
+        reading = self._read(
+            registration, run_dir, root,
+            expected_case=self._matrix_row(record),
+        )
+        self.assertIn(FIT_AUDIT, reading["mechanical_problems"])
+
+
 if __name__ == "__main__":
     unittest.main()

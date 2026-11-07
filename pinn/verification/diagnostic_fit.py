@@ -285,6 +285,42 @@ def _sha256_file(path):
     return digest.hexdigest()
 
 
+def _cites_registration_bytes(registration_file, root, cited):
+    """True when the record cites this registration file's committed bytes.
+
+    The citation must name the file's current on-disk sha256, or its exact
+    bytes at a commit in HEAD's history — the as-captured citation of a run
+    launched before a freeze-chain re-pin moved the live registration bytes
+    (run evidence keeps its as-captured citations; each record's citation
+    remains verifiable at its introducing commit). A digest that never
+    existed at this path, or exists only uncommitted, is not a citation.
+    """
+    if not isinstance(cited, str):
+        return False
+    if cited == _sha256_file(registration_file):
+        return True
+    try:
+        relative = registration_file.resolve().relative_to(
+            Path(root).resolve()
+        ).as_posix()
+    except ValueError:
+        return False
+    probe = subprocess.run(
+        ["git", "log", "--format=%H", "--", relative],
+        cwd=str(root), capture_output=True, text=True, check=False,
+    )
+    if probe.returncode != 0:
+        return False
+    for commit in probe.stdout.splitlines():
+        blob = subprocess.run(
+            ["git", "show", f"{commit}:{relative}"],
+            cwd=str(root), capture_output=True, check=False,
+        )
+        if blob.returncode == 0 and hashlib.sha256(blob.stdout).hexdigest() == cited:
+            return True
+    return False
+
+
 def load_fit_registration(registration_path, *, repo_root=None):
     """Load and schema-check the fit registration document (read-only)."""
     path = Path(registration_path)
@@ -1771,7 +1807,9 @@ def verify_fit_result(registration_path, result_path, *, repo_root=None):
     registration_block = record.get("registration")
     check(
         isinstance(registration_block, Mapping)
-        and registration_block.get("sha256") == _sha256_file(registration_file),
+        and _cites_registration_bytes(
+            registration_file, root, registration_block.get("sha256")
+        ),
         "the result does not cite the committed registration bytes",
     )
     parity_entry = (doc.get("logger_parity") or {}).get("receipt") or {}
