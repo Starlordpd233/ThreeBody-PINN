@@ -1,0 +1,70 @@
+{
+  "experiments": {
+    "exp02": {
+      "budget": "committed",
+      "budget_page": "committed",
+      "design": "committed",
+      "freeze_verified": true,
+      "metadata_record": "committed",
+      "metadata_registration": "committed",
+      "prediction_page": "committed",
+      "result_page": "committed",
+      "review": "committed",
+      "ruling": "absent",
+      "science_matrix": "committed",
+      "scope": "none",
+      "timing_matrix": "committed",
+      "timing_page": "committed"
+    },
+    "exp03": {
+      "budget": "committed",
+      "budget_page": "committed",
+      "design": "committed",
+      "freeze_verified": true,
+      "metadata_record": "committed",
+      "metadata_registration": "committed",
+      "prediction_page": "committed",
+      "result_page": "committed",
+      "review": "committed",
+      "ruling": "committed",
+      "science_matrix": "committed",
+      "scope": "proposal-ruled",
+      "timing_matrix": "committed",
+      "timing_page": "committed"
+    },
+    "exp04": {
+      "budget": "committed",
+      "budget_page": "committed",
+      "design": "committed",
+      "freeze_verified": true,
+      "metadata_record": "committed",
+      "metadata_registration": "committed",
+      "prediction_page": "committed",
+      "result_page": "committed",
+      "review": "committed",
+      "ruling": "absent",
+      "science_matrix": "committed",
+      "scope": "none",
+      "timing_matrix": "committed",
+      "timing_page": "committed"
+    },
+    "exp05": {
+      "budget": "committed",
+      "budget_page": "committed",
+      "design": "committed",
+      "freeze_verified": true,
+      "metadata_record": "committed",
+      "metadata_registration": "committed",
+      "prediction_page": "committed",
+      "result_page": "committed",
+      "review": "committed",
+      "ruling": "absent",
+      "science_matrix": "committed",
+      "scope": "none",
+      "timing_matrix": "committed",
+      "timing_page": "committed"
+    }
+  },
+  "problems": [],
+  "status": "PHASE67-AUDIT-OK"
+}
