@@ -335,6 +335,85 @@ class YardstickHelperUnitTests(unittest.TestCase):
         self.assertEqual(json_safe_float(scs_from_eps_h(float("nan"))), "NaN")
         self.assertEqual(json_safe_float(scs_from_eps_h(1e-5)), -5.0)
 
+    def test_gate_and_tier_boundary_semantics(self):
+        """Verify strict inequality and both representable neighbors at gate and tier boundaries."""
+        from pinn.verification.feasibility_scorecard import tier_of
+        from pinn.verification.gate_metrics import gate_verdict
+        scorecard = load_scorecard()
+
+        # Gate boundary at 1e-5: exact passes, below passes, above fails
+        step_gate = float(np.spacing(1e-5))
+        self.assertEqual(gate_verdict(1e-5), "PASS")
+        self.assertEqual(gate_verdict(1e-5 - step_gate), "PASS")
+        self.assertEqual(gate_verdict(1e-5 + step_gate), "FAIL")
+
+        # Tier 1: E <= 0.1
+        step_t1 = float(np.spacing(0.1))
+        self.assertEqual(tier_of(0.1, 1.0, scorecard=scorecard), 1)
+        self.assertEqual(tier_of(0.1 - step_t1, 1.0, scorecard=scorecard), 1)
+        self.assertEqual(tier_of(0.1 + step_t1, 1.0, scorecard=scorecard), 0)
+
+        # Tier 2: E <= 0.01 and eps_H <= 1e-3
+        step_t2_e = float(np.spacing(0.01))
+        step_t2_h = float(np.spacing(1e-3))
+        self.assertEqual(tier_of(0.01, 1e-3, scorecard=scorecard), 2)
+        self.assertEqual(tier_of(0.01 + step_t2_e, 1e-3, scorecard=scorecard), 1)
+        self.assertEqual(tier_of(0.01, 1e-3 + step_t2_h, scorecard=scorecard), 1)
+
+        # Tier 3: E <= 0.01 and eps_H <= 1e-5
+        self.assertEqual(tier_of(0.01, 1e-5, scorecard=scorecard), 3)
+        self.assertEqual(tier_of(0.01, 1e-5 + step_gate, scorecard=scorecard), 2)
+
+    def test_valid_horizon_strict_crossing(self):
+        """Horizon crossing requires max(e_sys, e_in) strictly greater than delta."""
+        from pinn.verification.feasibility_scorer import valid_horizon
+        times = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float64)
+        T = 10.0
+
+        # Exact delta: does not cross -> returns 1.0
+        e_exact = np.full(6, 0.01)
+        self.assertEqual(valid_horizon(e_exact, e_exact, times, delta=0.01, T=T), 1.0)
+
+        # Delta + eps at index 2 (t = 2.0): crosses at 2.0 / 10.0 = 0.2
+        step = float(np.spacing(0.01))
+        e_cross = np.array([0.005, 0.01, 0.01 + step, 0.015, 0.02, 0.025])
+        self.assertEqual(valid_horizon(e_cross, e_cross, times, delta=0.01, T=T), 0.2)
+
+    def test_trajectory_eps_h_bad_denominator(self):
+        """Zero or nonfinite H(0) returns NaN (fail), while zero drift returns 0.0 (pass)."""
+        from pinn.verification.gate_metrics import trajectory_eps_h
+
+        # Zero denominator
+        h_zero_denom = torch.tensor([0.0, 1.0, 2.0], dtype=torch.float64)
+        self.assertTrue(math.isnan(trajectory_eps_h(h_zero_denom)))
+
+        # Nonfinite denominator
+        h_nan_denom = torch.tensor([float("nan"), 1.0, 2.0], dtype=torch.float64)
+        self.assertTrue(math.isnan(trajectory_eps_h(h_nan_denom)))
+
+        # Zero drift: perfectly conserved
+        h_constant = torch.tensor([-2.5, -2.5, -2.5], dtype=torch.float64)
+        self.assertEqual(trajectory_eps_h(h_constant), 0.0)
+
+    def test_replay_check_failure_cases(self):
+        """replay_check refuses non-existent paths, invalid schemas, and corrupt payloads."""
+        from pinn.verification.yardstick_audit import replay_check
+        with TemporaryDirectory(prefix="phase68-replay-test-") as tmp:
+            tmp_path = Path(tmp)
+            nonexistent = tmp_path / "does_not_exist.json"
+            with self.assertRaises(YardstickAuditError):
+                replay_check(nonexistent)
+
+            wrong_schema = tmp_path / "wrong_schema.json"
+            wrong_schema.write_text(json.dumps({"schema": "wrong/v1"}))
+            with self.assertRaises(YardstickAuditError):
+                replay_check(wrong_schema)
+
+            no_git_head = tmp_path / "no_git_head.json"
+            no_git_head.write_text(json.dumps({"schema": SCHEMA_VERSION, "provenance": {}}))
+            with self.assertRaises(YardstickAuditError):
+                replay_check(no_git_head)
+
 
 if __name__ == "__main__":
     unittest.main()
