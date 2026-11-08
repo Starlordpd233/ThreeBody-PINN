@@ -254,7 +254,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
-- [ ] 67-15-PLAN.md
+- [x] 67-15-PLAN.md
 
 **Wave 15** *(blocked on Wave 14 completion)*
 
@@ -305,7 +305,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 |-------|----------------|--------|-----------|
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
-| 67. Design & Settings Ladders | 14/16 | In Progress (67-14 complete: EXP-05 pre-registered with no science launch — committed design trio at 1/2/5/10 inner laps against the lap10 control, one guarded TRAIN metadata capture for both systems with exact first-crossing endpoints and cross-checked same-window baselines, 12-row timing matrix committed before every attempt, all 12 timing rows measured serially at N=1200 and committed, cost-only Plan04 budget from the experiment's own rows (common N=148700, worst-row projection 2654.00 s vs the 2655 s cap, experiment projection 30305.5 s) with the prediction page, science matrix and all 12 science registrations frozen at 79587171; three exp05 materialization harness fixes with regression tests and freeze re-pins 8c6c201f/54d3cb40/bbf492d4; see 67-14-SUMMARY.md) |  |
+| 67. Design & Settings Ladders | 15/16 | In Progress (67-15 complete: EXP-05 science run and review — all 12 window-ladder rows ran exactly once at the registered common N=148700 under the 3540-second cap, serially in the case-major matrix order on AC power inside the weekend window (each PHASE67-ROW-OK with scores hidden, one commit of four artifacts per row, walls 2012-2899 s totalling 29246 s, zero deferred/burned rows), and the registered review read the committed evidence under the unchanged prospective rule (3b19801c): all three lap1/lap2/lap5-vs-lap10 contrasts unsettled — improvement direction on all nine case-contrast cells with every relative E effect qualifying (0.14-0.88) but unsettled endpoints blocking confirmation — nothing confirmed, dependent_launch_allowed=true on the registered unsettled branch, no scope proposal, no ruling; PHASE67-REVIEW-OK admits 67-16 evidence closure; see 67-15-SUMMARY.md) |  |
 | 68. Yardstick | 0/TBD | Not started | - |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |
 

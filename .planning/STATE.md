@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: 67-14 complete — EXP-05 pre-registered end to end with NO science launch (committed design trio at 1/2/5/10 inner laps against the lap10 control; one guarded TRAIN metadata capture for both systems; all 12 timing rows measured serially at N=1200 and committed; cost-only Plan04 budget common N=148700 with the prediction page, science matrix and all 12 science registrations frozen at 79587171; PHASE67-BUDGET-OK and both matrix gates green; three harness fixes restored the exp05 materialization flow — 8c6c201f, 54d3cb40, bbf492d4); next: 67-15
-last_updated: "2026-11-08T02:15:00.000Z"
-last_activity: 2026-11-07
-last_activity_desc: 67-14 closed complete — EXP-05 pre-registered (design 072abd88, metadata 201db8e0, 12-row timing matrix 146153d2, rows 1-12 7a630074..6bb3af7e inside the Saturday weekend window, budget + science freeze 79587171) with three harness fixes and freeze re-pins
-state_head: 79587171
+stopped_at: 67-15 complete — EXP-05 science run and review done: all 12 window-ladder rows ran exactly once at the registered common N=148700 under the 3540-second cap, serially in the case-major matrix order on AC power inside the weekend window (each PHASE67-ROW-OK with scores hidden, one commit of four artifacts per row before the next launch, zero deferred/burned rows, whole-launch walls 2012-2899 s totalling 29246 s vs the 30305.5 s projection), and the registered review read the committed evidence under the unchanged prospective rule (3b19801c) — all three lap1/lap2/lap5-vs-lap10 contrasts unsettled (improvement direction on all nine case-contrast cells, every relative E effect qualifying at 0.14-0.88, tier improved only on the seed-41 repeat, but unsettled endpoints block confirmation), confirmed empty, dependent_launch_allowed=true on the registered unsettled branch, no scope proposal, no ruling file; PHASE67-ALL-ROWS-OK, PHASE67-REVIEW-ARTIFACTS-OK, PHASE67-REVIEW-OK; next: 67-16
+last_updated: "2026-11-08T10:30:00.000Z"
+last_activity: 2026-11-08
+last_activity_desc: 67-15 closed complete — EXP-05 science run and review (rows 1-12 678bf333..3479ef68 across Saturday evening and Sunday night on AC power, review + result 3b19801c, all three contrasts unsettled with nothing confirmed, task-03 owner checkpoint skipped by its own registered condition with no ruling)
+state_head: 3b19801c
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 25
-  percent: 93
+  completed_plans: 26
+  percent: 96
 ---
 
 # Project State
@@ -30,24 +30,63 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 15 of 16 (67-14 complete; next 67-15)
-Status: Executing Phase 67 (67-01..67-14 complete)
-Last activity: 2026-11-07 — plan 67-14 closed complete (EXP-05
-  pre-registration, no science launch): the committed design trio froze the
-  locked setup at 1/2/5/10 inner laps against the lap10 control with exact
-  first-crossing endpoints and no interpolation (072abd88), one guarded
-  TRAIN metadata capture pinned both systems' census, frequencies and exact
-  window endpoints with cross-checked same-window baselines (201db8e0), the
-  12-row timing matrix and registrations preceded every attempt (146153d2),
-  all 12 timing rows then ran serially at N=1200 under the 900-second cap
-  (19:52-20:00 CST Saturday, AC power, PHASE67-ROW-OK per row with scores
-  hidden, one commit of four artifacts per row before the next launch, zero
-  retries, zero burned rows), and the cost-only Plan04 budget plus the
-  science freeze landed at 79587171 (common N=148700, worst-row projection
-  2654.00 s vs the 2655 s cap, experiment projection 30305.5 s;
-  PHASE67-BUDGET-OK, PHASE67-MATRIX-OK science). Three harness fixes
-  restored the exp05 flow (8c6c201f, 54d3cb40, bbf492d4) with regression
-  tests and freeze re-pins; no registered value changed.
+Plan: 16 of 16 (67-15 complete; next 67-16, the final plan)
+Status: Executing Phase 67 (67-01..67-15 complete)
+Last activity: 2026-11-08 — plan 67-15 closed complete (EXP-05 science
+  run and review): all 12 window-ladder rows ran exactly once at the
+  registered common N=148700 (200 warmup) with the registered five
+  similarity events and three score events, serially in the case-major
+  matrix order on AC power inside the weekend window (rows 1-6 Saturday
+  20:09-00:17 CST, rows 7-12 Sunday 00:24-05:15 CST; PHASE67-ROW-OK per
+  row with scores hidden, one commit of four artifacts per row before the
+  next launch, whole-launch walls 2012-2899 s under the 3540 s cap
+  totalling 29246 s, zero deferred rows, zero burned directories, no
+  retry/resume/continuation), and the registered review then read the
+  committed evidence under the unchanged prospective rule (3b19801c):
+  all three lap1/lap2/lap5-vs-lap10 contrasts unsettled — the improvement
+  direction on all nine case-contrast cells with every relative E effect
+  qualifying (0.14-0.88) and tier improved only on the seed-41 repeat,
+  but unsettled endpoints block confirmation (the main case's lap10
+  control and all three of its short arms were still improving by more
+  than the registered five percent at budget end; the repeat-system
+  case's lap10 control likewise) — confirmed empty, nothing presented in
+  either direction, dependent_launch_allowed=true on the registered
+  unsettled branch with no scope proposal, so the conditional task-03
+  owner checkpoint was skipped by its own condition and no ruling file
+  was created; PHASE67-ALL-ROWS-OK, PHASE67-REVIEW-ARTIFACTS-OK and
+  PHASE67-REVIEW-OK green; 67-16 evidence closure admitted.
+
+### Decisions from 67-15 (2026-11-08)
+
+- **EXP-05's window ladder is directionally supportive but unsettled —
+  nothing is confirmed.** Every short arm's endpoint E sits below its
+  case's lap10 control (improvement on all nine cells; relative E effects
+  0.14-0.88, all above the exact 20 percent line; the frozen tier improves
+  only on the seed-41 repeat), but the confirmation rule requires all
+  paired endpoints settled and clean across all three cases, and the main
+  case is unsettled end to end (its lap10 control and all three short arms
+  were still improving by more than the registered five percent when their
+  budgets ended) while the repeat-system case's lap10 control is also
+  unsettled. Only the seed-41 repeat case is fully settled. The
+  no-continuation policy extends nothing; the honest reading is
+  "directionally consistent with the hypothesis at this budget, unsettled,
+  not confirmed", and EXP-05 does not by itself establish a production
+  window change.
+- **The registered unsettled branch is an in-scope continue route:** no
+  continuation, rescue or re-sizing ran, no scope/pass-bar/registration
+  change is proposed (scope49_disposition none, proposed_change none),
+  the conditional task 3 owner checkpoint is skipped by its own condition
+  with no ruling file, and dependent work (67-16 evidence closure)
+  proceeds under PHASE67-REVIEW-OK.
+- **The run stayed strictly serial, single-use and value-blind:** per-row
+  inspection touched cost fields only; the review command was the first
+  and only score reader; the prospective design was never altered by a
+  result. Measured walls 2012-2899 s (total 29246 s vs the 30305.5 s
+  projection), every row a complete 148700-step attempt under the
+  3540-second cap; the session-level caffeinate wake lock was killed
+  seven times by the harness and restarted immediately each time while
+  the in-flight launch's own per-launch caffeinate held — no launch was
+  interrupted and no machine sleep occurred.
 
 ### Decisions from 67-14 (2026-11-07)
 
