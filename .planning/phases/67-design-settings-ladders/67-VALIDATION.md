@@ -1,9 +1,9 @@
 ---
 phase: "67"
 slug: "design-settings-ladders"
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-11-01"
 ---
 
@@ -149,14 +149,82 @@ tests does not silently discharge those narrative review obligations.
 
 ## Validation sign-off
 
-- [ ] Every task has an automated check or an explicit dependency creating it.
-- [ ] All proposed test paths are created before reliance on them.
-- [ ] The complete plan verification map is checked against final task IDs.
-- [ ] Synthetic tests prove raw14 derivative compatibility and exact prefix semantics.
-- [ ] Historical evidence and production locks retain their committed bytes.
-- [ ] Registered result checks validate every declared arm and both repeat cases.
-- [ ] Measured test feedback fits the stated sampling policy.
-- [ ] Implementation has been validated before changing `nyquist_compliant`.
+- [x] Every task has an automated check or an explicit dependency creating it.
+- [x] All proposed test paths are created before reliance on them.
+- [x] The complete plan verification map is checked against final task IDs.
+- [x] Synthetic tests prove raw14 derivative compatibility and exact prefix semantics.
+- [x] Historical evidence and production locks retain their committed bytes.
+- [x] Registered result checks validate every declared arm and both repeat cases.
+- [x] Measured test feedback fits the stated sampling policy.
+- [x] Implementation has been validated before changing `nyquist_compliant`.
 
-Approval remains pending implementation and the validation audit. Planning
-checks establish plan readiness only.
+Approval recorded 2026-11-08 after implementation and the closeout validation
+run (see the observed results below); planning checks established plan
+readiness first.
+
+## Observed validation results, 2026-11-08 (plan 67-16-02)
+
+Every command below ran from the trainex worktree on
+`<home>/miniforge3/envs/pinn-train/bin/python -B`, all exiting 0
+with zero discovered-test loss and zero skipped required cases. Real
+discovered counts and durations:
+
+| Command | Result | Discovered | Duration |
+|---|---|---:|---|
+| `python -B -m unittest discover -s tests/phase67 -t .` | OK | 260 tests | 159.9 s test time (161 s wall) |
+| `python -B -m unittest discover -s tests/phase65 -t .` | OK | 204 tests | 31.1 s test time (33 s wall) |
+| `python -B -m unittest discover -s tests/phase66 -t .` | OK | 101 tests | 15.1 s test time (16 s wall) |
+| `python -B -c "from pinn.verification.learnability_protocol import load_protocol; load_protocol(); print('PROTOCOL-OK')"` | PROTOCOL-OK | — | < 1 s |
+| `python -B -m pinn.verification.diagnostic_phase67 audit-phase` | PHASE67-AUDIT-OK | 4 experiments | < 1 s |
+
+The phase67 discovery total decomposes exactly across the 13 committed
+modules, each running OK when invoked directly: test_admission 20,
+test_budget 18, test_catalog 21, test_checkpoints 23, test_historical 9,
+test_isolation 18, test_pages 20, test_reading_rule 21, test_records 35,
+test_time_features 25, test_tracer 2, test_windows 26, test_workflow 22
+(20+18+21+23+9+18+20+21+35+25+2+26+22 = 260). No suite printed a skipped
+case. The audit reports harness freeze verified for all four experiments,
+exp02/exp04/exp05 scope `none` and exp03 `proposal-ruled`, with no problems.
+
+Per-task verification map resolution: the 44 map rows above resolved through
+their executed plans. Plans 67-01..07 created and ran the synthetic suites
+and the tracer; plans 67-08..15 registered and executed the four experiments
+(design checks, metadata, timing and science matrix checks, per-row checks
+with PHASE67-ROW-OK, all-rows PHASE67-ALL-ROWS-OK, reviews
+PHASE67-REVIEW-ARTIFACTS-OK and check-review PHASE67-REVIEW-OK, the exp03
+ruling committed at 67-EXP03-RULING.md); plan 67-16 ran the audit, the
+saved-index equality check (PHASE67-INDEX-OK), the three discovery suites,
+the protocol load and the final audit above. The three descriptor-less
+transparency prohibitions from Plans 05/06 remain flagged judgment checks;
+the passing suites do not silently discharge those narrative review
+obligations.
+
+## SPEC-less probe candidate reconciliation (plan 67-16-02)
+
+The committed record of the plan-phase SPEC-less recall/precision pass is
+`67-05-PLAN.md`'s prohibition_probe_resolution, with the third surviving
+scientific-transparency candidate recorded in `67-06-PLAN.md`. That record
+assigns every candidate class to an explicit owner: routine engineering
+candidates (wrong factors, omitted rows, empty inputs, equality/ordering,
+malformed records, numeric errors, concurrency, power and deadline
+handling) are owned by the edge predicates/tests created in plans
+67-01..06; generic path-containment and input-security candidates are canon
+referrals to the threat model and gsd-secure-phase, outside this phase's
+tests; three scientific-transparency candidates survive as flagged judgment
+checks (two projected from D-02/D-08/D-11 in 67-05, the third in 67-06 from
+D-05/D-06). No committed planning artifact itemizes plan 67-16's "17"
+candidate count as a named list, so this reconciliation reconciles against
+that committed assignment rather than a reconstructed list, citing actual
+test identifiers and observed results: the engineering-candidate classes map
+to `tests/phase67/test_budget` (18), `test_records` (35),
+`test_reading_rule` (21), `test_catalog` (21), `test_time_features` (25),
+`test_windows` (26), `test_checkpoints` (23), `test_admission` (20),
+`test_isolation` (18), `test_pages` (20), `test_workflow` (22),
+`test_historical` (9) and `test_tracer` (2), all OK in the observed run
+above with zero skipped cases; the canon referrals remain referrals (no new
+bespoke prohibitions were introduced); the three transparency flags stay
+narrative review obligations, satisfied by the committed reviews recording
+unsettled outcomes as unsettled, the refuted EXP-03 lead at confirmation
+grade with its digest-bound owner ruling, and no cosine threshold or causal
+claim anywhere in the four result pages. No new threshold, adjudication
+choice or probe execution was introduced by this reconciliation.
