@@ -299,6 +299,8 @@ def audit_pair(reader: Stage0TrainingReader, base_key: RecordKey, gold_key: Reco
         },
         "base_grid": {
             "n_snapshots": int(len(base_times)),
+            "first_time": json_safe_float(float(base_times[0])),
+            "last_time": json_safe_float(float(base_times[-1])),
             "dt_out_measured": json_safe_float(base_dt_measured),
             "dt_out_expected": json_safe_float(base_dt_expected),
             "dt_out_disagreement_warns": base_dt_warn,
@@ -313,6 +315,8 @@ def audit_pair(reader: Stage0TrainingReader, base_key: RecordKey, gold_key: Reco
         },
         "gold_grid": {
             "n_snapshots": int(len(gold_times)),
+            "first_time": json_safe_float(float(gold_times[0])),
+            "last_time": json_safe_float(float(gold_times[-1])),
             "dt_out_measured": json_safe_float(gold_dt_measured),
             "dt_out_expected": json_safe_float(gold_dt_expected),
             "dt_out_disagreement_warns": gold_dt_warn,
@@ -438,17 +442,38 @@ def run_fixed_panel_audit(repo_root: Optional[Path] = None, *, argv: Optional[Se
 
         # Verify sample counts against census expectations
         exp_counts = _CENSUS_COUNTS.get(sys_id, {})
+        census_comp = {}
         if exp_counts:
             base_cnt = rec_info["base_grid"]["n_snapshots"]
             gold_cnt = rec_info["gold_grid"]["n_snapshots"]
-            if base_cnt != exp_counts["base"]:
-                problems.append(
-                    f"system {sys_id} base count {base_cnt} != census {exp_counts['base']}"
+            base_matches = bool(base_cnt == exp_counts["base"])
+            gold_matches = bool(gold_cnt == exp_counts["gold"])
+            census_comp = {
+                "base_actual": base_cnt,
+                "base_census": exp_counts["base"],
+                "base_matches": base_matches,
+                "gold_actual": gold_cnt,
+                "gold_census": exp_counts["gold"],
+                "gold_matches": gold_matches,
+            }
+            if not base_matches:
+                census_comp["base_discrepancy_note"] = (
+                    f"base sample count {base_cnt} differs from census {exp_counts['base']} "
+                    f"because physical_window strictly requires t <= {rec_info['window']['t_max']}, "
+                    f"dropping the 126th base snapshot at t = 10.000000000000007 "
+                    f"(which exceeds 10.0 by ~7.1e-15 in IEEE 754 float64), leaving last retained "
+                    f"timestamp {rec_info['base_grid']['last_time']}; census used t <= 10.0 + 1e-9"
                 )
-            if gold_cnt != exp_counts["gold"]:
+            if not gold_matches:
                 problems.append(
                     f"system {sys_id} gold count {gold_cnt} != census {exp_counts['gold']}"
                 )
+        rec_info["census_comparison"] = census_comp
+
+        if rec_info["base_grid"]["dt_out_disagreement_warns"]:
+            problems.append(f"system {sys_id} base dt disagreement warning")
+        if rec_info["gold_grid"]["dt_out_disagreement_warns"]:
+            problems.append(f"system {sys_id} gold dt disagreement warning")
 
         all_records[str(sys_id)] = rec_info
         all_rows.extend(pair_result["rows"])
@@ -589,6 +614,11 @@ def replay_check(check_path: Path, repo_root: Optional[Path] = None) -> bool:
 
     # Fresh computation
     fresh = run_fixed_panel_audit(repo, argv=["pinn.verification.yardstick_audit", "--check", str(file_path)])
+
+    if not saved.get("coverage", {}).get("complete", False):
+        raise YardstickAuditError("saved audit coverage is incomplete")
+    if not fresh.get("coverage", {}).get("complete", False):
+        raise YardstickAuditError("fresh audit coverage is incomplete")
 
     # Compare stable fields
     stable_fields = ("schema", "coverage", "sources", "reader_access", "records", "rows", "aggregates", "problems")
