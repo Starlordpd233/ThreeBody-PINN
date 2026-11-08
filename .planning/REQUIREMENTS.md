@@ -133,7 +133,7 @@ A result counts as confirming only if it repeats on a second panel system and a 
 
 ### Yardstick (YARD)
 
-- [ ] **YARD-01**: **Known-answer checks of every metric that judges a result.** This covers the FEAS-01 scorer's metrics and tiers, the production validation gate (`pinn/training/validation_gate.py`) and the held-out evaluator's `ε_H` (`pinn/evaluate.py`). Read-only, with no training. On the three panel systems, each metric is scored for:
+- [x] **YARD-01**: **Known-answer checks of every metric that judges a result.** This covers the FEAS-01 scorer's metrics and tiers, the production validation gate (`pinn/training/validation_gate.py`) and the held-out evaluator's `ε_H` (`pinn/evaluate.py`). Read-only, with no training. On the three panel systems, each metric is scored for:
   - **Brutus's exact answer,** which must pass every bar it should;
   - **the constant predictor,** which must fail every bar that judges accuracy.
 
@@ -142,12 +142,12 @@ A result counts as confirming only if it repeats on a second panel system and a 
   **Acceptance:**
   - Each metric and gate has its pass or fail table for both answers, committed and re-derivable.
   - No test-split file is opened, and no held-out evaluation is spent. [`PROJECT.md` v2.5 "The yardstick"; GAP-59-08]
-- [ ] **YARD-02**: **The owner decides GAP-59-08 (charter row C-7):** how the energy error is measured. The options are `64-CHARTER.md`'s A, B and C, with YARD-01's evidence.
+- [x] **YARD-02**: **The owner decides GAP-59-08 (charter row C-7):** how the energy error is measured. The options are `64-CHARTER.md`'s A, B and C, with YARD-01's evidence.
 
   **Acceptance:**
   - The choice is recorded verbatim, and GAP-59-08 is closed with it.
   - Any amendment it calls for (A writes autograd velocities into `pinn_architecture.md` §10.6) is routed to v2.6 (SCOPE-46). [`64-CHARTER.md` C-7]
-- [ ] **YARD-03**: **The owner sets the bars.** These are charter rows C-2 (the definition of done), C-4 and C-5 (the Stage-0 position and energy bars) and C-6 (the 10⁻⁵ held-out bar). They are set from the purpose (C-1), the comparison points, YARD-01 and the published results.
+- [x] **YARD-03**: **The owner sets the bars.** These are charter rows C-2 (the definition of done), C-4 and C-5 (the Stage-0 position and energy bars) and C-6 (the 10⁻⁵ held-out bar). They are set from the purpose (C-1), the comparison points, YARD-01 and the published results.
 
   **Acceptance:**
   - The choices are recorded verbatim. A row the owner leaves open is recorded as open.
@@ -246,9 +246,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXP-03 | Phase 67 | Complete |
 | EXP-04 | Phase 67 | Complete |
 | EXP-05 | Phase 67 | Complete |
-| YARD-01 | Phase 68 | Pending |
-| YARD-02 | Phase 68 | Pending |
-| YARD-03 | Phase 68 | Pending |
+| YARD-01 | Phase 68 | Complete |
+| YARD-02 | Phase 68 | Complete |
+| YARD-03 | Phase 68 | Complete |
 | VERD-01 | Phase 69 | Pending |
 | VERD-02 | Phase 69 | Pending |
 | VER-23 | Phase 69 | Pending |

@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v2.5
 milestone_name: Root-Cause Confirmation
-current_phase: 68
-current_phase_name: Yardstick
-status: executing
-stopped_at: Phase 68 planned and checked, ready to execute
-last_updated: "2026-11-08T18:08:51Z"
+current_phase: 69
+current_phase_name: Findings & Redesign Decision
+status: planning
+stopped_at: Phase 68 complete, ready to plan Phase 69
+last_updated: "2026-11-08T22:15:13.954Z"
 last_activity: 2026-11-08
-last_activity_desc: Phase 68 planned and checked, 2 plans in 2 waves
-state_head: 6f6b1050df66ba1640049a7505fefac1080a24ee
+last_activity_desc: Phase 68 complete, transitioned to Phase 69
+state_head: f3687ff6fd33e2f410b0edc9bc1be0ab5d6035a7
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 29
-  completed_plans: 27
-  percent: 60
+  completed_plans: 29
+  percent: 80
 ---
 
 # Project State
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Phase 68 - Yardstick
+**Current focus:** Phase 68 — Yardstick
 
 ## Current Position
 
-Phase: 68 (Yardstick) — READY TO EXECUTE
+Phase: 69 — Findings & Redesign Decision
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-11-08 - Phase 68 planned and checked, 2 plans in 2 waves
+Status: Ready to plan
+Last activity: 2026-11-08 — Phase 68 complete, transitioned to Phase 69
   run and review): all 12 window-ladder rows ran exactly once at the
   registered common N=148700 (200 warmup) with the registered five
   similarity events and three score events, serially in the case-major
@@ -1543,7 +1543,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 **Velocity:**
 
-- Total plans completed: 919 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 921 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -1614,6 +1614,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | 57 | 6 | - | - |
 | 66 | 5 | - | - |
 | 67 | 16 | - | - |
+| 68 | 2 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -1889,7 +1890,7 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** .planning/phases/68-yardstick/68-01-PLAN.md
 
 Last session: 2026-11-08T18:08:51Z
-Stopped at: Phase 68 planned and checked, ready to execute
+Stopped at: Phase 68 complete, ready to plan Phase 69
 Next action: Execute Phase 68 with $gsd-execute-phase 68 in the trainex worktree. Commit the yardstick audit before owner checkpoint 2.
 
 ## Operator Next Steps

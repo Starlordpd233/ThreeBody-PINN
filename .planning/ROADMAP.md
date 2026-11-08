@@ -101,7 +101,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
   - window length: 1, 2, 5 and 10 inner laps.
 
   They separate "the design" from "the training settings". (EXP-02, EXP-03, EXP-04, EXP-05)
-- [ ] **Phase 68: Yardstick** — Known-answer checks of every metric and gate, read-only. Brutus's exact answer must pass; the constant predictor must fail every accuracy bar. Then the owner decides how energy error is measured (GAP-59-08) and sets the definition of done and the Stage-0 bars, including whether the 10⁻⁵ bar stays. It does not depend on the experiments. **Owner checkpoint ②.** (YARD-01, YARD-02, YARD-03)
+- [x] **Phase 68: Yardstick** — Known-answer checks of every metric and gate, read-only. Brutus's exact answer must pass; the constant predictor must fail every accuracy bar. Then the owner decides how energy error is measured (GAP-59-08) and sets the definition of done and the Stage-0 bars, including whether the 10⁻⁵ bar stays. It does not depend on the experiments. **Owner checkpoint ②.** (YARD-01, YARD-02, YARD-03) (completed 2026-11-08)
 - [ ] **Phase 69: Findings & Redesign Decision** — One page marks each suspect, and the probe's lead, as confirmed, refuted or open, with numbers. The owner picks the v2.6 redesign direction and decides whether to commission `trainex-r5`. Traceability is re-verified at close. **Owner checkpoint ③.** (VERD-01, VERD-02, VER-23)
 
 ## Phase Details
@@ -286,11 +286,11 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 **Plans**: 0/2 plans executed in 2 waves (planned 2026-11-08).
 **Wave 1**
 
-- [ ] 68-01-PLAN.md
+- [x] 68-01-PLAN.md
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 68-02-PLAN.md
+- [x] 68-02-PLAN.md
 
 **Cross-cutting constraints:**
 
@@ -317,7 +317,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
 | 67. Design & Settings Ladders | 16/16 | Complete    | 2026-11-08 |
-| 68. Yardstick | 0/2 | Planned    |  |
+| 68. Yardstick | 2/2 | Complete    | 2026-11-08 |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |
 
 ---
