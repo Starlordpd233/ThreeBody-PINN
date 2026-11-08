@@ -5,21 +5,21 @@
 **Committed Audit Evidence:** `.planning/phases/68-yardstick/evidence/yardstick-audit.json`  
 **Audit Evidence Commit:** `605d7ad6e10eb96ebfca09f19db1d6a629636254`  
 **Audit Evidence SHA-256:** `4b82c21918ba578c9f889cc21f1a93494d12aaa60940b2dac5ef073318922fe4`  
-**Status:** `OWNER-DECISION-PENDING` (all five charter rows are open pending owner ruling).
+**Status:** `RATIFIED-C7-OPTION-A / COMPANIONS-OPEN` (C-7 decided as Option A; companion items C-2, C-4, C-5, C-6 deferred as open per owner instruction in `68-CHECKPOINT-2-RULING.md`).
 
 ---
 
 ## The Decision on One Page
 
-You are asked to make decisions for five reserved charter items. **C-7 must be decided first** because C-5 and the pass bars depend directly on how velocity and energy are measured.
+Owner Checkpoint 2 ruling received 2026-11-08: **C-7 decided as Option A (autograd velocities)**. Companion rows C-2, C-4, C-5, and C-6 are left **open** for separate discussion in milestone v2.6.
 
-| ID | Item | Recommended Answer | Other Options | Current State |
+| ID | Item | Recommended Answer | Other Options | Ruling Status |
 |---|---|---|---|:---:|
-| **C-7** | **Velocity measurement for energy gate (GAP-59-08)** | **A: Autograd velocities in evaluator & validation gate**, via formal clarifying amendment to `pinn_architecture.md` §10.6 | **B:** Dense-grid finite differences;<br>**C:** Retain current coarse gate as-is | **PENDING OWNER RULING** |
-| **C-2** | **Definition of Done (PoC target)** | **A: Level 6 at Stage 0** (one network passes the one-shot Stage-0 held-out exam at the C-4 and C-5 bar) | **B:** Level 3 (single-system memorization on 2 of 3 seeds);<br>**C:** Level 9 (every stage 0–6 at its bar) | Pending C-7 ruling |
-| **C-4** | **Stage-0 pass bar: position error ($E$)** | **A: Tier 1 ($E \le 0.1$) AND strictly beats both formula and copy** on at least 75% of Stage-0 validation panel | **B:** Valid horizon $h(0.1) \ge 0.5$ on $\ge 75\%$ of validation panel;<br>**C:** Owner-named criterion | Pending C-7 ruling |
-| **C-5** | **Stage-0 pass bar: energy drift ($\text{eps}_H$)** | **A: $\text{eps}_H \le 10^{-2}$ from autograd velocities** (conditional on C-7 = A; Tier 2 $\text{eps}_H \le 10^{-3}$ as stretch) | **B:** $\text{eps}_H \le 10^{-3}$;<br>**C:** $\text{eps}_H \le 10^{-5}$ | Pending C-7 ruling |
-| **C-6** | **The locked $10^{-5}$ held-out bar** | **A: Replace it by formal amendment** in milestone v2.6 with evidence-based criteria (C-4 & C-5) | **B:** Keep $10^{-5}$ as the unachievable gate | Pending C-7 ruling |
+| **C-7** | **Velocity measurement for energy gate (GAP-59-08)** | **A: Autograd velocities in evaluator & validation gate**, via formal clarifying amendment to `pinn_architecture.md` §10.6 | **B:** Dense-grid finite differences;<br>**C:** Retain current coarse gate as-is | **DECIDED: OPTION A** |
+| **C-2** | **Definition of Done (PoC target)** | **A: Level 6 at Stage 0** (one network passes the one-shot Stage-0 held-out exam at the C-4 and C-5 bar) | **B:** Level 3 (single-system memorization on 2 of 3 seeds);<br>**C:** Level 9 (every stage 0–6 at its bar) | **OPEN (deferred)** |
+| **C-4** | **Stage-0 pass bar: position error ($E$)** | **A: Tier 1 ($E \le 0.1$) AND strictly beats both formula and copy** on at least 75% of Stage-0 validation panel | **B:** Valid horizon $h(0.1) \ge 0.5$ on $\ge 75\%$ of validation panel;<br>**C:** Owner-named criterion | **OPEN (deferred)** |
+| **C-5** | **Stage-0 pass bar: energy drift ($\text{eps}_H$)** | **A: $\text{eps}_H \le 10^{-2}$ from autograd velocities** (conditional on C-7 = A; Tier 2 $\text{eps}_H \le 10^{-3}$ as stretch) | **B:** $\text{eps}_H \le 10^{-3}$;<br>**C:** $\text{eps}_H \le 10^{-5}$ | **OPEN (deferred)** |
+| **C-6** | **The locked $10^{-5}$ held-out bar** | **A: Replace it by formal amendment** in milestone v2.6 with evidence-based criteria (C-4 & C-5) | **B:** Keep $10^{-5}$ as the unachievable gate | **OPEN (deferred)** |
 
 ---
 

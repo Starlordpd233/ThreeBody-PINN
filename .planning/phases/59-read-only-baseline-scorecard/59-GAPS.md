@@ -9,8 +9,8 @@ verdict. Those go to the owner. Milestone index:
 
 Every gap below surfaced in `59-RESEARCH.md` (2026-10-11) during Phase-59
 planning and was recorded before any Phase-59 code ran. GAP-59-01..07 are
-resolved under the delegation. **GAP-59-08 is OPEN and owner-routed.** It
-does not block Phase 59.
+resolved under the delegation. **GAP-59-08 is RESOLVED-WITH-INSTRUCTION**
+(2026-11-08, Owner Checkpoint 2 ruling in Phase 68). It did not block Phase 59.
 
 ## In plain language
 
@@ -23,7 +23,7 @@ does not block Phase 59.
 | 05 | The exact formula behind Gate G1 | Pre-registered before computing |
 | 06 | How to normalize the starting-condition inputs without opening test files | Recover the production statistics from a saved checkpoint |
 | 07 | Which time grid the scorecard measures on | The dense grid, so a fit that is right only at its training samples does not pass |
-| 08 | **The existing energy check fails even a perfect answer** | **Owner decision; it does not block v2.4** |
+| 08 | **The existing energy check fails even a perfect answer** | **Resolved (Option A: autograd velocities in Checkpoint 2)** |
 | 10 | The reader's IC13 values are one float32 rounding step over the frozen 1e-7 | Owner accepted it as a recorded deviation; the 1e-7 value is unchanged |
 | 11 | Whether "within 1e-4" passes a difference of exactly one fourth-decimal step | Owner: compare the rounded copies in exact decimal units, so it passes |
 | 12 | A JX-10 dev result goes stale when Task 2 edits the driver | Rerun JX-10 as a dev run after Task 2's code lands |
@@ -326,11 +326,14 @@ does not block Phase 59.
   - C: keep the gate as is, knowing it cannot pass.
 - **Confidence of impact.** HIGH. It decides whether the project's final exam
   is passable at all, and how every past `ε_H` figure reads.
-- **Status.** OPEN. Owner-routed: it concerns the preserved evaluation.
-  Dependency-scoped: it blocks any spend of the held-out evaluation and the
-  FEAS-10 pass-bar choice, and nothing in v2.4's ladder, which uses the
-  scorecard's autograd `ε_H` (GAP-59-02).
-- **Resolution note.** —
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-11-08, Owner Checkpoint 2 ruling in
+  `.planning/phases/68-yardstick/68-CHECKPOINT-2-RULING.md`).
+- **Resolution note.** Option A: The evaluator and validation gate use autograd
+  velocities ($\mathbf{v}(t) = \partial \mathbf{r} / \partial t$) for neural
+  network predictions, resolving the $O(\Delta t^2)$ finite-difference truncation
+  floor that caused exact Brutus trajectories to fail the $10^{-5}$ line during the
+  Phase 68 yardstick audit. Formal specification clarifying amendment to
+  `pinn_architecture.md` §10.6 is routed to milestone v2.6 (`ROUT-68-01`).
 
 ## GAP-59-09 — parameters and reading rules the planner pre-registered in the 59-01 scorecard
 
