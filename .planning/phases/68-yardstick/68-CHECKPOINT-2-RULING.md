@@ -41,6 +41,7 @@ C-7: A. Leave C-2, C-4, C-5 and C-6 open for separate discussion.
 | **C-4** | Stage-0 position pass bar ($E$) | Open | **OPEN** | Deferred for separate discussion per owner instruction. Proposed Tier 1 ($E \le 0.1$) and formula/copy beating remain pending. |
 | **C-5** | Stage-0 energy pass bar ($\text{eps}_H$) | Open | **OPEN** | Deferred for separate discussion per owner instruction. With C-7 resolved to Option A, C-5 will evaluate autograd velocities when decided. |
 | **C-6** | The $10^{-5}$ held-out pass bar | Open | **OPEN** | Deferred for separate discussion per owner instruction. Existing locked text in `pinn_architecture.md` §10.6 remains untouched in Phase 68. |
+| **C-11** | `ctl_instruction.md` evaluation section | Recorded | **ROUTED TO v2.6** | Carried forward under Phase 64 Charter authority: rewrite of premature evaluation text is routed to the milestone setting the pass bars (v2.6); no edit in Phase 68. |
 
 ---
 
@@ -54,3 +55,4 @@ Per YARD-02 and YARD-03, this ruling routes actionable implementation and specif
 | `ROUT-68-02` | `pinn/training/validation_gate.py` | Add autograd velocity support to validation gate execution for continuous neural network trajectory predictions, preserving gradient tracking with respect to input coordinate $t$ during validation passes. | Owner Checkpoint 2 ruling: C-7 Option A |
 | `ROUT-68-03` | `pinn/evaluate.py` | Enable autograd velocity computation in the evaluation harness when scoring continuous model trajectories, matching the FEAS-01 explicit-velocity scoring standard. | Owner Checkpoint 2 ruling: C-7 Option A |
 | `ROUT-68-04` | Milestone v2.6 Planning | Conduct dedicated discussion with project owner to rule on C-2, C-4, C-5, and C-6 before establishing production pass bars or spending preserved evaluation data. | Owner Checkpoint 2 ruling: Companion rows open |
+| `ROUT-68-05` | `ctl_instruction.md` evaluation section | Rewrite the historical evaluation section that describes non-existent results, aligning it with the ratified pass bars when C-2, C-4, C-5, and C-6 are decided. | Phase 64 Charter C-11 authority |
