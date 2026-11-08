@@ -5,11 +5,11 @@ milestone_name: Root-Cause Confirmation
 current_phase: 68
 current_phase_name: Yardstick
 status: planning
-stopped_at: Phase 67 complete, ready to plan Phase 68
-last_updated: "2026-11-08T12:53:22.594Z"
+stopped_at: Phase 68 context gathered, ready for research and planning
+last_updated: "2026-11-08T16:55:37.752Z"
 last_activity: 2026-11-08
 last_activity_desc: Phase 67 complete, transitioned to Phase 68
-state_head: 6b846e0e1f6d563f20f1db328632cfd23e9180f2
+state_head: 768b6df47b069171364e6128017d2d2cac9b848b
 progress:
   total_phases: 5
   completed_phases: 3
@@ -25,7 +25,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Phase 67 — Design & Settings Ladders
+**Current focus:** Phase 68 - Yardstick
 
 ## Current Position
 
@@ -1886,11 +1886,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/67-design-settings-ladders/67-01-PLAN.md
+**Resume file:** .planning/phases/68-yardstick/68-CONTEXT.md
 
-Last session: 2026-11-02T04:24:23.147Z
-Stopped at: Phase 67 complete, ready to plan Phase 68
-Next action: Execute Phase 67 with $gsd-execute-phase 67 in the existing trainex worktree, starting with 67-01-PLAN.md. Plans 01 through 07 implement and verify the diagnostic harness with synthetic fixtures and can run any day. Real metadata, timing and science in Plans 08 through 15 require the registered weekend AC gate and measured budgets. The independent plan check passed after the compatibility/freeze split. Do not create a new worktree or launch unregistered compute.
+Last session: 2026-11-08T16:55:37.142Z
+Stopped at: Phase 68 context gathered, ready for research and planning
+Next action: Research and plan Phase 68 with $gsd-plan-phase 68 from the trainex worktree. Read 68-SPEC.md and 68-CONTEXT.md first. Commit the yardstick audit before owner checkpoint 2.
 
 ## Operator Next Steps
 
