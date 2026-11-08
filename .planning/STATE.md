@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: 67-12 complete — EXP-04 pre-registered end to end with NO science launch (all 18 timing rows measured serially at N=1200 and committed; cost-only Plan04 budget common N=112700 with the prediction page, science matrix and all 18 science registrations frozen at 4c8b7b25; PHASE67-BUDGET-OK and both matrix gates green); next: 67-13
-last_updated: "2026-11-07T18:10:00.000Z"
+stopped_at: 67-13 complete — the full EXP-04 science campaign ran and reviewed: all 18 science rows launched exactly once at the registered common N=112700 under the 3540-second cap (each PHASE67-ROW-OK with scores hidden, committed before the next launch, zero deferred/burned rows), the registered review reads all four encoded contrasts unsettled with nothing confirmed in either direction, scope49 none / dependent_launch_allowed=true, PHASE67-REVIEW-OK admits EXP-05; next: 67-14
+last_updated: "2026-11-08T00:45:00.000Z"
 last_activity: 2026-11-07
-last_activity_desc: 67-12 closed complete — rows 2-18 measured/committed after two reader false-refusal fixes (3d640feb, 4ea20b05), budget and 18 science registrations frozen at 4c8b7b25, no science launch
-state_head: 4c8b7b25
+last_activity_desc: 67-13 closed complete — 18/18 EXP-04 science rows measured/committed (3517e1dc..c04bb428) inside the Saturday weekend window, review + result committed at 3af7a831 (all contrasts unsettled, in-scope continue route, no ruling needed), PHASE67-REVIEW-OK
+state_head: 3af7a831
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 23
-  percent: 85
+  completed_plans: 24
+  percent: 89
 ---
 
 # Project State
@@ -30,20 +30,44 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 13 of 16 (67-12 complete; next 67-13)
-Status: Executing Phase 67 (67-01..67-12 complete)
-Last activity: 2026-11-07 — plan 67-12 closed complete (EXP-04
-  pre-registration, no science launch): the continuation recovered the
-  predecessor's on-disk row 2, fixed two reader false-refusals on faithful
-  evidence under the new-defect protocol (3d640feb as-captured citations
-  after a freeze re-pin; 4ea20b05 orbit-aware matrix-row binding for D-09's
-  851 encoded variants; 6 regression tests, two freeze-chain re-pins, no
-  evidence byte touched), then ran rows 3-18 serially (each launched exactly
-  once at N=1200 under the 900-second cap on AC power inside the weekend
-  window, PHASE67-ROW-OK, one commit per row), and froze the cost-only
-  Plan04 budget and all 18 science registrations at 4c8b7b25 (common
-  N=112700, worst-row projection 2653.94 s vs the 2655 s cap, experiment
-  projection 25880.3 s; PHASE67-BUDGET-OK, PHASE67-MATRIX-OK science).
+Plan: 14 of 16 (67-13 complete; next 67-14)
+Status: Executing Phase 67 (67-01..67-13 complete)
+Last activity: 2026-11-07 — plan 67-13 closed complete (EXP-04 science
+  run and review): all 18 registered science rows launched exactly once at
+  the common N=112700 under the 3540-second cap in the committed case-major
+  order (12:13-18:22 CST Saturday, AC power, PHASE67-ROW-OK per row with
+  scores hidden, one commit of four artifacts per row before the next
+  launch, zero deferred/burned rows, PHASE67-ALL-ROWS-OK), then the
+  registered review read the committed evidence under the unchanged
+  prospective rule and committed the original result page and review at
+  3af7a831: all four encoded-vs-raw contrasts unsettled, nothing confirmed
+  in either direction, scope49 none, dependent_launch_allowed=true
+  (PHASE67-REVIEW-ARTIFACTS-OK, PHASE67-REVIEW-OK — EXP-05 admitted).
+
+### Decisions from 67-13 (2026-11-07)
+
+- **The EXP-04 time-input verdict is unsettled on every arm — the encoded
+  harmonic input is not a confirmed improvement (or worsening) within the
+  registered finite budget.** All four encoded contrasts (locked-f1,
+  locked-f12, exp01-f1, exp01-f12, each against its own backbone's raw
+  control) read unsettled because several endpoints were still improving by
+  more than the registered five percent when their budget ended; unsettled
+  endpoints block confirmation in both directions. Direction is worsening on
+  the main case and the 851 repeat for all four arms, with an opposed
+  improvement direction on the seed-41 repeat for both locked arms — the
+  registered rule refuses to confirm on an opposed repeat, a main-only run,
+  a tie or a small effect, and none is presented.
+- **The registered unsettled branch is an in-scope continue route:** no
+  continuation, rescue or re-sizing ran (no-continuation policy), no
+  scope/pass-bar/registration change is proposed, the conditional task 3
+  owner checkpoint is skipped by its own condition with no ruling file, and
+  dependent work (EXP-05, 67-14) proceeds under its existing committed
+  registration. No input-design change is justified by this evidence.
+- **The run stayed strictly serial, single-use and value-blind:** per-row
+  inspection touched cost fields only; the review command was the first and
+  only score reader; the prospective design was never altered by a result.
+  Measured walls 442-1987 s (total 19695 s vs the 25880.3 s projection),
+  every row a complete 112700-step attempt under the 3540-second cap.
 
 ### Decisions from 67-12 (2026-11-07; tasks 1-2 by the predecessor executor, task 3 across both sessions)
 
