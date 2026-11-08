@@ -34,7 +34,7 @@ findings and redesign choice. v2.6 owns authorized amendments.
 
 ### Inputs and comparisons
 
-- **D-01. Use the per-record TRAIN reader.** Reuse `Stage0TrainingReader`,
+- **D-01: Use the per-record TRAIN reader.** Reuse `Stage0TrainingReader`,
   the hash-checked split manifest and the process open attestation. Limit
   the audit to the hierarchical base/gold pairs for 1632, 851 and 4658. The
   base record supplies the physical orbit's Stage-0 label, so the gold
@@ -42,7 +42,7 @@ findings and redesign choice. v2.6 owns authorized amendments.
   Stage 0 before resolving a corpus path. Record the keys admitted and
   the actual split opens. Use `load_reference` for the existing gauge,
   body permutation and ordered masses.
-- **D-02. Compare matched samples within each grid.** Use the frozen
+- **D-02: Compare matched samples within each grid.** Use the frozen
   scorecard's native gold window through `t = 10` for the primary score.
   Use the persisted base sibling for the coarse comparison. Within each
   grid and window, feed the reference positions and recorded velocities
@@ -55,7 +55,7 @@ findings and redesign choice. v2.6 owns authorized amendments.
 
 ### Measurement and evidence
 
-- **D-03. Call the shared gate calculations on the same inputs.** For the
+- **D-03: Call the shared gate calculations on the same inputs.** For the
   finite-difference energy comparison, use `compute_trajectory_gate_metrics`
   and `aggregate_gate_verdict` from `gate_metrics`. Pair `r_prime` with
   `u = t/T` via `gate_time_coordinate`, using ordered raw masses. Use the
@@ -66,7 +66,7 @@ findings and redesign choice. v2.6 owns authorized amendments.
   any input dtype differences relevant to the reading. The audited
   aggregate is over the TRAIN panel. Exercise the calculation with
   in-memory inputs, outside the evaluator's attempt and receipt path.
-- **D-04. Distinguish the verdict from the audit finding.** Report the
+- **D-04: Distinguish the verdict from the audit finding.** Report the
   existing bar and verdict alongside the expected known answer. A complete
   audit can expose a correct-answer failure or a constant-prediction pass.
   Preserve separate FEAS-01 tier, finite-difference gate and context-only
@@ -81,7 +81,7 @@ findings and redesign choice. v2.6 owns authorized amendments.
 
 ### Owner checkpoint and research handoff
 
-- **D-05. Bring checkpoint 2 the committed audit first.** Present the
+- **D-05: Bring checkpoint 2 the committed audit first.** Present the
   charter's three C-7 choices with the measured base/gold comparisons and
   the consequences for production validation and evaluation. Ask for C-7
   explicitly. Then present C-2 and C-4 through C-6 with that disposition

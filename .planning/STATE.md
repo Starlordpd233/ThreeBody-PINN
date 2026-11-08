@@ -4,16 +4,16 @@ milestone: v2.5
 milestone_name: Root-Cause Confirmation
 current_phase: 68
 current_phase_name: Yardstick
-status: planning
-stopped_at: Phase 68 context gathered, ready for research and planning
-last_updated: "2026-11-08T16:55:37.752Z"
+status: executing
+stopped_at: Phase 68 planned and checked, ready to execute
+last_updated: "2026-11-08T18:08:51Z"
 last_activity: 2026-11-08
-last_activity_desc: Phase 67 complete, transitioned to Phase 68
-state_head: 768b6df47b069171364e6128017d2d2cac9b848b
+last_activity_desc: Phase 68 planned and checked, 2 plans in 2 waves
+state_head: 6f6b1050df66ba1640049a7505fefac1080a24ee
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 27
+  total_plans: 29
   completed_plans: 27
   percent: 60
 ---
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 
 ## Current Position
 
-Phase: 68 — Yardstick
+Phase: 68 (Yardstick) — READY TO EXECUTE
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-11-08 — Phase 67 complete, transitioned to Phase 68
+Status: Ready to execute
+Last activity: 2026-11-08 - Phase 68 planned and checked, 2 plans in 2 waves
   run and review): all 12 window-ladder rows ran exactly once at the
   registered common N=148700 (200 warmup) with the registered five
   similarity events and three score events, serially in the case-major
@@ -1886,11 +1886,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/68-yardstick/68-CONTEXT.md
+**Resume file:** .planning/phases/68-yardstick/68-01-PLAN.md
 
-Last session: 2026-11-08T16:55:37.142Z
-Stopped at: Phase 68 context gathered, ready for research and planning
-Next action: Research and plan Phase 68 with $gsd-plan-phase 68 from the trainex worktree. Read 68-SPEC.md and 68-CONTEXT.md first. Commit the yardstick audit before owner checkpoint 2.
+Last session: 2026-11-08T18:08:51Z
+Stopped at: Phase 68 planned and checked, ready to execute
+Next action: Execute Phase 68 with $gsd-execute-phase 68 in the trainex worktree. Commit the yardstick audit before owner checkpoint 2.
 
 ## Operator Next Steps
 

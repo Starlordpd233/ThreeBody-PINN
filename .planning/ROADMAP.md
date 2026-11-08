@@ -283,7 +283,18 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
   4. The owner's C-2, C-4, C-5 and C-6 choices are recorded verbatim, with any row left open recorded as open. Every amendment they call for is routed to v2.6.
   5. No test-split file was opened and no held-out evaluation was spent.
 
-**Plans**: TBD
+**Plans**: 0/2 plans executed in 2 waves (planned 2026-11-08).
+**Wave 1**
+
+- [ ] 68-01-PLAN.md
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 68-02-PLAN.md
+
+**Cross-cutting constraints:**
+
+- SCOPE-45 and SCOPE-46 govern all execution. The preserved evaluation remains unspent and the frozen scorer and production metric contracts remain intact.
 
 ### Phase 69: Findings & Redesign Decision
 
@@ -306,7 +317,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
 | 67. Design & Settings Ladders | 16/16 | Complete    | 2026-11-08 |
-| 68. Yardstick | 0/TBD | Not started | - |
+| 68. Yardstick | 0/2 | Planned    |  |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |
 
 ---
