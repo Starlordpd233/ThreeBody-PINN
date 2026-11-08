@@ -118,16 +118,16 @@ A result counts as confirming only if it repeats on a second panel system and a 
   - Its tier, `E` against the constant predictor and the formula, and neighbour similarity are recorded.
   - Reaching Tier 1 (`E ≤ 0.1`) refutes "too small" for one orbit.
   - The result is reviewed against the plan before EXP-02..05 start (owner checkpoint ①). [`PROJECT.md` v2.5 experiments]
-- [ ] **EXP-02**: **The depth ladder.** The locked layer types at 2, 4, 6, 8 and 12 layers, with everything else locked, on orbit 1632.
+- [x] **EXP-02**: **The depth ladder.** The locked layer types at 2, 4, 6, 8 and 12 layers, with everything else locked, on orbit 1632.
 
   **Acceptance:** `E`, tier and per-layer neighbour similarity are recorded at each depth, so it shows whether accuracy falls and similarity collapses as depth grows. [`PROJECT.md` v2.5 experiments]
-- [ ] **EXP-03**: **The learning-rate ladder.** The locked network at learning rates from 10⁻³ down to 10⁻⁵. The exact points are on the prediction page.
+- [x] **EXP-03**: **The learning-rate ladder.** The locked network at learning rates from 10⁻³ down to 10⁻⁵. The exact points are on the prediction page.
 
   **Acceptance:** `E`, tier and the similarity trace through training are recorded at each rate. These separate "the design" from "the training settings". [`PROJECT.md` v2.5 experiments]
-- [ ] **EXP-04**: **Time-input design.** Time features matched to how fast the orbit moves, against the locked input, where time shares the first layer with 13 inputs that are constant on one orbit.
+- [x] **EXP-04**: **Time-input design.** Time features matched to how fast the orbit moves, against the locked input, where time shares the first layer with 13 inputs that are constant on one orbit.
 
   **Acceptance:** `E`, tier and similarity are recorded for each input design, on the locked depth and on the EXP-01 network. [`PROJECT.md` v2.5 experiments]
-- [ ] **EXP-05**: **Window length.** Windows of 1, 2, 5 and 10 inner laps. On system 1632, 10 laps is about the whole window (10.47).
+- [x] **EXP-05**: **Window length.** Windows of 1, 2, 5 and 10 inner laps. On system 1632, 10 laps is about the whole window (10.47).
 
   **Acceptance:** `E` over each window, tier and similarity are recorded, so it shows whether a shorter window removes the failure. [`PROJECT.md` v2.5 experiments; `64-VERDICT.md` representation pivots]
 
@@ -242,10 +242,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DIAG-09 | Phase 65 | Complete |
 | INST-08 | Phase 65 | Complete |
 | EXP-01 | Phase 66 | Complete |
-| EXP-02 | Phase 67 | Pending |
-| EXP-03 | Phase 67 | Pending |
-| EXP-04 | Phase 67 | Pending |
-| EXP-05 | Phase 67 | Pending |
+| EXP-02 | Phase 67 | Complete |
+| EXP-03 | Phase 67 | Complete |
+| EXP-04 | Phase 67 | Complete |
+| EXP-05 | Phase 67 | Complete |
 | YARD-01 | Phase 68 | Pending |
 | YARD-02 | Phase 68 | Pending |
 | YARD-03 | Phase 68 | Pending |

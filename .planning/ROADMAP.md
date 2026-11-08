@@ -94,7 +94,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 
 - [x] **Phase 65: Probe on the Record & Fit Harness** — The 2026-10-27 probe re-run as a committed, read-only step on the seven v2.4 networks, with its earlier figures as the predictions. Then the minute-scale harness that trains one named network variant, data-only, on one training orbit and logs, layer by layer, how alike the network's state is at neighbouring times. (DIAG-09, INST-08)
 - [x] **Phase 66: Small-Network Control** — The cheapest, most decisive test first: does a smaller, shallower network fit orbit 1632 from time alone? Reaching Tier 1 refutes "too small" for one orbit. The result is reviewed against the plan before anything else runs. **Owner checkpoint ①.** (EXP-01) (completed 2026-11-01)
-- [ ] **Phase 67: Design & Settings Ladders** *(provisional until Phase 66's review)* — Four experiments on the locked layer types, each with its own prediction page:
+- [x] **Phase 67: Design & Settings Ladders** *(provisional until Phase 66's review)* — Four experiments on the locked layer types, each with its own prediction page: (completed 2026-11-08)
   - depth: 2, 4, 6, 8 and 12 layers;
   - learning rate: 10⁻³ down to 10⁻⁵;
   - time-input design: time features matched to the orbit's speed;
@@ -258,7 +258,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 
 **Wave 15** *(blocked on Wave 14 completion)*
 
-- [ ] 67-16-PLAN.md
+- [x] 67-16-PLAN.md
 
 **Cross-cutting constraints:**
 
@@ -305,7 +305,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 |-------|----------------|--------|-----------|
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
-| 67. Design & Settings Ladders | 15/16 | In Progress (67-15 complete: EXP-05 science run and review — all 12 window-ladder rows ran exactly once at the registered common N=148700 under the 3540-second cap, serially in the case-major matrix order on AC power inside the weekend window (each PHASE67-ROW-OK with scores hidden, one commit of four artifacts per row, walls 2012-2899 s totalling 29246 s, zero deferred/burned rows), and the registered review read the committed evidence under the unchanged prospective rule (3b19801c): all three lap1/lap2/lap5-vs-lap10 contrasts unsettled — improvement direction on all nine case-contrast cells with every relative E effect qualifying (0.14-0.88) but unsettled endpoints blocking confirmation — nothing confirmed, dependent_launch_allowed=true on the registered unsettled branch, no scope proposal, no ruling; PHASE67-REVIEW-OK admits 67-16 evidence closure; see 67-15-SUMMARY.md) |  |
+| 67. Design & Settings Ladders | 16/16 | Complete    | 2026-11-08 |
 | 68. Yardstick | 0/TBD | Not started | - |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |
 
