@@ -1206,6 +1206,12 @@ def _committed_metadata_record(experiment, *, root, phase_dir):
              f"{doc.get('experiment')!r}")
     _require(doc.get("status") == "complete",
              "the committed metadata capture is not complete")
+    # The EXP-05 lap variants materialize from the committed capture: every
+    # command that admits an exp05 registration resolves them through the
+    # phase67 registry (validate_smoke_settings, _row_settings), so they
+    # must exist in this process before a registration is written or read.
+    if experiment == "exp05":
+        _materialize_exp05_variants(doc)
     return record_path, doc, _sha256_file(record_path)
 
 
@@ -1234,7 +1240,19 @@ def _materialize_exp05_variants(metadata):
                 hidden_omega_0=reference.hidden_omega_0,
             ))
     if declarations:
-        register_exp05_window_variants(declarations)
+        from pinn.verification.diagnostic_phase67_catalog import (
+            _EXP05_WINDOW_VARIANTS,
+        )
+
+        # Idempotent within a process: several commands load the committed
+        # metadata record more than once, and the registration refuses an
+        # already-registered name.
+        fresh = [
+            declaration for declaration in declarations
+            if declaration.name not in _EXP05_WINDOW_VARIANTS
+        ]
+        if fresh:
+            register_exp05_window_variants(fresh)
 
 
 # --------------------------------------------------------------------------
@@ -1813,9 +1831,6 @@ def _write_row_registrations(experiment, kind, rows, *, root, phase_dir,
         registration = phase_dir / row["registration_path"]
         registration.parent.mkdir(parents=True, exist_ok=True)
         _exclusive_json_write(registration, doc)
-    # The EXP-05 lap variants materialize from the committed metadata.
-    if experiment == "exp05":
-        _materialize_exp05_variants(metadata)
 
 
 def phase67_cost_rows(entries):
@@ -2109,9 +2124,11 @@ def launch_phase67_row(
              f"the row registration is missing: {row['registration_path']}")
     _require_committed(root, _relative(root, registration),
                        f"{kind} row registration")
-    if kind == "timing":
-        _committed_metadata_record(experiment, root=root, phase_dir=phase)
-    else:
+    # Both kinds resolve the registration's variant through the phase67
+    # registry inside the supervised launch, so the exp05 lap variants
+    # materialize from the committed metadata before either branch.
+    _committed_metadata_record(experiment, root=root, phase_dir=phase)
+    if kind == "science":
         budget_path = phase / _budget_artifacts(experiment)["budget"]
         _require(budget_path.is_file(), "the committed budget is required "
                                         "before any science row launches")
@@ -2210,6 +2227,11 @@ def check_row(experiment, kind, case, arm, *, repo_root=None, phase_dir=None):
 
     root = _repo_root(repo_root)
     phase = _phase_directory(phase_dir, root)
+    if experiment == "exp05":
+        # The exp05 lap variants materialize from the committed metadata
+        # before the row's registration admits (the registry lookup in
+        # validate_smoke_settings needs them in this process).
+        _committed_metadata_record(experiment, root=root, phase_dir=phase)
     _path, matrix = _load_matrix(experiment, kind, phase_dir=phase)
     rows = [row for row in matrix["rows"]
             if row["case"] == case and row["arm"] == arm]
@@ -2264,6 +2286,10 @@ def write_review(experiment, *, repo_root=None, phase_dir=None):
     root = _repo_root(repo_root)
     phase = _phase_directory(phase_dir, root)
     artifacts = _budget_artifacts(experiment)
+    if experiment == "exp05":
+        # The exp05 lap variants materialize from the committed metadata
+        # before each science row's registration admits through the reader.
+        _committed_metadata_record(experiment, root=root, phase_dir=phase)
     _path, matrix = _load_matrix(experiment, "science", phase_dir=phase)
     _require_committed(root, _relative(root, _path), "science matrix")
     budget = json.loads(

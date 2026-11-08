@@ -775,5 +775,140 @@ class CommandContractTests(_ChainTestCase):
         self._with_pending_proposal(check)
 
 
+class Exp05TimingRegistrationTests(unittest.TestCase):
+    """The exp05 lap variants exist before any row registration is written.
+
+    A fresh register-timing process resolves each row's declaration through
+    the phase67 registry while the registration is written
+    (``_row_settings``), so the materialization from the committed metadata
+    record must happen when that record is admitted — materializing only
+    after the registrations (the pre-fix order) refuses every exp05
+    registration write, because nothing before it ever populated the
+    registry in that process.
+    """
+
+    #: The fixture window endpoints per declared arm (exact first-crossing
+    #: stand-ins; only their finiteness and internal consistency matter).
+    T_ENDS = {"lap1": 0.9, "lap2": 1.8, "lap5": 4.5, "lap10": 9.0}
+    CASES = ("main-1632-s42", "repeat-851-s42", "repeat-1632-s41")
+    ORBIT_ID = {
+        "main-1632-s42": "1632",
+        "repeat-851-s42": "851",
+        "repeat-1632-s41": "1632",
+    }
+
+    def test_register_timing_writes_all_rows_from_a_fresh_registry(self):
+        from pinn.verification import diagnostic_phase67_execution as execution
+        from pinn.verification.diagnostic_phase67_catalog import (
+            _EXP05_WINDOW_VARIANTS,
+        )
+
+        saved = dict(_EXP05_WINDOW_VARIANTS)
+        _EXP05_WINDOW_VARIANTS.clear()
+        self.addCleanup(_EXP05_WINDOW_VARIANTS.clear)
+        self.addCleanup(_EXP05_WINDOW_VARIANTS.update, saved)
+
+        with ExitStack() as stack:
+            tmp = Path(stack.enter_context(tempfile.TemporaryDirectory(
+                prefix="phase67-exp05-registration-")))
+            root, _commit = _fit_registration_fixture(tmp / "repo")
+            for target, value in (
+                # The exp05 arm table at production width: the workflow
+                # chain classes patch ARM_ORDER down to their exp02 pair
+                # and that patch outlives them in the discovery process.
+                ("ARM_ORDER", {"exp05": ("lap1", "lap2", "lap5", "lap10")}),
+                ("DEFAULT_RUNTIME", {"dtype": "float64", "device": "cpu"}),
+                ("PHASE67_DEPENDENCIES", ("fit_dep.py", "frozen/scorer.py")),
+                ("PROVENANCE_REGISTRATION_REL", "reg/smoke-registration.json"),
+            ):
+                patch = mock.patch.object(execution, target, value)
+                patch.start()
+                self.addCleanup(patch.stop)
+
+            phase = root / ".planning/phases/67-design-settings-ladders"
+            evidence = phase / "evidence"
+            evidence.mkdir(parents=True)
+            (evidence / "harness-freeze.json").write_text(json.dumps(
+                {"schema": "phase67-harness-freeze/v1", "files": []}))
+            (phase / "67-EXP05-TIMING-PREDICTION.md").write_text(
+                "# fixture exp05 timing page\n")
+
+            def window_block(t_end):
+                return {
+                    "first_time": 0.0,
+                    "last_time": t_end,
+                    "t_end": t_end,
+                    "sample_count": 95,
+                    "physical_times_sha256": "a" * 64,
+                    "normalized_tau_sha256": "b" * 64,
+                    "baselines": {
+                        "window_mean_constant": {"E": 1.15},
+                        "two_kepler": {"applicable": True, "E": 0.2},
+                    },
+                }
+
+            windows = {
+                arm: window_block(t_end)
+                for arm, t_end in self.T_ENDS.items()
+            }
+            record = {
+                "schema": "phase67-metadata/v1",
+                "experiment": "exp05",
+                "status": "complete",
+                "orbits": {
+                    "hierarchical/gold/1632": {"windows": dict(windows)},
+                    "hierarchical/gold/851": {"windows": dict(windows)},
+                },
+            }
+            record_path = evidence / "exp05" / "metadata" / "record.json"
+            record_path.parent.mkdir(parents=True)
+            record_path.write_text(json.dumps(record, indent=2) + "\n")
+            _git(root, "add",
+                 ".planning/phases/67-design-settings-ladders"
+                 "/evidence/exp05/metadata/record.json",
+                 ".planning/phases/67-design-settings-ladders"
+                 "/evidence/harness-freeze.json")
+            _git(root, "commit", "-q", "-m", "fixture exp05 metadata")
+
+            result = execution.register_timing(
+                "exp05", repo_root=root,
+                provenance_registration="reg/smoke-registration.json",
+                dependencies=("fit_dep.py", "frozen/scorer.py"),
+            )
+            self.assertEqual(result["rows"], 12)
+            self.assertEqual(len(_EXP05_WINDOW_VARIANTS), 8)
+
+            for case in self.CASES:
+                for arm, t_end in self.T_ENDS.items():
+                    registration = (
+                        root / ".planning/phases/67-design-settings-ladders"
+                        / "evidence/exp05/timing" / case / arm
+                        / "registration.json"
+                    )
+                    self.assertTrue(
+                        registration.is_file(), f"missing {case}/{arm}")
+                    doc = json.loads(registration.read_bytes())
+                    self.assertEqual(
+                        doc["settings"]["variant"]["name"],
+                        f"exp05-{arm}-{self.ORBIT_ID[case]}",
+                    )
+                    self.assertEqual(
+                        float(doc["settings"]["variant"]["window_length"]),
+                        t_end,
+                    )
+
+            # The written registration admits through the fit door's
+            # settings validation in this same fresh process — the registry
+            # lookup that the pre-fix order left unpopulated.
+            settings, variant, _orbit_key, _runtime = (
+                fit_module.validate_smoke_settings(json.loads(
+                    (root / ".planning/phases/67-design-settings-ladders"
+                     / "evidence/exp05/timing" / self.CASES[0] / "lap1"
+                     / "registration.json").read_bytes())))
+            self.assertEqual(variant.name, "exp05-lap1-1632")
+            self.assertEqual(
+                settings["physical_window"]["t_end"], self.T_ENDS["lap1"])
+
+
 if __name__ == "__main__":
     unittest.main()
