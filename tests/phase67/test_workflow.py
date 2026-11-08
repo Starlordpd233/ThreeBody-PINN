@@ -910,5 +910,185 @@ class Exp05TimingRegistrationTests(unittest.TestCase):
                 settings["physical_window"]["t_end"], self.T_ENDS["lap1"])
 
 
+class Exp05LazyMaterializationTests(unittest.TestCase):
+    """The settings gate materializes the exp05 lap set when it needs one.
+
+    Every process that admits a registration re-resolves the variant through
+    the phase67 registry in its own interpreter — the fit CLI and its worker
+    are freshly spawned with a fixed argv, so the parent's materialization
+    never reaches them. The gate therefore materializes the lap set from the
+    committed metadata record once, exactly when a registration names an
+    exp05 window variant this process has not loaded; every other unknown
+    name, and a missing or incomplete record, keep the original refusal.
+    """
+
+    T_ENDS = {"lap1": 0.9, "lap2": 1.8, "lap5": 4.5, "lap10": 9.0}
+
+    def _fixture_repo(self, tmp):
+        """A git repo carrying the committed exp05 metadata record."""
+        root, _commit = _fit_registration_fixture(tmp / "repo")
+        phase = root / ".planning/phases/67-design-settings-ladders"
+        record_path = phase / "evidence/exp05/metadata/record.json"
+        record_path.parent.mkdir(parents=True)
+
+        def window_block(t_end):
+            return {
+                "first_time": 0.0,
+                "last_time": t_end,
+                "t_end": t_end,
+                "sample_count": 95,
+                "physical_times_sha256": "a" * 64,
+                "normalized_tau_sha256": "b" * 64,
+                "baselines": {
+                    "window_mean_constant": {"E": 1.15},
+                    "two_kepler": {"applicable": True, "E": 0.2},
+                },
+            }
+
+        windows = {
+            arm: window_block(t_end) for arm, t_end in self.T_ENDS.items()
+        }
+        record = {
+            "schema": "phase67-metadata/v1",
+            "experiment": "exp05",
+            "status": "complete",
+            "orbits": {
+                "hierarchical/gold/1632": {"windows": dict(windows)},
+                "hierarchical/gold/851": {"windows": dict(windows)},
+            },
+        }
+        record_path.write_text(json.dumps(record, indent=2) + "\n")
+        _git(root, "add",
+             ".planning/phases/67-design-settings-ladders"
+             "/evidence/exp05/metadata/record.json")
+        _git(root, "commit", "-q", "-m", "fixture exp05 metadata")
+        return root
+
+    def _settings_doc(self, variant_name, window_length):
+        import pinn.verification.diagnostic_variants as variants_module
+        from pinn.verification.diagnostic_fit import (
+            phase67_cadence,
+            phase67_loss_trace_stride,
+            phase67_score_cadence,
+        )
+        from pinn.verification.diagnostic_phase67_catalog import (
+            EXP02_D12_VARIANT,
+        )
+
+        declaration = variants_module.DiagnosticVariant(**{
+            **EXP02_D12_VARIANT.to_json_dict(),
+            "name": variant_name,
+            "window_length": window_length,
+        })
+        steps = 1200
+        return {
+            "variant": declaration.to_json_dict(),
+            "variant_registry": "phase67",
+            "seed": 42,
+            "runtime": {"dtype": "float64", "device": "cpu"},
+            "orbit_key": "hierarchical/gold/1632",
+            "physical_window": {"t_start": 0.0, "t_end": window_length},
+            "optimizer_steps": steps,
+            "warmup_steps": 200,
+            "measured_steps": steps - 200,
+            "similarity_cadence": phase67_cadence(steps),
+            "score_cadence": phase67_score_cadence(steps),
+            "loss_trace_stride": phase67_loss_trace_stride(steps),
+            "whole_run_cap_seconds": 900.0,
+            "optimizer": {
+                "kind": "adam_constant_rate",
+                "lr": float(declaration.learning_rate),
+                "scheduler": None, "clipping": None,
+                "physics_term": None, "polish": None,
+            },
+            "loss": {"kind": "data_only"},
+            "timing_definitions": "fixture timing definitions",
+            "reading_rule": {
+                "mechanical_pass": "fixture",
+                "incomplete": "fixture",
+                "out_of_branch": "fixture",
+            },
+        }
+
+    def _fresh_registry(self):
+        from pinn.verification.diagnostic_phase67_catalog import (
+            _EXP05_WINDOW_VARIANTS,
+        )
+        from pinn.verification import diagnostic_phase67_execution as execution
+
+        saved = dict(_EXP05_WINDOW_VARIANTS)
+        _EXP05_WINDOW_VARIANTS.clear()
+        self.addCleanup(_EXP05_WINDOW_VARIANTS.clear)
+        self.addCleanup(_EXP05_WINDOW_VARIANTS.update, saved)
+        # The workflow chain classes patch ARM_ORDER down to their exp02
+        # pair and that patch outlives them in the discovery process; the
+        # materializer reads the exp05 arm order, so pin it here.
+        arms_patch = mock.patch.object(
+            execution, "ARM_ORDER",
+            {"exp05": ("lap1", "lap2", "lap5", "lap10")})
+        arms_patch.start()
+        self.addCleanup(arms_patch.stop)
+        return _EXP05_WINDOW_VARIANTS
+
+    def test_the_gate_materializes_an_unloaded_exp05_variant(self):
+        import pinn.verification.diagnostic_fit as fit_module
+
+        with ExitStack() as stack:
+            tmp = Path(stack.enter_context(tempfile.TemporaryDirectory(
+                prefix="phase67-exp05-lazy-")))
+            root = self._fixture_repo(tmp)
+            registry = self._fresh_registry()
+            root_patch = mock.patch.object(
+                fit_module, "_phase67_repo_root", return_value=root)
+            root_patch.start()
+            self.addCleanup(root_patch.stop)
+
+            self.assertEqual(registry, {})
+            settings, variant, _orbit_key, _runtime = (
+                fit_module.validate_smoke_settings(
+                    {"settings": self._settings_doc("exp05-lap1-1632", 0.9)}))
+            self.assertEqual(variant.name, "exp05-lap1-1632")
+            self.assertEqual(len(registry), 8)
+
+    def test_an_unknown_non_window_name_refuses_without_materializing(self):
+        import pinn.verification.diagnostic_fit as fit_module
+
+        with ExitStack() as stack:
+            tmp = Path(stack.enter_context(tempfile.TemporaryDirectory(
+                prefix="phase67-exp05-lazy-")))
+            root = self._fixture_repo(tmp)
+            registry = self._fresh_registry()
+            root_patch = mock.patch.object(
+                fit_module, "_phase67_repo_root", return_value=root)
+            root_patch.start()
+            self.addCleanup(root_patch.stop)
+
+            doc = self._settings_doc("exp05-lap1-1632", 0.9)
+            doc["variant"]["name"] = "exp04-locked-nonexistent"
+            with self.assertRaises(fit_module.DiagnosticFitRefused) as caught:
+                fit_module.validate_smoke_settings({"settings": doc})
+            self.assertIn("unknown diagnostic variant", str(caught.exception))
+            self.assertEqual(registry, {})
+
+    def test_an_exp05_name_without_a_committed_record_keeps_the_refusal(self):
+        import pinn.verification.diagnostic_fit as fit_module
+
+        with ExitStack() as stack:
+            tmp = Path(stack.enter_context(tempfile.TemporaryDirectory(
+                prefix="phase67-exp05-lazy-")))
+            root, _commit = _fit_registration_fixture(tmp / "repo")
+            registry = self._fresh_registry()
+            root_patch = mock.patch.object(
+                fit_module, "_phase67_repo_root", return_value=root)
+            root_patch.start()
+            self.addCleanup(root_patch.stop)
+
+            with self.assertRaises(fit_module.DiagnosticFitRefused) as caught:
+                fit_module.validate_smoke_settings(
+                    {"settings": self._settings_doc("exp05-lap1-1632", 0.9)})
+            self.assertIn("unknown diagnostic variant", str(caught.exception))
+            self.assertEqual(registry, {})
+
+
 if __name__ == "__main__":
     unittest.main()

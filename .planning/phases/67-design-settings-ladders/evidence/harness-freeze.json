@@ -109,7 +109,7 @@
     },
     {
       "path": "pinn/verification/diagnostic_fit.py",
-      "sha256": "b336503dee66527800659d1feb3f7f9f4779270fec87645fea7bc3568f2a049a"
+      "sha256": "2917de3472ae9253898bf535d17f99f8abd214f71a8dfeba11bc1914a703e851"
     },
     {
       "path": "pinn/verification/diagnostic_guard.py",

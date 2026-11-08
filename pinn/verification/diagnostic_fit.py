@@ -85,6 +85,7 @@ from pinn.verification.diagnostic_phase67 import (
     phase67_score_cadence,
 )
 from pinn.verification.diagnostic_phase67_catalog import (
+    EXP05_WINDOW_ARM_PATTERN,
     PHASE67_REGISTRY_NAME,
     phase67_registry,
 )
@@ -380,6 +381,46 @@ def _named_registry(name):
         ) from exc
 
 
+def _phase67_repo_root():
+    """The repository root the settings gate resolves phase67 evidence against.
+
+    Module-level so a synthetic test can aim the lazy exp05 materialization
+    at a fixture repository instead of the real checkout.
+    """
+    return Path(__file__).resolve().parents[2]
+
+
+def _admit_materialized_exp05_variant(registry, settings, variant_name):
+    """Materialize the exp05 lap variants when a registration needs one.
+
+    The exp05 lap declarations exist only after the committed metadata
+    capture resolves the exact first-crossing endpoints, and every process
+    that admits a registration re-resolves the variant through the phase67
+    registry in its own interpreter — the fit CLI and its worker are freshly
+    spawned, so no prior command has loaded the capture there. A settings
+    block naming an exp05 window variant this process has not materialized
+    therefore materializes the lap set from the committed metadata record
+    once and re-resolves. Any other unknown name, or a missing, uncommitted
+    or incomplete record, keeps the original refusal unchanged.
+    """
+    if settings.get("variant_registry") != PHASE67_REGISTRY_NAME:
+        return registry
+    if EXP05_WINDOW_ARM_PATTERN.match(variant_name) is None:
+        return registry
+    try:
+        from pinn.verification import diagnostic_phase67_execution
+
+        diagnostic_phase67_execution.materialize_phase67_exp05_variants(
+            repo_root=_phase67_repo_root()
+        )
+    except Exception:  # the original unknown-variant refusal stands
+        return registry
+    try:
+        return phase67_registry({"variant_registry": PHASE67_REGISTRY_NAME})
+    except VariantRefused:
+        return registry
+
+
 def validate_smoke_settings(doc):
     """Validate the registration's settings block before any data access.
 
@@ -399,6 +440,10 @@ def validate_smoke_settings(doc):
         raise DiagnosticFitRefused("the settings name no diagnostic variant")
     registry = _named_registry(settings.get("variant_registry"))
     variant_name = variant_block["name"]
+    if variant_name not in registry:
+        registry = _admit_materialized_exp05_variant(
+            registry, settings, variant_name
+        )
     if variant_name not in registry:
         raise DiagnosticFitRefused(
             f"unknown diagnostic variant {variant_name!r}; registered: {list(registry)}"
