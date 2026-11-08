@@ -1,0 +1,218 @@
+{
+  "alternative_branches": [
+    "flat",
+    "opposite",
+    "unsettled",
+    "mechanical"
+  ],
+  "budget_rule": {
+    "cap_seconds": 3540.0,
+    "loss_entry_bytes": 32,
+    "loss_trace_entries_max": 1000,
+    "min_steps": 300,
+    "rate_margin": 0.25,
+    "residual_tolerance": 1e-09,
+    "score_events": 3,
+    "similarity_events": 5,
+    "size_fraction": 0.9,
+    "size_limit_bytes": 10485760,
+    "step_quantum": 100,
+    "time_fraction": 0.75,
+    "timing_cap_seconds": 900.0,
+    "timing_measured": 1000,
+    "timing_steps": 1200,
+    "timing_warmup": 200,
+    "warmup_steps": 200
+  },
+  "cases": [
+    {
+      "case": "main-1632-s42",
+      "orbit_key": "hierarchical/gold/1632",
+      "seed": 42
+    },
+    {
+      "case": "repeat-851-s42",
+      "orbit_key": "hierarchical/gold/851",
+      "seed": 42
+    },
+    {
+      "case": "repeat-1632-s41",
+      "orbit_key": "hierarchical/gold/1632",
+      "seed": 41
+    }
+  ],
+  "confounds": {
+    "window_only": "the window changes and nothing else: locked depth, width, frequencies, rate and global tau normalization"
+  },
+  "control_arm": "lap10",
+  "controls": {
+    "lap1": "lap10",
+    "lap10": "lap10",
+    "lap2": "lap10",
+    "lap5": "lap10"
+  },
+  "experiment": "exp05",
+  "hypothesis": {
+    "name": "window",
+    "prediction": "a shorter window improves the fit: each shorter prefix arm's E is below the lap10 control's on all three registered cases",
+    "statement": "the full [0, 10] window is harder than the orbit's early motion; a shorter exact signed-lap prefix fits better at the locked settings"
+  },
+  "metadata_algorithm": {
+    "baselines": "same_window_expectations (67-03) per window: the window-mean constant and the two-Kepler comparison, independently cross-checked",
+    "byte_bound": 9437184,
+    "cap_seconds": 900.0,
+    "frequency": "N_in from the committed Phase 59 panels row; f = N_in/10 cycles per physical time unit on both backbones",
+    "harmonic_phase_increment": "max adjacent 2*pi*k*f*dt per harmonic k; strictly below pi or EXP-04 timing refuses without retuning",
+    "harmonics": {
+      "f1": [
+        1
+      ],
+      "f12": [
+        1,
+        2
+      ]
+    },
+    "normalizer": "the retained Phase 59 recorded normalizer; never refit",
+    "reader": "pinn.verification.diagnostic_data.Stage0TrainingReader"
+  },
+  "no_continuation": "no branch extends, retries or re-sizes any run after its score is read; an unsettled endpoint is recorded as unsettled",
+  "positive_control_note": "Phase 66 (EXP-01) remains a multi-setting positive control (D-02): its confirmed Tier-1 fit refutes only 'too small' and identifies no single enabling setting",
+  "prediction_table": {
+    "lap1": {
+      "flat": "no effect against the control inside the registered rule; the hypothesis is not supported on this arm",
+      "hypothesis": "under the hypothesis, shorter window improves the fit: this arm's E is below the control's on all three registered cases under the registered effect rule",
+      "mechanical": "this arm's evidence is mechanically unusable; it reads nothing about the hypothesis",
+      "opposite": "this arm fits worse than the control; the hypothesis is contradicted on this arm",
+      "unsettled": "the endpoint is still improving when its budget ends; the no-continuation policy records it and extends nothing"
+    },
+    "lap10": {
+      "flat": "no effect against the control inside the registered rule",
+      "hypothesis": "the control arm 'lap10' defines the contrast reference; the hypothesis predicts shorter window against it",
+      "mechanical": "the run's evidence is mechanically unusable",
+      "opposite": "the control fits at least as well as every arm",
+      "unsettled": "the endpoint is still improving when its budget ends"
+    },
+    "lap2": {
+      "flat": "no effect against the control inside the registered rule; the hypothesis is not supported on this arm",
+      "hypothesis": "under the hypothesis, shorter window improves the fit: this arm's E is below the control's on all three registered cases under the registered effect rule",
+      "mechanical": "this arm's evidence is mechanically unusable; it reads nothing about the hypothesis",
+      "opposite": "this arm fits worse than the control; the hypothesis is contradicted on this arm",
+      "unsettled": "the endpoint is still improving when its budget ends; the no-continuation policy records it and extends nothing"
+    },
+    "lap5": {
+      "flat": "no effect against the control inside the registered rule; the hypothesis is not supported on this arm",
+      "hypothesis": "under the hypothesis, shorter window improves the fit: this arm's E is below the control's on all three registered cases under the registered effect rule",
+      "mechanical": "this arm's evidence is mechanically unusable; it reads nothing about the hypothesis",
+      "opposite": "this arm fits worse than the control; the hypothesis is contradicted on this arm",
+      "unsettled": "the endpoint is still improving when its budget ends; the no-continuation policy records it and extends nothing"
+    }
+  },
+  "reading_rule": {
+    "confirmation": "all three registered cases qualifying in one direction with settled, clean endpoints",
+    "confirmation_labels": [
+      "confirmed-improvement",
+      "confirmed-worsening",
+      "ambiguous",
+      "unsettled",
+      "inconclusive-mechanical"
+    ],
+    "descriptive": {
+      "adjacent_time_similarity": "adjacent-time hidden-state similarity is associated evidence only; no cosine threshold and no causal claim",
+      "gap_59_08": "GAP-59-08: E is the frozen scorecard's position-error score; no energy bar or scorer definition is adjudicated here",
+      "loss": "context only"
+    },
+    "effect": "a case qualifies through a matching tier change or a relative E effect of at least twenty percent",
+    "improvement": "(E_at_3N/4 - E_at_N)/E_at_3N/4 strictly greater than five percent leaves the endpoint unsettled"
+  },
+  "schedule": {
+    "science": {
+      "cap_seconds": 3540.0,
+      "formula": "phase67_cadence/phase67_score_cadence/phase67_loss_trace_stride at the budget's N",
+      "optimizer_steps": "the phase67_budget common N, frozen at budget time before any science run"
+    },
+    "timing": {
+      "cap_seconds": 900.0,
+      "loss_trace_stride": 2,
+      "measured_steps": 1000,
+      "optimizer_steps": 1200,
+      "score_cadence": [
+        600,
+        900,
+        1200
+      ],
+      "similarity_cadence": [
+        0,
+        300,
+        600,
+        900,
+        1200
+      ],
+      "warmup_steps": 200
+    }
+  },
+  "schema": "phase67-design/v1",
+  "scope_branches": {
+    "ambiguous": {
+      "dependent_launch_allowed": true,
+      "reason": "the ambiguous branch is registered and equally recorded; no continuation runs (the no-continuation policy) and no scope change is proposed",
+      "scope49_disposition": "none"
+    },
+    "confirmed-improvement": {
+      "dependent_launch_allowed": true,
+      "reason": "the hypothesis-supported branch is a registered technical ruling; continue under D-01",
+      "scope49_disposition": "none"
+    },
+    "confirmed-worsening": {
+      "dependent_launch_allowed": false,
+      "reason": "a refuted lead: the registered hypothesis is contradicted on all three cases, so a concrete owner proposal under SCOPE-49 is recorded before dependent work continues",
+      "scope49_disposition": "proposal-pending"
+    },
+    "inconclusive-mechanical": {
+      "dependent_launch_allowed": false,
+      "reason": "an out-of-rule result routes to the owner under SCOPE-47; dependent work waits for the ruling",
+      "scope49_disposition": "proposal-pending"
+    },
+    "unsettled": {
+      "dependent_launch_allowed": true,
+      "reason": "the unsettled branch is registered and equally recorded; no continuation runs (the no-continuation policy) and no scope change is proposed",
+      "scope49_disposition": "none"
+    }
+  },
+  "title": "EXP-05 signed-lap window ladder",
+  "variants": [
+    {
+      "arm": "lap1",
+      "lap_count": 1,
+      "selection": "first_lap_prefixes",
+      "window_source": "the committed metadata capture's exact first-crossing endpoint"
+    },
+    {
+      "arm": "lap2",
+      "lap_count": 2,
+      "selection": "first_lap_prefixes",
+      "window_source": "the committed metadata capture's exact first-crossing endpoint"
+    },
+    {
+      "arm": "lap5",
+      "lap_count": 5,
+      "selection": "first_lap_prefixes",
+      "window_source": "the committed metadata capture's exact first-crossing endpoint"
+    },
+    {
+      "arm": "lap10",
+      "lap_count": 10,
+      "selection": "first_lap_prefixes",
+      "window_source": "the committed metadata capture's exact first-crossing endpoint"
+    }
+  ],
+  "window_selection": {
+    "algorithm": "first_lap_prefixes",
+    "lap_counts": [
+      1,
+      2,
+      5,
+      10
+    ],
+    "note": "the exact first-crossing gold sample is the endpoint; no interpolation and no tau rescaling (D-06)"
+  }
+}

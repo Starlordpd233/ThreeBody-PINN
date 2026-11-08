@@ -1,0 +1,40 @@
+{
+  "algorithm": {
+    "baselines": "same_window_expectations (67-03) per window: the window-mean constant and the two-Kepler comparison, independently cross-checked",
+    "byte_bound": 9437184,
+    "cap_seconds": 900.0,
+    "frequency": "N_in from the committed Phase 59 panels row; f = N_in/10 cycles per physical time unit on both backbones",
+    "harmonic_phase_increment": "max adjacent 2*pi*k*f*dt per harmonic k; strictly below pi or EXP-04 timing refuses without retuning",
+    "harmonics": {
+      "f1": [
+        1
+      ],
+      "f12": [
+        1,
+        2
+      ]
+    },
+    "normalizer": "the retained Phase 59 recorded normalizer; never refit",
+    "reader": "pinn.verification.diagnostic_data.Stage0TrainingReader"
+  },
+  "committed_before": "any real metadata, timing or science operation",
+  "design": {
+    "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/design.json",
+    "sha256": "cdef1e00b5b586006c4eabb75393c18a99af298bdebe7d4562e9c2dc073b8f4e"
+  },
+  "experiment": "exp05",
+  "harness_freeze": {
+    "path": ".planning/phases/67-design-settings-ladders/evidence/harness-freeze.json",
+    "sha256": "9dd440c7bdb1e2440ac92b1a516be20ea55e68fc199cfb85e612826d4f384f94"
+  },
+  "orbits": [
+    "hierarchical/gold/1632",
+    "hierarchical/gold/851"
+  ],
+  "page": {
+    "path": ".planning/phases/67-design-settings-ladders/67-EXP05-TIMING-PREDICTION.md",
+    "sha256": "effb92f832cafceb51101444e9c3dc3f7d491cb1e2113ce51ea236bfc0b5cb2c"
+  },
+  "schema": "phase67-metadata-registration/v1",
+  "title": "EXP-05 metadata registration"
+}
