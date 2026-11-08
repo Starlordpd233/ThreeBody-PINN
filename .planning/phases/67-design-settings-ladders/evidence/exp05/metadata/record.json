@@ -1,0 +1,273 @@
+{
+  "access": {
+    "note": "metadata-only TRAIN gold reads for the registered orbits; no model is constructed and no training step runs",
+    "reads": {
+      "train": 2
+    }
+  },
+  "algorithm": {
+    "baselines": "same_window_expectations (67-03) per window: the window-mean constant and the two-Kepler comparison, independently cross-checked",
+    "byte_bound": 9437184,
+    "cap_seconds": 900.0,
+    "frequency": "N_in from the committed Phase 59 panels row; f = N_in/10 cycles per physical time unit on both backbones",
+    "harmonic_phase_increment": "max adjacent 2*pi*k*f*dt per harmonic k; strictly below pi or EXP-04 timing refuses without retuning",
+    "harmonics": {
+      "f1": [
+        1
+      ],
+      "f12": [
+        1,
+        2
+      ]
+    },
+    "normalizer": "the retained Phase 59 recorded normalizer; never refit",
+    "reader": "pinn.verification.diagnostic_data.Stage0TrainingReader"
+  },
+  "checked_utc": "2026-11-08T00:50:29+00:00",
+  "experiment": "exp05",
+  "harness_freeze": {
+    "path": ".planning/phases/67-design-settings-ladders/evidence/harness-freeze.json",
+    "sha256": "9dd440c7bdb1e2440ac92b1a516be20ea55e68fc199cfb85e612826d4f384f94"
+  },
+  "orbits": {
+    "hierarchical/gold/1632": {
+      "census": {
+        "N_in": 10.471994061054543,
+        "panels_path": ".planning/phases/59-read-only-baseline-scorecard/evidence/census/panels.json"
+      },
+      "frequency": {
+        "f_cycles_per_physical_unit": 1.0471994061054544,
+        "harmonics": {
+          "f1": [
+            1
+          ],
+          "f12": [
+            1,
+            2
+          ]
+        }
+      },
+      "max_adjacent_phase_increment_rad": {
+        "harmonic_1": 0.06579747922129131,
+        "harmonic_2": 0.13159495844258262
+      },
+      "windows": {
+        "full": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.9168487091299374,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.1538408194255343
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 9.999999999999831,
+          "normalized_tau_sha256": "7788cfcd9cdbd9fadab51078d0428db3eedab6ac4b038a7980808d253d3fbb8c",
+          "physical_times_sha256": "56715afa76002573bef3d599b38627daede33499f9073e7b6e25aa74ca62a6d1",
+          "sample_count": 1001,
+          "t_end": 9.999999999999831
+        },
+        "lap1": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.1654431934153117,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.1453971801003457
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 0.9500000000000006,
+          "normalized_tau_sha256": "cfcad12787332d90e2dc64f32c6e3f49d5ad13312503769b994e3ecb653a20e6",
+          "physical_times_sha256": "6f045508580c82cea40ae8757bd48b7fce2542470a89f8a5e81fddd74c157cfa",
+          "sample_count": 96,
+          "t_end": 0.9500000000000006
+        },
+        "lap10": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.9168487091299374,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.120841147686866
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 9.509999999999842,
+          "normalized_tau_sha256": "96713a60f258cb19dfbf9bebc61ea542ebf5375d48b1c829e67f635acd8a2a14",
+          "physical_times_sha256": "f968e702d9ab1f4079d239a7aaa5223f55673f04f2e6ad263df891643addf9d7",
+          "sample_count": 952,
+          "t_end": 9.509999999999842
+        },
+        "lap2": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.2707279933829002,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.1484254380816765
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 1.8900000000000015,
+          "normalized_tau_sha256": "9eafc81a6affb0164d8808767d10596aa8a1b27d867541446df2537fc997ae50",
+          "physical_times_sha256": "40a68e98afcfd4d4d8c8880e7e367132ec335f75f2670310a6b02fec9210b9d5",
+          "sample_count": 190,
+          "t_end": 1.8900000000000015
+        },
+        "lap5": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.4806467055644352,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.14179949610278
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 4.759999999999943,
+          "normalized_tau_sha256": "849e2071b84c72e02775208fcc76bf598c9e2ce2003658d46b3a7bc8b8a10de6",
+          "physical_times_sha256": "ce452f035917e6f8d56faa769351fe37ec3d6b75a26273bc41d18f486fa7edd5",
+          "sample_count": 477,
+          "t_end": 4.759999999999943
+        }
+      }
+    },
+    "hierarchical/gold/851": {
+      "census": {
+        "N_in": 18.612048388702,
+        "panels_path": ".planning/phases/59-read-only-baseline-scorecard/evidence/census/panels.json"
+      },
+      "frequency": {
+        "f_cycles_per_physical_unit": 1.8612048388702,
+        "harmonics": {
+          "f1": [
+            1
+          ],
+          "f12": [
+            1,
+            2
+          ]
+        }
+      },
+      "max_adjacent_phase_increment_rad": {
+        "harmonic_1": 0.1169429489724106,
+        "harmonic_2": 0.2338858979448212
+      },
+      "windows": {
+        "full": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.4312597209593449,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.233696866477104
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 9.999999999999831,
+          "normalized_tau_sha256": "7788cfcd9cdbd9fadab51078d0428db3eedab6ac4b038a7980808d253d3fbb8c",
+          "physical_times_sha256": "56715afa76002573bef3d599b38627daede33499f9073e7b6e25aa74ca62a6d1",
+          "sample_count": 1001,
+          "t_end": 9.999999999999831
+        },
+        "lap1": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.03578933819624809,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.24821605957139
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 0.5400000000000003,
+          "normalized_tau_sha256": "b6ec3f532af3ce92df3dae91af88d09a03aed7c894a1c32eddaa569998e78015",
+          "physical_times_sha256": "26ed43a63ee35431b20995aa57f4364de355dfd925371890d04efd90716fafef",
+          "sample_count": 55,
+          "t_end": 0.5400000000000003
+        },
+        "lap10": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.23067088953716802,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.2276749625342716
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 5.36999999999993,
+          "normalized_tau_sha256": "19ea929100c1df64af89f11f87e3880f5334917ff8feb55f454627c7defa6aef",
+          "physical_times_sha256": "20c81ea1a43322288e793d8eef8cf197e3c5583c46dc8f65a70dc4959386e916",
+          "sample_count": 538,
+          "t_end": 5.36999999999993
+        },
+        "lap2": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.061889603375456376,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.2461386562481358
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 1.0800000000000007,
+          "normalized_tau_sha256": "98dbfa0eb04ca798bc43f6a067ceaeabace7bef0f15b0f6b49fa1e9da3c9d6ac",
+          "physical_times_sha256": "d726b36b4b0ae18caec0116c0efac2bd2a026596e1d3751bbe6616248bc8ede2",
+          "sample_count": 109,
+          "t_end": 1.0800000000000007
+        },
+        "lap5": {
+          "baselines": {
+            "two_kepler": {
+              "E": 0.11755967172132609,
+              "applicable": true
+            },
+            "window_mean_constant": {
+              "E": 1.2385958012382627
+            }
+          },
+          "first_time": 0.0,
+          "gap_59_08": "GAP-59-08: the energy diagnostic limitation stays open; this window evidence imposes no energy threshold and makes no energy-bar ruling",
+          "last_time": 2.679999999999987,
+          "normalized_tau_sha256": "ef975a29881498a9f4e53aee1ccb0a8d8f9d6a500a4d376ecad32fb7155cf326",
+          "physical_times_sha256": "22f41d271c192d85de6c0331ce2154b52c2859dcb89d498ef35e758d37a70bcf",
+          "sample_count": 269,
+          "t_end": 2.679999999999987
+        }
+      }
+    }
+  },
+  "registration": {
+    "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/metadata-registration.json",
+    "sha256": "53535581d1f49a83584950c95993559b30d1b27a4d48b4e1e61c22677ae9d1d5"
+  },
+  "schema": "phase67-metadata/v1",
+  "status": "complete",
+  "window": {
+    "isoweekday": 6,
+    "local_time": "2026-11-07T18:50:29-06:00",
+    "timezone": "America/Chicago"
+  }
+}

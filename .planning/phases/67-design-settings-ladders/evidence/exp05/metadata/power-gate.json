@@ -1,0 +1,21 @@
+{
+  "checked_utc": "2026-11-08T00:50:29+00:00",
+  "metadata_only": true,
+  "output": ".planning/phases/67-design-settings-ladders/evidence/exp05/metadata/record.json",
+  "pmset_first_line": "Now drawing from 'AC Power'",
+  "power_source": "AC Power",
+  "registration": ".planning/phases/67-design-settings-ladders/evidence/exp05/metadata-registration.json",
+  "remaining_window": {
+    "cap_seconds": 900.0,
+    "checked_utc": "2026-11-08T00:50:29+00:00",
+    "closing_utc": "2026-11-09T04:00:00+00:00",
+    "note": "the full registered whole-launch allowance fits before the window's closing instant; recheck: closing_utc - checked_utc >= cap_seconds",
+    "remaining_allowance_seconds": 97770.582523
+  },
+  "schema": "phase66-power-gate/v1",
+  "window": {
+    "isoweekday": 6,
+    "local_time": "2026-11-07T18:50:29-06:00",
+    "timezone": "America/Chicago"
+  }
+}
