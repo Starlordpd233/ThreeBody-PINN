@@ -5,17 +5,17 @@ milestone_name: Root-Cause Confirmation
 current_phase: 67
 current_phase_name: Design & Settings Ladders
 status: executing
-stopped_at: 67-13 complete — the full EXP-04 science campaign ran and reviewed: all 18 science rows launched exactly once at the registered common N=112700 under the 3540-second cap (each PHASE67-ROW-OK with scores hidden, committed before the next launch, zero deferred/burned rows), the registered review reads all four encoded contrasts unsettled with nothing confirmed in either direction, scope49 none / dependent_launch_allowed=true, PHASE67-REVIEW-OK admits EXP-05; next: 67-14
-last_updated: "2026-11-08T00:45:00.000Z"
+stopped_at: 67-14 complete — EXP-05 pre-registered end to end with NO science launch (committed design trio at 1/2/5/10 inner laps against the lap10 control; one guarded TRAIN metadata capture for both systems; all 12 timing rows measured serially at N=1200 and committed; cost-only Plan04 budget common N=148700 with the prediction page, science matrix and all 12 science registrations frozen at 79587171; PHASE67-BUDGET-OK and both matrix gates green; three harness fixes restored the exp05 materialization flow — 8c6c201f, 54d3cb40, bbf492d4); next: 67-15
+last_updated: "2026-11-08T02:15:00.000Z"
 last_activity: 2026-11-07
-last_activity_desc: 67-13 closed complete — 18/18 EXP-04 science rows measured/committed (3517e1dc..c04bb428) inside the Saturday weekend window, review + result committed at 3af7a831 (all contrasts unsettled, in-scope continue route, no ruling needed), PHASE67-REVIEW-OK
-state_head: 3af7a831
+last_activity_desc: 67-14 closed complete — EXP-05 pre-registered (design 072abd88, metadata 201db8e0, 12-row timing matrix 146153d2, rows 1-12 7a630074..6bb3af7e inside the Saturday weekend window, budget + science freeze 79587171) with three harness fixes and freeze re-pins
+state_head: 79587171
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 27
-  completed_plans: 24
-  percent: 89
+  completed_plans: 25
+  percent: 93
 ---
 
 # Project State
@@ -30,19 +30,59 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 67 (Design & Settings Ladders) — EXECUTING
-Plan: 14 of 16 (67-13 complete; next 67-14)
-Status: Executing Phase 67 (67-01..67-13 complete)
-Last activity: 2026-11-07 — plan 67-13 closed complete (EXP-04 science
-  run and review): all 18 registered science rows launched exactly once at
-  the common N=112700 under the 3540-second cap in the committed case-major
-  order (12:13-18:22 CST Saturday, AC power, PHASE67-ROW-OK per row with
-  scores hidden, one commit of four artifacts per row before the next
-  launch, zero deferred/burned rows, PHASE67-ALL-ROWS-OK), then the
-  registered review read the committed evidence under the unchanged
-  prospective rule and committed the original result page and review at
-  3af7a831: all four encoded-vs-raw contrasts unsettled, nothing confirmed
-  in either direction, scope49 none, dependent_launch_allowed=true
-  (PHASE67-REVIEW-ARTIFACTS-OK, PHASE67-REVIEW-OK — EXP-05 admitted).
+Plan: 15 of 16 (67-14 complete; next 67-15)
+Status: Executing Phase 67 (67-01..67-14 complete)
+Last activity: 2026-11-07 — plan 67-14 closed complete (EXP-05
+  pre-registration, no science launch): the committed design trio froze the
+  locked setup at 1/2/5/10 inner laps against the lap10 control with exact
+  first-crossing endpoints and no interpolation (072abd88), one guarded
+  TRAIN metadata capture pinned both systems' census, frequencies and exact
+  window endpoints with cross-checked same-window baselines (201db8e0), the
+  12-row timing matrix and registrations preceded every attempt (146153d2),
+  all 12 timing rows then ran serially at N=1200 under the 900-second cap
+  (19:52-20:00 CST Saturday, AC power, PHASE67-ROW-OK per row with scores
+  hidden, one commit of four artifacts per row before the next launch, zero
+  retries, zero burned rows), and the cost-only Plan04 budget plus the
+  science freeze landed at 79587171 (common N=148700, worst-row projection
+  2654.00 s vs the 2655 s cap, experiment projection 30305.5 s;
+  PHASE67-BUDGET-OK, PHASE67-MATRIX-OK science). Three harness fixes
+  restored the exp05 flow (8c6c201f, 54d3cb40, bbf492d4) with regression
+  tests and freeze re-pins; no registered value changed.
+
+### Decisions from 67-14 (2026-11-07)
+
+- **EXP-05 is pre-registered end to end and NO science run has started.**
+  The committed design (locked depth12/width256/first-omega-30/raw14/rate
+  1e-4 at 1, 2, 5 and 10 inner laps; each arm an exact physical prefix from
+  zero whose endpoint is the first existing gold timestamp reaching its
+  requested cumulative signed turns; global T normalization kept, no
+  interpolation, no tau stretching), the guarded metadata capture (1632:
+  lap1 0.95/96 samples through lap10 9.51/952; 851: lap1 55 through lap10
+  5.37/538, with independently cross-checked same-window baselines) and the
+  12-row timing matrix preceded every attempt.
+- **The exp05 materialization defect chain was fixed under the new-defect
+  protocol.** The lap variants materialized only after the registrations
+  that resolve them (register-timing refused), and the fit CLI's spawned
+  interpreter re-executes the settings gate in a process nothing had loaded
+  the capture into (the first real launch refused post-receipt, pre-attempt
+  — no attempt.json, no data access; the uncommitted orphaned receipt was
+  removed and documented). Fixes: materialize at the committed-record choke
+  point (8c6c201f) and lazily inside validate_smoke_settings (54d3cb40,
+  wrapper landed bbf492d4); four regression tests; three freeze re-pins
+  (manifest 9dd440c7->1d55cd4e->aa5ef613->a84c93ba; 100-112 live
+  registrations each time); no evidence byte touched, no registered value
+  changed. Suites at the settled bytes: phase65 204 OK, phase66 101 OK,
+  phase67 260 OK.
+- **The cost-only budget is this experiment's own (Plan04 verbatim):**
+  largest common N in 100-step quanta is 148700 optimizer steps (148500
+  measured + 200 warmup) — the worst row (lap10 on the seed-41 repeat,
+  0.014240 s/step) projects 2654.00 s against the 2655 s science cap, one
+  quantum higher would breach; the 12-run experiment projects 30305.5 s.
+  The prediction page, science matrix and all 12 prospective science
+  registrations (one common N, cadence [0, 37175, 74350, 111525, 148700],
+  score [74350, 111525, 148700]) froze at 79587171 BEFORE any science
+  launch; PHASE67-BUDGET-OK and PHASE67-MATRIX-OK (science) green at the
+  committed boundary.
 
 ### Decisions from 67-13 (2026-11-07)
 

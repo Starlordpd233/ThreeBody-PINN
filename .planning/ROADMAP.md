@@ -250,7 +250,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
-- [ ] 67-14-PLAN.md
+- [x] 67-14-PLAN.md
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
@@ -305,7 +305,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 |-------|----------------|--------|-----------|
 | 65. Probe on the Record & Fit Harness | 6/6 | Complete | 2026-10-31 |
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
-| 67. Design & Settings Ladders | 13/16 | In Progress (67-13 complete: EXP-04 science run and review — all 18 registered science rows launched exactly once at the common N=112700 under the 3540-second cap in the committed case-major order on Saturday AC power, each PHASE67-ROW-OK with scores hidden and committed before the next launch, zero deferred/burned rows; the registered review reads all four encoded-vs-raw contrasts unsettled with nothing confirmed in either direction, scope49 none / dependent_launch_allowed=true, no ruling needed, PHASE67-REVIEW-OK admits EXP-05; see 67-13-SUMMARY.md) |  |
+| 67. Design & Settings Ladders | 14/16 | In Progress (67-14 complete: EXP-05 pre-registered with no science launch — committed design trio at 1/2/5/10 inner laps against the lap10 control, one guarded TRAIN metadata capture for both systems with exact first-crossing endpoints and cross-checked same-window baselines, 12-row timing matrix committed before every attempt, all 12 timing rows measured serially at N=1200 and committed, cost-only Plan04 budget from the experiment's own rows (common N=148700, worst-row projection 2654.00 s vs the 2655 s cap, experiment projection 30305.5 s) with the prediction page, science matrix and all 12 science registrations frozen at 79587171; three exp05 materialization harness fixes with regression tests and freeze re-pins 8c6c201f/54d3cb40/bbf492d4; see 67-14-SUMMARY.md) |  |
 | 68. Yardstick | 0/TBD | Not started | - |
 | 69. Findings & Redesign Decision | 0/TBD | Not started | - |
 
