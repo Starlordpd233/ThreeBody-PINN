@@ -1,0 +1,444 @@
+{
+  "experiment": "exp05",
+  "kind": "science",
+  "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+  "rows": [
+    {
+      "arm": "lap1",
+      "case": "main-1632-s42",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp05/science/main-1632-s42/lap1/record.json",
+      "physical_window": {
+        "t_end": 0.9500000000000006,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/main-1632-s42/lap1/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 0.9500000000000006,
+      "variant_name": "exp05-lap1-1632"
+    },
+    {
+      "arm": "lap2",
+      "case": "main-1632-s42",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp05/science/main-1632-s42/lap2/record.json",
+      "physical_window": {
+        "t_end": 1.8900000000000015,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/main-1632-s42/lap2/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 1.8900000000000015,
+      "variant_name": "exp05-lap2-1632"
+    },
+    {
+      "arm": "lap5",
+      "case": "main-1632-s42",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp05/science/main-1632-s42/lap5/record.json",
+      "physical_window": {
+        "t_end": 4.759999999999943,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/main-1632-s42/lap5/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 4.759999999999943,
+      "variant_name": "exp05-lap5-1632"
+    },
+    {
+      "arm": "lap10",
+      "case": "main-1632-s42",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp05/science/main-1632-s42/lap10/record.json",
+      "physical_window": {
+        "t_end": 9.509999999999842,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/main-1632-s42/lap10/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 9.509999999999842,
+      "variant_name": "exp05-lap10-1632"
+    },
+    {
+      "arm": "lap1",
+      "case": "repeat-851-s42",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/851",
+      "output_path": "evidence/exp05/science/repeat-851-s42/lap1/record.json",
+      "physical_window": {
+        "t_end": 0.5400000000000003,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/repeat-851-s42/lap1/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 0.5400000000000003,
+      "variant_name": "exp05-lap1-851"
+    },
+    {
+      "arm": "lap2",
+      "case": "repeat-851-s42",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/851",
+      "output_path": "evidence/exp05/science/repeat-851-s42/lap2/record.json",
+      "physical_window": {
+        "t_end": 1.0800000000000007,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/repeat-851-s42/lap2/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 1.0800000000000007,
+      "variant_name": "exp05-lap2-851"
+    },
+    {
+      "arm": "lap5",
+      "case": "repeat-851-s42",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/851",
+      "output_path": "evidence/exp05/science/repeat-851-s42/lap5/record.json",
+      "physical_window": {
+        "t_end": 2.679999999999987,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/repeat-851-s42/lap5/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 2.679999999999987,
+      "variant_name": "exp05-lap5-851"
+    },
+    {
+      "arm": "lap10",
+      "case": "repeat-851-s42",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/851",
+      "output_path": "evidence/exp05/science/repeat-851-s42/lap10/record.json",
+      "physical_window": {
+        "t_end": 5.36999999999993,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/repeat-851-s42/lap10/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 42,
+      "t_end": 5.36999999999993,
+      "variant_name": "exp05-lap10-851"
+    },
+    {
+      "arm": "lap1",
+      "case": "repeat-1632-s41",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp05/science/repeat-1632-s41/lap1/record.json",
+      "physical_window": {
+        "t_end": 0.9500000000000006,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/repeat-1632-s41/lap1/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 41,
+      "t_end": 0.9500000000000006,
+      "variant_name": "exp05-lap1-1632"
+    },
+    {
+      "arm": "lap2",
+      "case": "repeat-1632-s41",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp05/science/repeat-1632-s41/lap2/record.json",
+      "physical_window": {
+        "t_end": 1.8900000000000015,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/repeat-1632-s41/lap2/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 41,
+      "t_end": 1.8900000000000015,
+      "variant_name": "exp05-lap2-1632"
+    },
+    {
+      "arm": "lap5",
+      "case": "repeat-1632-s41",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp05/science/repeat-1632-s41/lap5/record.json",
+      "physical_window": {
+        "t_end": 4.759999999999943,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/repeat-1632-s41/lap5/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 41,
+      "t_end": 4.759999999999943,
+      "variant_name": "exp05-lap5-1632"
+    },
+    {
+      "arm": "lap10",
+      "case": "repeat-1632-s41",
+      "experiment": "exp05",
+      "kind": "science",
+      "metadata_sha256": "1a7e35720d1038a1901d1de4b170b25e087e2e8d502c6c3809202ed5b7460b5f",
+      "orbit_key": "hierarchical/gold/1632",
+      "output_path": "evidence/exp05/science/repeat-1632-s41/lap10/record.json",
+      "physical_window": {
+        "t_end": 9.509999999999842,
+        "t_start": 0.0
+      },
+      "registration_path": "evidence/exp05/science/repeat-1632-s41/lap10/registration.json",
+      "schedule": {
+        "cap_seconds": 3540.0,
+        "loss_trace_stride": 149,
+        "measured_steps": 148500,
+        "optimizer_steps": 148700,
+        "score_cadence": [
+          74350,
+          111525,
+          148700
+        ],
+        "similarity_cadence": [
+          0,
+          37175,
+          74350,
+          111525,
+          148700
+        ],
+        "warmup_steps": 200
+      },
+      "seed": 41,
+      "t_end": 9.509999999999842,
+      "variant_name": "exp05-lap10-1632"
+    }
+  ],
+  "schedule": {
+    "cap_seconds": 3540.0,
+    "optimizer_steps": 148700
+  },
+  "schema": "phase67-run-matrix/v1"
+}

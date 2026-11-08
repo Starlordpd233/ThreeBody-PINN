@@ -1,0 +1,226 @@
+# EXP-05 signed-lap window ladder — Budget
+
+The cost-only common-update budget derived from every committed
+timing row of this experiment (67-04's phase67_budget). No score,
+loss, tier or cosine value is read or appears here.
+
+```json phase67-budget
+{
+  "common_optimizer_steps": 148700,
+  "experiment": "exp05",
+  "experiment_projected_seconds": {
+    "exp05": 30305.529825570553
+  },
+  "inputs": {
+    "cap_seconds": 3540.0,
+    "min_steps": 300,
+    "rate_margin": 0.25,
+    "rows": {
+      "exp05|lap10|hierarchical/gold/1632|41|9.509999999999842": {
+        "predicted_byte_bound": 3627037,
+        "published_bytes": 3612289,
+        "residual_seconds": 4.733894592849538,
+        "seconds_per_step": 0.01423962545953691,
+        "warmup_seconds": 2.851341405767016
+      },
+      "exp05|lap10|hierarchical/gold/1632|42|9.509999999999842": {
+        "predicted_byte_bound": 3627168,
+        "published_bytes": 3612420,
+        "residual_seconds": 4.382319472148083,
+        "seconds_per_step": 0.013982053701998665,
+        "warmup_seconds": 2.891633241903037
+      },
+      "exp05|lap10|hierarchical/gold/851|42|5.36999999999993": {
+        "predicted_byte_bound": 3465840,
+        "published_bytes": 3451092,
+        "residual_seconds": 4.371860653394833,
+        "seconds_per_step": 0.01353036704857368,
+        "warmup_seconds": 2.8271653380943462
+      },
+      "exp05|lap1|hierarchical/gold/1632|41|0.9500000000000006": {
+        "predicted_byte_bound": 3289583,
+        "published_bytes": 3274835,
+        "residual_seconds": 4.740526863373816,
+        "seconds_per_step": 0.013144119987962768,
+        "warmup_seconds": 2.708933772868477
+      },
+      "exp05|lap1|hierarchical/gold/1632|42|0.9500000000000006": {
+        "predicted_byte_bound": 3289452,
+        "published_bytes": 3274704,
+        "residual_seconds": 4.871480809175409,
+        "seconds_per_step": 0.013364078238722868,
+        "warmup_seconds": 2.803521370049566
+      },
+      "exp05|lap1|hierarchical/gold/851|42|0.5400000000000003": {
+        "predicted_byte_bound": 3273332,
+        "published_bytes": 3258584,
+        "residual_seconds": 4.673884937190451,
+        "seconds_per_step": 0.012997238275711425,
+        "warmup_seconds": 2.7478075351100415
+      },
+      "exp05|lap2|hierarchical/gold/1632|41|1.8900000000000015": {
+        "predicted_byte_bound": 3326921,
+        "published_bytes": 3312173,
+        "residual_seconds": 4.121718380018137,
+        "seconds_per_step": 0.013366644837660716,
+        "warmup_seconds": 2.711998950340785
+      },
+      "exp05|lap2|hierarchical/gold/1632|42|1.8900000000000015": {
+        "predicted_byte_bound": 3326947,
+        "published_bytes": 3312199,
+        "residual_seconds": 4.633509021019563,
+        "seconds_per_step": 0.013327648517908528,
+        "warmup_seconds": 2.792817752342671
+      },
+      "exp05|lap2|hierarchical/gold/851|42|1.0800000000000007": {
+        "predicted_byte_bound": 3294606,
+        "published_bytes": 3279858,
+        "residual_seconds": 5.051306832814589,
+        "seconds_per_step": 0.01335675887716934,
+        "warmup_seconds": 2.81034974695649
+      },
+      "exp05|lap5|hierarchical/gold/1632|41|4.759999999999943": {
+        "predicted_byte_bound": 3441493,
+        "published_bytes": 3426745,
+        "residual_seconds": 4.967259941273369,
+        "seconds_per_step": 0.013773683987092228,
+        "warmup_seconds": 2.7745611536083743
+      },
+      "exp05|lap5|hierarchical/gold/1632|42|4.759999999999943": {
+        "predicted_byte_bound": 3441439,
+        "published_bytes": 3426691,
+        "residual_seconds": 4.370441124192439,
+        "seconds_per_step": 0.013769331928458996,
+        "warmup_seconds": 2.850522030261345
+      },
+      "exp05|lap5|hierarchical/gold/851|42|2.679999999999987": {
+        "predicted_byte_bound": 3358199,
+        "published_bytes": 3343451,
+        "residual_seconds": 3.8934422520687804,
+        "seconds_per_step": 0.01373532808839809,
+        "warmup_seconds": 2.824865867383778
+      }
+    },
+    "size_ceiling_bytes": 9437184,
+    "step_quantum": 100,
+    "target_seconds": 2655.0,
+    "time_fraction": 0.75
+  },
+  "loss_trace_stride": 149,
+  "measured_steps": 148500,
+  "per_row_projection_seconds": {
+    "exp05|lap10|hierarchical/gold/1632|41|9.509999999999842": 2654.0048012963243,
+    "exp05|lap10|hierarchical/gold/1632|42|9.509999999999842": 2607.985317232382,
+    "exp05|lap10|hierarchical/gold/851|42|5.36999999999993": 2523.1684410968437,
+    "exp05|lap1|hierarchical/gold/1632|41|0.9500000000000006": 2448.155918957134,
+    "exp05|lap1|hierarchical/gold/1632|42|0.9500000000000006": 2491.471399849021,
+    "exp05|lap1|hierarchical/gold/851|42|0.5400000000000003": 2421.8934022841377,
+    "exp05|lap2|hierarchical/gold/1632|41|1.8900000000000015": 2489.4581665281407,
+    "exp05|lap2|hierarchical/gold/1632|42|1.8900000000000015": 2484.561839821793,
+    "exp05|lap2|hierarchical/gold/851|42|1.0800000000000007": 2489.4556754086343,
+    "exp05|lap5|hierarchical/gold/1632|41|4.759999999999943": 2567.1914979711587,
+    "exp05|lap5|hierarchical/gold/1632|42|4.759999999999943": 2567.9721005258266,
+    "exp05|lap5|hierarchical/gold/851|42|2.679999999999987": 2560.211264599161
+  },
+  "phase_cost_ledger": {
+    "cap_seconds": 3540.0,
+    "experiments": [
+      {
+        "basis": "measured_projection",
+        "declared_runs": 12,
+        "experiment": "exp05",
+        "note": "measured timing rows; update this ledger with the measured projections before each science launch",
+        "planned_seconds": 30305.529825570553
+      }
+    ]
+  },
+  "schema": "phase67-budget/v1",
+  "score_cadence": [
+    74350,
+    111525,
+    148700
+  ],
+  "similarity_cadence": [
+    0,
+    37175,
+    74350,
+    111525,
+    148700
+  ],
+  "timing_evidence": {
+    "rows": [
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/main-1632-s42/lap1/record.json",
+        "sha256": "6be9bbd1a9ce56956205fdf23b750a2c63156683904577ad7413a20745e2801f"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/main-1632-s42/lap2/record.json",
+        "sha256": "7f8a8d0d3e56ea2064d89def27f51a9014ce437f9be3544bd79d167ee00f4519"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/main-1632-s42/lap5/record.json",
+        "sha256": "102592d7833da818b8438639df391b685d07c34d442bcad9bb7e216a7345355f"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/main-1632-s42/lap10/record.json",
+        "sha256": "5ee4fa3e02f2a750c8a1617954e06eb52604ba7cac3f2fae082da0f7835dccb4"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/repeat-851-s42/lap1/record.json",
+        "sha256": "c35e0bec2e6d11ae6da364783273230875b4b4f28352864b62c0d95d35713e1c"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/repeat-851-s42/lap2/record.json",
+        "sha256": "b4e78cde6c392374d20f797adab7d780359866f7fedf9c45af7dea23d818903f"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/repeat-851-s42/lap5/record.json",
+        "sha256": "2c477478786111f3c18d01bd23fb61b09fa48e99e83d2d52dad19953598d12e1"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/repeat-851-s42/lap10/record.json",
+        "sha256": "7618d2b422a3945d7a26ea89e94ab333368a98f24a765f922465648f31065f72"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/repeat-1632-s41/lap1/record.json",
+        "sha256": "154cf2495286d0dc44e751aa3336732790121080d3ac15e5aa586d09b5a0ce1c"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/repeat-1632-s41/lap2/record.json",
+        "sha256": "dd2f630593bbc50721323c6fe4068dc2ac2d165a13c2e6d0f6fd33fd8abe2366"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/repeat-1632-s41/lap5/record.json",
+        "sha256": "fc9542d94029e88d6e89e8584e40b8aca906eec4a37384880192823f0440298b"
+      },
+      {
+        "path": ".planning/phases/67-design-settings-ladders/evidence/exp05/timing/repeat-1632-s41/lap10/record.json",
+        "sha256": "b6c8e949ca7277ea47c21ff951065cf6b20ff64d3f37cdc1fa071f87ffc4dddb"
+      }
+    ]
+  },
+  "timing_evidence_digests": {
+    "exp05|lap10|hierarchical/gold/1632|41|9.509999999999842": null,
+    "exp05|lap10|hierarchical/gold/1632|42|9.509999999999842": null,
+    "exp05|lap10|hierarchical/gold/851|42|5.36999999999993": null,
+    "exp05|lap1|hierarchical/gold/1632|41|0.9500000000000006": null,
+    "exp05|lap1|hierarchical/gold/1632|42|0.9500000000000006": null,
+    "exp05|lap1|hierarchical/gold/851|42|0.5400000000000003": null,
+    "exp05|lap2|hierarchical/gold/1632|41|1.8900000000000015": null,
+    "exp05|lap2|hierarchical/gold/1632|42|1.8900000000000015": null,
+    "exp05|lap2|hierarchical/gold/851|42|1.0800000000000007": null,
+    "exp05|lap5|hierarchical/gold/1632|41|4.759999999999943": null,
+    "exp05|lap5|hierarchical/gold/1632|42|4.759999999999943": null,
+    "exp05|lap5|hierarchical/gold/851|42|2.679999999999987": null
+  },
+  "warmup_steps": 200,
+  "whole_run_cap_seconds": 3540.0
+}
+```
+
+- common optimizer steps: 148700
+- warmup steps: 200
+- whole-run cap: 3540 seconds
+
+The science registrations are frozen from this budget before any
+science run; the timing prediction page is unchanged by this page.
