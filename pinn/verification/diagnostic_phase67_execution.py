@@ -1215,6 +1215,22 @@ def _committed_metadata_record(experiment, *, root, phase_dir):
     return record_path, doc, _sha256_file(record_path)
 
 
+def materialize_phase67_exp05_variants(*, repo_root=None, phase_dir=None):
+    """Materialize the exp05 lap variants from the committed metadata record.
+
+    Public admission hook for freshly spawned processes that admit an exp05
+    registration: the fit CLI and its worker re-execute the settings gate in
+    their own interpreter, where no prior command has loaded the capture, so
+    the settings gate calls this before resolving a registration's variant.
+    Loading the committed record materializes the lap set idempotently; a
+    missing, uncommitted or incomplete record refuses exactly as any other
+    command's admission would.
+    """
+    root = _repo_root(repo_root)
+    phase = _phase_directory(phase_dir, root)
+    _committed_metadata_record("exp05", root=root, phase_dir=phase)
+
+
 def _materialize_exp05_variants(metadata):
     """Register the exp05 lap variants from the committed metadata record."""
     from pinn.verification.diagnostic_phase67_catalog import (
