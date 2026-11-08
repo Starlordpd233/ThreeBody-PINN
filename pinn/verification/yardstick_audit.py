@@ -500,7 +500,7 @@ def run_fixed_panel_audit(repo_root: Optional[Path] = None, *, argv: Optional[Se
                 })
 
     # 8. Provenance and source hashes
-    prod_hashes = module_hashes(repo, PRODUCER_MODULES)
+    prod_hashes = module_hashes(PRODUCER_MODULES, repo_root=repo)
     files_opened = files_opened_record("yardstick_audit", attestation.summary())
     provenance = provenance_record(
         "yardstick_audit",
@@ -580,7 +580,7 @@ def replay_check(check_path: Path, repo_root: Optional[Path] = None) -> bool:
     # Check live producer bytes against recorded producer hashes
     saved_sources = saved.get("sources", {})
     saved_producers = saved_sources.get("producer_sha256", {})
-    live_producers = module_hashes(repo, PRODUCER_MODULES)
+    live_producers = module_hashes(PRODUCER_MODULES, repo_root=repo)
     for mod, exp_sha in saved_producers.items():
         if live_producers.get(mod) != exp_sha:
             raise YardstickAuditError(
