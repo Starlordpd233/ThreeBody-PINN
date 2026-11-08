@@ -1,7 +1,7 @@
 ---
 phase: "67"
 slug: "design-settings-ladders"
-status: complete
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: "2026-11-01"
@@ -228,3 +228,24 @@ unsettled outcomes as unsettled, the refuted EXP-03 lead at confirmation
 grade with its digest-bound owner ruling, and no cosine threshold or causal
 claim anywhere in the four result pages. No new threshold, adjudication
 choice or probe execution was introduced by this reconciliation.
+
+## Validation Audit 2026-11-08 (gsd-validate-phase, state A)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+State-A audit against the observed validation results above: every
+requirement row (EXP-02 → test_catalog, EXP-03 → test_budget, EXP-04 →
+test_time_features, EXP-05 → test_windows, cross-cutting → test_records,
+test_isolation and the remaining committed modules) is COVERED by a
+committed module that ran OK with zero skipped cases in the recorded
+discovery (260 = the exact per-module sum), and the registered-execution
+rows resolved through their executed plans with the committed gate tokens
+(PHASE67-ROW-OK per row, PHASE67-ALL-ROWS-OK, PHASE67-REVIEW-ARTIFACTS-OK,
+PHASE67-REVIEW-OK, PHASE67-BUDGET-OK, PHASE67-INDEX-OK, PHASE67-AUDIT-OK).
+No PARTIAL or MISSING classification; no auditor dispatch needed. The three
+descriptor-less transparency prohibitions remain flagged narrative review
+obligations (not test gaps) per the committed reconciliation above.
