@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v2.5
 milestone_name: Root-Cause Confirmation
 current_phase: 69
-status: completed
-stopped_at: Phase 69 verified and complete. All v2.5 phases are complete and ready for milestone audit.
-last_updated: "2026-11-09T04:29:49.761Z"
+status: milestone-closed
+stopped_at: v2.5 milestone closed 2026-11-08 (13/13 requirements Complete; owner Checkpoint 3 selected Direction A and commissioned trainex-r5 redesign research)
+last_updated: "2026-11-09T05:25:00.000Z"
 last_activity: 2026-11-08
-last_activity_desc: Phase 69 verified. Owner selected direction A and commissioned trainex-r5 redesign research.
-state_head: 638ca94feb05d87006202729ed956521df89d652
+last_activity_desc: v2.5 milestone closed 2026-11-08 (`/gsd-complete-milestone` — 13/13 requirements Complete; Direction A + trainex-r5 commissioned; archived under milestones/v2.5-* and reports/MILESTONE_SUMMARY-v2.5.md; local tag v2.5; phase folders 65-69 stay in place)
+state_head: e4ffae50a9917cf70144ed1505f9799077347c6c
 progress:
   total_phases: 5
   completed_phases: 5
@@ -21,39 +21,40 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-11-08)
+See: .planning/PROJECT.md (updated 2026-11-08, v2.5 milestone close)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Phase 69 — Findings & Redesign Decision
+**Current focus:** v2.5 Root-Cause Confirmation — **CLOSED 2026-11-08** (`13/13` requirements Complete; owner Checkpoint ② `C-7: A` closing `GAP-59-08`; owner Checkpoint ③ `Direction A` + `trainex-r5` redesign research commissioned). Next: v2.6 (not yet initialized), opening with the `trainex-r5` redesign review under Direction A (`69-HANDOFF.md`).
 
 ## Current Position
 
-Phase: 69
-Plan: 3 of 3 complete
-Status: All phases complete
-Last activity: 2026-11-08 - Phase 69 verified. Owner selected direction A and commissioned trainex-r5 redesign research.
-  run and review): all 12 window-ladder rows ran exactly once at the
-  registered common N=148700 (200 warmup) with the registered five
-  similarity events and three score events, serially in the case-major
-  matrix order on AC power inside the weekend window (rows 1-6 Saturday
-  20:09-00:17 CST, rows 7-12 Sunday 00:24-05:15 CST; PHASE67-ROW-OK per
-  row with scores hidden, one commit of four artifacts per row before the
-  next launch, whole-launch walls 2012-2899 s under the 3540 s cap
-  totalling 29246 s, zero deferred rows, zero burned directories, no
-  retry/resume/continuation), and the registered review then read the
-  committed evidence under the unchanged prospective rule (3b19801c):
-  all three lap1/lap2/lap5-vs-lap10 contrasts unsettled — the improvement
-  direction on all nine case-contrast cells with every relative E effect
-  qualifying (0.14-0.88) and tier improved only on the seed-41 repeat,
-  but unsettled endpoints block confirmation (the main case's lap10
-  control and all three of its short arms were still improving by more
-  than the registered five percent at budget end; the repeat-system
-  case's lap10 control likewise) — confirmed empty, nothing presented in
-  either direction, dependent_launch_allowed=true on the registered
-  unsettled branch with no scope proposal, so the conditional task-03
-  owner checkpoint was skipped by its own condition and no ruling file
-  was created; PHASE67-ALL-ROWS-OK, PHASE67-REVIEW-ARTIFACTS-OK and
-  PHASE67-REVIEW-OK green; 67-16 evidence closure admitted.
+**v2.5 CLOSED 2026-11-08 (`/gsd-complete-milestone`):**
+- **Phases:** 5 of 5 complete and verified (Phases 65, 66, 67, 68, 69; 32/32 plans, 82/82 tasks; `29.90` measured machine hours across 129 published attempts and 1 yardstick capture).
+- **Root-cause findings (`69-FINDINGS.md`, `69-EVIDENCE.md`):**
+  - **Suspect 1 ("the network is too small"):** Refuted for one Stage-0 orbit. In `EXP-01`, the 1-hidden-layer 384-wide SIREN (`157,065` params vs `795,657` locked, `first_omega_0 = 1000`, `lr = 1e-4`, `N = 465,000` steps) reached settled Tier 1 on all three runs (`1632/s42` `E = 0.01143`, `851/s42` `E = 0.01721`, `1632/s41` `E = 0.07898`). In `EXP-03`, the locked `12×256` (`first_omega_0 = 30`) control at `lr = 1e-4` (`N = 155,100` steps) also reached settled Tier 1 on all three cases (`1632/s42` `E = 0.04069`, `851/s42` `E = 0.09550`, `1632/s41` `E = 0.03492`).
+  - **Suspect 2 ("the metrics are too harsh"):** Confirmed in part on finite-difference energy measurement (`YARD-01`). Brutus's exact trajectory fails the `10⁻⁵` energy gate under finite-difference velocities (`0.00109..0.02380` on the gold 0.01 grid; `0.047..0.38` on the base grid) while passing at `1.07e-14..2.09e-14` with exact velocities; the constant predictor passes the standalone energy gate (`eps_H = 0.0`, `SCS = -inf`) while failing every position-accuracy bar.
+  - **Suspect 3 ("the training pipeline is wrong"):** Split into two halves. In the training-settings half (`EXP-03`), `lr = 1e-3` (the v2.4 rate) is confirmed-worsening (`E = 1.4552, 1.2422, 1.1583`, settled Tier 0) relative to `lr = 1e-4` (`E = 0.04069, 0.09550, 0.03492`, settled Tier 1); retrospective Phase 60 attribution remains open across five co-varying recipe differences (schedule, clipping, polish, step budget `5,000` vs `155,100`, scored-state selection). The physics-term half (`CONF-10`, `CONF-11`, `10⁴–10⁶×` IC-to-physics gradient imbalance, unreachable L-BFGS stage) is carried into v2.6 by name.
+  - **2026-10-27 probe lead (`DIAG-09`):** Reproduced (`144/144` required fields, verdict `retained`); causal mechanism remains open (`EXP-02`, `EXP-04` and `EXP-05` read `unsettled-continue`).
+- **Owner checkpoints:** Checkpoint ① (`66-CHECKPOINT-1-RULING.md`, 2026-11-01): `phase67-as-planned`; `EXP-03` `REFUTED-LEAD` continuation (`67-EXP03-RULING.md`, 2026-11-08): `proceed with option 1`; Checkpoint ② (`68-CHECKPOINT-2-RULING.md`, 2026-11-08): `C-7: A` (autograd velocities), closing `GAP-59-08`, `C-2, C-4, C-5, C-6` left open for separate discussion, `ROUT-68-01..05` routed to v2.6; Checkpoint ③ (`69-RULING.md`, 2026-11-08): **Direction A** (keep the current `12×256` architecture as the supervised fit control and prioritize the training recipe and physics pipeline in v2.6) and **`trainex-r5` commissioned** on the focused redesign question.
+- **Requirements:** 13/13 Complete (`DIAG-09`, `INST-08`, `EXP-01..05`, `YARD-01..03`, `VERD-01..02`, `VER-23` 13/13/13); scope boundaries `SCOPE-45..49` held throughout.
+- **Archive:** `.planning/milestones/v2.5-ROADMAP.md`, `.planning/milestones/v2.5-REQUIREMENTS.md`, `.planning/milestones/v2.5-MILESTONE-AUDIT.md`, `.planning/reports/MILESTONE_SUMMARY-v2.5.md`. Learnings extracted: `65-`, `66-`, `67-`, `68-`, `69-LEARNINGS.md`. Phase folders 65–69 stay in `.planning/phases/` alongside 53–60 and 64 (`--no-archive-phases`) because `pinn/verification/` and `tests/phase65..69` hardcode their paths. Local annotated tag `v2.5` created; not pushed and not merged to `master` (owner-controlled integration).
+
+Progress: `[██████████] 100%` (5/5 phases, 32/32 plans complete — **milestone closed**)
+
+### Decisions from Phase 69 (2026-11-08)
+
+- **Retrospective recipe comparison (`69-EVIDENCE.md`, `verify_phase69.py`):** Matched Phase 60 Rung-1 failures (`r1-1632` `E = 1.1574`, `r1-851` `E = 1.2384`, both Tier 0) against Phase 67 `EXP-03 lr1e-4` controls (`1632/s42` `E = 0.04069`, `851/s42` `E = 0.09550`, plus `1632/s41` `E = 0.03492`, all settled Tier 1) across 14 recipe aspects (`6 checked-equivalent`, `6 checked-different`, `2 source-unresolved`), establishing that the locked `12×256` architecture fits the tested orbits without over-claiming a single isolated historical variable. Documented the `67-FINDINGS.md` prose repeat-column swap (`1632/s41` vs `851/s42`) while preserving raw keyed `review.json` evidence.
+- **Mac compute and SCOPE-49 accounting (`69-ACCOUNTING.md`):** Reconciled `107,626` UTC seconds (`107,582.11` fit-wall seconds) across 129 published attempts plus `0.594706` UTC seconds (`0.594587` elapsed seconds) for the Phase 68 yardstick capture (`107,626.594706` UTC seconds = `29.90 hours` across 130 timed activities, plus 1 untimed `DIAG-09` probe reproduction and 3 pre-attempt refusals). All 7 `SCOPE-49` disposition events resolved in-scope with zero added/dropped/inserted phases and zero spec edits.
+- **Owner Checkpoint ③ (`69-RULING.md`, `69-HANDOFF.md`):** Across two dated replies against packet `f55cd870`, the owner authorized `trainex-r5` on the packet's focused redesign question and approved **Direction A** (keep the current architecture as the supervised fit control while addressing the training recipe and physics pipeline in v2.6). `VER-23` verified at 13/13/13 (`69-VERIFICATION.md` 22/22 must-haves verified, `tests/phase69` 39/39 passed).
+
+### Decisions from Phase 68 (2026-11-08)
+
+- **Known-answer yardstick audit (`68-AUDIT.md`, `yardstick_audit.py`):** Evaluated Brutus's exact trajectory and the constant predictor across `1632`, `851`, and `4658` on both the gold (`dt = 0.01`, `1,001` samples) and base (`126` samples) grids. Proved that the constant predictor passes the standalone energy gate (`eps_H = 0.0`, `SCS = -inf`) while failing every position metric (`E = 1.1396..1.2337`, Tier 0), and that Brutus's exact answer fails the finite-difference energy gate (`0.00109..0.02380` on gold, `0.047..0.38` on base) and passes only with exact velocities (`1.07e-14..2.09e-14`).
+- **Owner Checkpoint ② (`68-CHECKPOINT-2-RULING.md`):** The owner replied `"for C-7: A. for C-2, C-4, C-5, C-6: let's discuss separately."`, closing `GAP-59-08` as `RESOLVED-WITH-INSTRUCTION` under `C-7: A` (autograd velocities), keeping `C-2, C-4, C-5, C-6` explicitly open for separate discussion, and routing `ROUT-68-01..05` (including `C-11`) to v2.6 under `SCOPE-46`. `68-VERIFICATION.md` passed 5/5 (`tests/phase68` 25/25 passed).
+
+### Decisions from 67-16 (2026-11-08)
+
+- **Phase 67 closeout (`67-FINDINGS.md`, `67-CLOSEOUT.md`, `67-EVIDENCE-INDEX.json`, `67-VERIFICATION.md`):** Sealed all four ladders (`EXP-02..05`: 4 metadata captures, 60 blind timing rows, 60 single-look science rows) behind `pinn.verification.diagnostic_phase67 audit-phase` (`PHASE67-AUDIT-OK`, `tests/phase67` 53/53 passed, `67-VERIFICATION.md` 5/5 passed).
 
 ### Decisions from 67-15 (2026-11-08)
 
@@ -1460,6 +1461,24 @@ reading; or accept the record. Full record: `evidence/frame-re-ratification/2026
 
 ## Deferred Items
 
+Items deferred at milestone close on 2026-11-08 (v2.5). Recorded here per the v2.3/v2.4 close precedent so archived files are not mutated by acknowledge markers.
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | phase39-collocation-slot-multiplicity, phase39-memory-guard-validation | Carried from the v2.0, v2.3 and v2.4 closes; session records never formally closed |
+| pending_todo | trainex-r1-research-handoff, d-06-static-epsilon-sensitivity-check | Carried from the v1.6, v2.0, v2.3 and v2.4 closes |
+| routed_v26 | ROUT-68-01..05 (`C-7: A` autograd velocity wiring in `validation_gate.py`, `evaluate.py`, and `pinn_architecture.md` §10.6; pairing energy gate with position accuracy; `C-11` rewrite of `ctl_instruction.md` §2.4.5) | Routed to v2.6 under `SCOPE-46` (`68-CHECKPOINT-2-RULING.md`, `69-HANDOFF.md`); `GAP-59-08` is `RESOLVED-WITH-INSTRUCTION` |
+| charter_open | Charter rows `C-2, C-4, C-5, C-6` (proof-of-concept target, Stage-0 position and energy bars, held-out `10⁻⁵` bar) | Explicitly left open for separate owner discussion at Checkpoint ② (`68-CHECKPOINT-2-RULING.md`, `69-HANDOFF.md`) |
+| physics_pipeline | Named physics-half pipeline defects (`CONF-10` single-anchor physics, `CONF-11` IC reduction, `10⁴–10⁶×` IC-to-physics gradient imbalance, unreachable production L-BFGS stage) | Carried into v2.6 by name under **Direction A** (`69-FINDINGS.md`, `69-HANDOFF.md`) |
+| gap | GAP-56-02 | Still DEFERRED from v2.3/v2.4 |
+| validation | 65-, 66-, 67-VALIDATION.md at `status: draft` (68- and 69-VALIDATION.md are `complete`) | Planning-time draft frontmatter retained; all 5 phase `VERIFICATION.md` reports are `passed` |
+| phase_folders | Phase folders 65–69 remain in `.planning/phases/` alongside 53–60 and 64 | `pinn/verification/` and `tests/phase65..69` hardcode `.planning/phases/65-*..69-*` (`--no-archive-phases`) |
+
+Closeout type: `clean_close` (`tech_debt` with zero blockers). The `audit-open` scan reported 4 carried-forward items (2 Phase-39 debug sessions and 2 pending todos). The milestone audit (`milestones/v2.5-MILESTONE-AUDIT.md`) is `tech_debt` with 13/13 requirements Complete, 5/5 phases verified (`passed`), 5/5 integration checks PASS, and 0 blockers. Milestone closing decision: **Direction A** + **`trainex-r5` redesign research commissioned** (`69-RULING.md`).
+
+<details>
+<summary>Prior close (v2.4, 2026-10-26)</summary>
+
 Items deferred at milestone close on 2026-10-26 (v2.4). Owner decision (2026-10-26): record them here only, as at the v2.3 close. The GSD acknowledge tool was not run, because it writes markers into the archived files, so these items will reappear in the next `audit-open` scan.
 
 | Category | Item | Status |
@@ -1478,6 +1497,8 @@ Items deferred at milestone close on 2026-10-26 (v2.4). Owner decision (2026-10-
 | validation | 59-, 60-, 64-VALIDATION.md at `status: draft` | Nyquist NOT-VALIDATED; `/gsd-validate-phase` not run |
 
 Closeout type: `override_closeout`. The scan reported 18 open items (2 debug, 3 uat, 3 verification, 2 todos, 8 deferred_items; the first six rows above group them), the same 18 as at the v2.3 close, with 0 acknowledged by a prior close. The milestone audit (`milestones/v2.4-MILESTONE-AUDIT.md`) is `gaps_found` for the twelve skipped-phase requirements only, and the owner chose to close over them (2026-10-26). Milestone verdict: `RETHINK-REPRESENTATION`; owner decision `change-course` (`64-CHECKPOINT-1-RULING.md`).
+
+</details>
 
 <details>
 <summary>Prior close (v2.3, 2026-10-04)</summary>
@@ -1889,14 +1910,24 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** .planning/phases/69-findings-redesign-decision/69-HANDOFF.md
 
-Last session: 2026-11-09T04:29:12.302Z
-Stopped at: Phase 69 verified and complete. All v2.5 phases are complete and ready for milestone audit.
-Next action: Audit the v2.5 milestone before archiving it. Use the Phase 69 handoff when opening v2.6 and its authorized trainex-r5 redesign review.
+Last session: 2026-11-09T05:25:00.000Z
+Stopped at: v2.5 milestone closed 2026-11-08 (`/gsd-complete-milestone` — 13/13 requirements Complete; owner Checkpoint ② `C-7: A` closing `GAP-59-08`; owner Checkpoint ③ `Direction A` + `trainex-r5` redesign research commissioned; archived under `milestones/v2.5-*` and `reports/MILESTONE_SUMMARY-v2.5.md`; local tag `v2.5`).
+Next action: `/gsd-new-milestone` to initialize v2.6 (opening with the authorized `trainex-r5` redesign review under Direction A, plus `ROUT-68-01..05`, open charter rows `C-2, C-4, C-5, C-6`, and the physics-half pipeline fixes in `.planning/phases/69-findings-redesign-decision/69-HANDOFF.md`).
 
 ## Operator Next Steps
 
-- **Phase 66 planned, execution next.** Five plans in five waves (2026-10-31). Plans 66-01 and 66-02 (harness extension, AC/weekend launch gate, reading rule, tests) can run any day. The timing run and the three EXP-01 runs (66-03, 66-04) launch only on AC power, Saturday or Sunday before 22:00 America/Chicago. 66-05 ends at owner checkpoint ①. Carry the defect-reuse conditions from `65-CLOSEOUT.md`; technical decisions stay delegated, with high-level direction and reserved checkpoints owner-controlled.
-
+- **Open v2.6 (`/gsd-new-milestone`)** from `.planning/phases/69-findings-redesign-decision/69-HANDOFF.md` and `69-RULING.md`:
+  - **Direction A:** keep the current `12×256` architecture as the supervised fit control while addressing the training recipe and physics pipeline.
+  - **Authorized `trainex-r5` redesign review question:** *"How should v2.6 retain the demonstrated single-orbit position fit while repairing the physics training and energy measurement, and what evidence should trigger a representation change before expanding to the 16-system family?"*
+  - **Routed yardstick and spec amendments (`ROUT-68-01..05`):** wire autograd velocities (`C-7: A`) into `pinn/training/validation_gate.py`, `pinn/evaluate.py`, and `pinn_architecture.md` §10.6; pair energy conservation with position accuracy (`E`) so a constant predictor cannot pass a standalone gate; rewrite `ctl_instruction.md` §2.4.5 (`C-11`) once the bars are settled.
+  - **Open charter rows for separate owner discussion:** `C-2` (proof-of-concept target), `C-4` and `C-5` (Stage-0 position and energy bars), and `C-6` (the `10⁻⁵` held-out bar); plus `C-8..C-10` if raised.
+  - **Carried physics-half pipeline defects:** single-anchor physics (`CONF-10`), IC reduction over selected slots (`CONF-11`), `10⁴–10⁶×` IC-to-physics gradient imbalance, and the unreachable production L-BFGS stage.
+- ~~Execute Phase 65~~ — done and verified 2026-10-31 (6/6 plans; `DIAG-09` probe reproduced `144/144`, `INST-08` harness sealed and smoke-tested at `0.014265 s/step`; `65-VERIFICATION.md`).
+- ~~Plan and execute Phase 66~~ — done and verified 2026-11-01 (5/5 plans; `EXP-01` `1×384` SIREN reached settled Tier 1 on all 3 runs; Owner Checkpoint ① `phase67-as-planned`; `66-VERIFICATION.md`).
+- ~~Plan and execute Phase 67~~ — done and verified 2026-11-08 (16/16 plans; `EXP-02..05` ladders over `28.30` machine hours; `EXP-03` confirmed `lr = 1e-3` worsening and `12×256` control at `lr = 1e-4` reached settled Tier 1 on all 3 cases; Owner continuation `proceed with option 1`; `67-VERIFICATION.md`).
+- ~~Plan and execute Phase 68~~ — done and verified 2026-11-08 (2/2 plans; `YARD-01..03` known-answer audit; Owner Checkpoint ② selected `C-7: A` closing `GAP-59-08`, left `C-2/C-4/C-5/C-6` open, and routed `ROUT-68-01..05` to v2.6; `68-VERIFICATION.md`).
+- ~~Plan and execute Phase 69~~ — done and verified 2026-11-08 (3/3 plans; `VERD-01..02` and `VER-23` 13/13/13; Owner Checkpoint ③ selected `Direction A` and commissioned `trainex-r5`; `69-VERIFICATION.md`).
+- ~~v2.5 milestone close~~ — archived 2026-11-08: audit `tech_debt` with 0 blockers (`milestones/v2.5-MILESTONE-AUDIT.md`), onboarding summary (`reports/MILESTONE_SUMMARY-v2.5.md`), learnings extracted for Phases 65–69 (`65..69-LEARNINGS.md`), local annotated tag `v2.5`.
 - ~~Finish `trainex-r4`~~ — done 2026-10-07: consolidated (`53b7c008`) and ruled under owner delegation (`trainex-r4-ruling.md`, `c4bea18a`; Key Decision in `PROJECT.md`). The four disputes were settled by making the next run the corrected control with an observe-only guard and plateau handoff, Adam-only, on seeds 42, 41 and 43.
 - ~~Open the next milestone~~ — v2.4 Stage-0 Feasibility Checkpoint started 2026-10-09 (`0b400dfa`; branch `milestone/v2.4`). It keeps the ruling's order of work and adds the learnability ladder in front of the corrected control.
 - ~~Re-examine v2.4~~ — done 2026-10-11: the owner approved the ten amendments ("go"), which are folded into REQUIREMENTS/ROADMAP/PROJECT (`2026-10-11-v2.4-feasibility-amendments.md`).
@@ -1908,19 +1939,16 @@ Next action: Audit the v2.5 milestone before archiving it. Use the Phase 69 hand
 - ~~Plan and execute Phase 64~~ — done 2026-10-26: verdict `RETHINK-REPRESENTATION`; at checkpoint ① the owner decided `change-course` and left every charter row open; `64-VERIFICATION.md` PASS-WITH-OBSERVATIONS.
 - ~~v2.4 milestone close~~ — archived 2026-10-26: audit `gaps_found` for the twelve skipped-phase requirements only, learnings extracted for Phases 59, 60 and 64, override closeout, local annotated tag `v2.4`.
 - ~~Start v2.5~~ — started 2026-10-27 (`/gsd-new-milestone`): confirm the cause of the time-constant output in-house first, with the redesign in v2.6; `trainex-r5` is re-aimed at the redesign question (order A). The eight unranked candidate fixes are in `64-VERDICT.md`.
-- **Owner decision, open: GAP-59-08** (`.planning/phases/59-read-only-baseline-scorecard/59-GAPS.md`).
-  - **The finding.** The validation gate and the held-out evaluator compute energy error from finite-difference velocities on the 0.08 data grid. That grid gives 5–38% error even on Brutus's exact answers, so the `1e-5` exam cannot be passed as implemented.
-  - **Recommendation.** Option A: autograd velocities, written in by a formal clarifying amendment.
-  - **Scope.** It blocks any held-out spend, not v2.4. Phase 64 puts it on checkpoint ① beside the pass bars (`64-CONTEXT.md` D-10). v2.5 puts it to the owner in its yardstick work (charter row C-7).
-- **Owner decisions carried forward** (FEAS-10 charter rows C-1..C-14 in `64-CHARTER.md`; checkpoint ① on 2026-10-26 left every row open; the v2.5 start decided C-12, C-13 and C-14):
+- ~~Owner decision, open: GAP-59-08~~ — **closed 2026-11-08** (`RESOLVED-WITH-INSTRUCTION`, `68-CHECKPOINT-2-RULING.md`): the owner selected `C-7: A` (autograd velocities), routed to v2.6 as `ROUT-68-01..03`.
+- **Owner decisions carried forward** (FEAS-10 charter rows C-1..C-14 in `64-CHARTER.md`; checkpoint ① on 2026-10-26 left every row open; the v2.5 start decided C-12, C-13 and C-14; Phase 68 Checkpoint ② decided C-7 A and left C-2, C-4, C-5, C-6 open for separate discussion):
   - ~~the project's purpose~~ — answered 2026-10-25: learning plus a proof of concept (verbatim in `64-CONTEXT.md` D-07);
   - the budget: how many months of computing on this Mac (rented or cloud GPU time is not an option; standing owner rule, `PROJECT.md` Constraints);
-  - the pass bar per stage — the Stage-0 rows (C-2, C-4 to C-7) are set inside v2.5;
+  - the pass bar per stage — `C-7: A` decided 2026-11-08; `C-2, C-4, C-5, C-6` remain open for separate owner discussion in v2.6;
   - ~~approval to rewrite `PROJECT.md`'s "What This Is"~~ — approved 2026-10-27 (C-12 A, C-13 A) and applied at the v2.5 start; C-14 B (the twelve skipped v2.4 requirements are not carried forward).
 - ~~Hand off `trainex-r4`~~ — done; two engagements recorded with Rule-20 pins in the delivery note.
 - ~~Owner decision still open: where the v2.3 phase folders should live~~ — decided in the v2.4 proposal under owner delegation: they stay in `.planning/phases/` through v2.4; revisit at the v2.4 close.
-- **Phase-folder placement after the v2.4 close.** The owner decided on 2026-10-26 that the v2.4 folders 59, 60 and 64 stay in `.planning/phases/`, because 18 code and test files hardcode their paths. The close ran with `--no-archive-phases`, so the v2.3 folders 53–58 also stayed in place; their placement was not separately revisited and remains open.
-- **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` or `milestone/v2.4` to master; pushing tags `v2.3` and `v2.4`.
+- **Phase-folder placement after the v2.4 and v2.5 closes.** Phase folders 53–60 and 64–69 stay in `.planning/phases/` (`--no-archive-phases`) because code and tests under `pinn/verification/` and `tests/phase*` hardcode their paths.
+- **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3`, `milestone/v2.4`, or `milestone/v2.5` to `master`; pushing tags `v2.3`, `v2.4`, and `v2.5`.
 - ~~v2.3 milestone close~~ — archived 2026-10-04 (verdict `rethink`).
 - ~~Execute Plan 57-05 only after its precondition is checked.~~ Done 2026-10-03 (generation-7 terminal branch). The fresh complete GATE-04, final-R_ref production conformance, and `admit-run-window` receipt now pass; the next action is the explicit operator authorization before any smoke/band compute.
 - **Keep checkpoint ④'s selection rule fixed.** Seed 42, then 41 and 43 only for structural ineligibility; no observed scientific metric may trigger fallback.

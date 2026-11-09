@@ -369,6 +369,49 @@
 
 ---
 
+## Milestone: v2.5 — Root-Cause Confirmation
+
+**Shipped:** 2026-11-08 (13/13 requirements Complete; owner Checkpoint 3 selected `Direction A` and commissioned `trainex-r5` redesign research, 2026-11-08)
+**Phases:** 5 (65–69; all 5 executed) | **Plans:** 32
+
+### What Was Built
+- The committed 2026-10-27 read-only probe (`DIAG-09`), re-run against pre-registered predictions across all seven committed Phase 60 arms (`144/144` required fields reproduced, verdict `retained`), and the `INST-08` minute-scale single-orbit diagnostic fit harness with Stage-0 training-split guards, `inst08-diagnostic` checkpoint refusal across `evaluate.py` and `train.py`, and a 20-step MPS smoke run (`0.014265 s/step`, Phase 65)
+- The `EXP-01` small-network control (`1×384` SIREN, `157,065` params vs `795,657` locked, `first_omega_0 = 1000`, `lr = 1e-4`, `N = 465,000` steps) across main + 2 repeat runs, all reaching settled Tier 1 (`E = 0.01143, 0.01721, 0.07898`), and the Owner Checkpoint ① ruling record (`66-CHECKPOINT-1-RULING.md`, Phase 66)
+- The four pre-registered design and settings ladders (`EXP-02` depth, `EXP-03` learning rate, `EXP-04` time-input design, `EXP-05` window length: 4 metadata captures, 60 blind timing rows and 60 single-look science rows over `28.30` machine hours), plus the `EXP-03` `REFUTED-LEAD` owner continuation record (`67-EXP03-RULING.md`) and `diagnostic_phase67.py` verifier (`67-EVIDENCE-INDEX.json`, Phase 67)
+- The read-only known-answer yardstick audit (`YARD-01..03`: `pinn/verification/yardstick_audit.py` and `68-AUDIT.md`) over Brutus's exact trajectory and the constant predictor across all production and feasibility metrics, plus the Owner Checkpoint ② ruling (`68-CHECKPOINT-2-RULING.md`) closing `GAP-59-08` under `C-7: A` and routing `ROUT-68-01..05` to v2.6 (Phase 68)
+- The plain-language findings (`69-FINDINGS.md`), retrospective recipe comparison (`69-EVIDENCE.md`), Mac compute and SCOPE-49 accounting (`69-ACCOUNTING.md`), fail-closed verifier (`verify_phase69.py`), Owner Checkpoint ③ ruling (`69-RULING.md`: `Direction A` + `trainex-r5` commissioned), and v2.6 handoff (`69-HANDOFF.md`, Phase 69)
+
+### What Worked
+- Separating blind timing calibration (`K = 100`, no accuracy scoring) from single-look science runs kept step-budget derivation strictly cost-based and prevented early-look stopping bias across 60 Phase 67 science arms
+- Pre-registered 3-case confirmation gates (`main-1632-s42`, `repeat-851-s42`, `repeat-1632-s41`) prevented single-case improvements (`EXP-04 time-only` on `1632/s42`) or unsettled endpoints from being over-claimed as confirmed mechanisms
+- Including the locked `12×256` (`first_omega_0 = 30`) control inside `EXP-03` at `lr = 1e-4` overturned the v2.4 architectural-impossibility hypothesis by reaching settled Tier 1 on all three cases (`E = 0.04069, 0.09550, 0.03492`), redirecting v2.6 from a blind representation replacement to recipe and physics-pipeline repair (`Direction A`)
+- Known-answer metric testing (`YARD-01`) exposed two opposite metric blind spots in 0.59 seconds without training: finite-difference velocity estimation fails Brutus's exact trajectory on the `10⁻⁵` energy gate while the constant predictor trivially passes the standalone energy gate (`eps_H = 0.0`)
+- Phase 69's fail-closed reconstruction verifier (`verify_phase69.py`) caught a narrative repeat-column swap (`1632/s41` vs `851/s42`) in `67-FINDINGS.md` by keying every comparison to `(case, system_id, seed, role)` from raw `review.json` files
+
+### What Was Inefficient
+- Sharing a single common step budget `N` across 10×–100× learning-rate ranges (`EXP-03`) or 10× window-length ranges (`EXP-05`) left lower-rate and shorter-window arms unsettled at the endpoint (`unsettled-continue`), limiting confirmation power on those contrasts
+- Historical Phase 60 Rung-1 runs differed from Phase 67 `EXP-03 lr1e-4` controls in five co-varying recipe aspects (optimizer schedule, clipping, diagnostic polish, step budget `5,000` vs `155,100`, and scored-state selection), so v2.5 proved that the locked architecture can fit one orbit and that `lr = 1e-3` fails under the Phase 67 protocol without isolating a single historical variable inside Phase 60's 5,000-step window
+- `EXP-05` hit a pre-attempt variant-name refusal on first launch (`exp05-d12-w256-o30-win1lap` vs canonical `win1-locked`) and required a replacement admission receipt (`67-14-SUMMARY.md`)
+- Phase folders 65–69 remain in `.planning/phases/` alongside 53–60 and 64 because `pinn/verification/` and `tests/phase65..69` hardcode `.planning/phases/65-*..69-*`, and `verify_phase69.py` required a close-time path update onto `milestones/v2.5-REQUIREMENTS.md` and `milestones/v2.5-ROADMAP.md`
+
+### Patterns Established
+- Two-stage pre-registered experiment execution: blind timing rows (`K = 100`) to freeze a common step count `N`, followed by single-look science rows on `main + repeat-system + repeat-seed`
+- Explicit `REFUTED-LEAD` governance gate: when a control arm refutes the motivating lead, dependent ladders pause for an explicit owner continuation ruling while keeping `SCOPE-46` (no spec edits in the diagnostic milestone) intact
+- Known-answer metric verification (`Brutus exact` + `constant predictor`) as a mandatory prerequisite before any metric gates a training or evaluation milestone
+- Fail-closed retrospective evidence verification (`verify_phase69.py`) that reconstructs experiment and cost inventories from git-committed blobs and distinguishes historical narrative prose from keyed JSON artifacts
+
+### Key Lessons
+1. Test the locked architecture under a clean constant learning rate (`1e-4`) and sufficient step budget before concluding that the architecture cannot represent the target: the locked `12×256` SIREN reached settled Tier 1 on all three cases once `lr = 1e-3` and the 5,000-step historical schedule were replaced.
+2. Audit every evaluation metric on the exact ground truth and a trivial constant predictor before using it as a gate: a metric that fails the exact answer (`FD eps_H`) or passes a constant output (`standalone eps_H = 0`) will misdirect engineering effort.
+3. Key multi-case experiment summaries by explicit `(system_id, seed, role)` tuples in machine-checked artifacts so prose column swaps cannot propagate into milestone conclusions.
+
+### Cost Observations
+- Model mix: not captured reliably across all sessions
+- Sessions: multi-session execution across 13 days (`2026-10-27` → `2026-11-08`), including weekend AC execution windows for Phase 66 and Phase 67
+- Notable: 325 commits (`dbc96887..ef76e00f`), `29.90` measured machine hours (`107,626.594706` UTC seconds across 129 published attempts and 1 yardstick capture) on this Mac; no graded run and no held-out evaluation. Master merge and tag push deliberately NOT performed — owner-controlled integration.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -384,6 +427,7 @@
 | v2.2 | many | 7 | Conformance-first repair of nine verified divergences plus a preflight conformance gate; the first conformant Stage-0 re-run halted at initialization; closed `stop-incomplete` with the evaluation preserved |
 | v2.3 | many (multi-session run window) | 6 | Recipe adjudication through the governed ERW channel, a SCOPE-38 contract amendment, and a train-free gate; first milestone to close on a roadmap-declared terminal state (`rethink`, evaluation preserved) |
 | v2.4 | many (detached arms + owner checkpoints) | 6 (3 executed) | Feasibility ladder with pre-registered gates: scorecard frozen before any rung; the G2 stop path skipped Phases 61–63 and went straight to an owner verdict (`RETHINK-REPRESENTATION` → `change-course`) |
+| v2.5 | many (weekend AC windows + 3 owner checkpoints) | 5 | Pre-registered root-cause diagnosis before redesign: blind-timing + 3-case confirmation ladders and known-answer yardstick audit refuted "network too small", confirmed `lr = 1e-3` worsening and FD energy-gate failure (`GAP-59-08` closed under `C-7: A`), and selected `Direction A` + `trainex-r5` for v2.6 |
 
 ### Cumulative Quality
 
@@ -398,6 +442,7 @@
 | v2.2 | 38 (34 executed) | 20/24 requirements (2 closed incomplete, 2 not attempted); phases 46–49 verified; Phase 50 closed incomplete | 0 open gaps at close (4 obligations inherited by v2.3) |
 | v2.3 | 30 | 12/15 requirements (2 closed incomplete, 1 not attempted); 6/6 phases; VER-21 15/15; GATE-04 PASS | 0 open gaps at close (GAP-56-02 deferred; 5 obligations inherited) |
 | v2.4 | 40 | 12/24 requirements (12 skipped at G2, not failed); 3/3 executed phases verified; integration 4/4, 0 blockers; VER-22 24/24/24 | 0 blockers at close (GAP-59-08 and GAP-64-01 owner-routed; 14 charter rows open) |
+| v2.5 | 32 | 13/13 requirements; 5/5 phases verified (`passed`); integration 5/5 PASS, 0 blockers; VER-23 13/13/13 | 0 blockers at close (`GAP-59-08` closed under `C-7: A`; `ROUT-68-01..05` and `Direction A` + `trainex-r5` routed to v2.6) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -409,3 +454,4 @@
 6. Verify what actually executed against the spec before trusting any result derived from it — a failing gate over a non-conformant run is evidence about the assembly, not the design (v2.1)
 7. Declare the failure branch before it is needed: a pre-named terminal state lets a negative result close cleanly and keeps a single-look evaluation unspent (v2.3)
 8. Read every result against a no-learning baseline before calling it learning: a time-constant predictor can earn the same grade as a trained network (v2.4)
+9. Test the locked architecture under a clean learning-rate control and audit every metric against exact and trivial known answers before attributing a fitting failure to network capacity (v2.5)
