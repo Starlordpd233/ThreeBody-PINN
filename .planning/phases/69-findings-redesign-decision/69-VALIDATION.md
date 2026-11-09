@@ -3,7 +3,7 @@ phase: "69"
 slug: "findings-redesign-decision"
 status: draft
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: "2026-11-08"
 ---
 
@@ -14,7 +14,8 @@ with explicit planning dispositions and independently rechecked. The canonical
 failure-direction probe checked 17 commands with no findings. The path probe
 reported `not_applicable`, not proof that the proposed checks already run.
 The post-planning coverage gate passed all 15 requirement/decision items.
-Execution and the reserved owner checkpoint remain pending.
+Plan 69-01 is implemented and mechanically checked. Findings and the reserved
+owner checkpoint remain pending.
 
 # Phase 69 validation strategy
 
@@ -28,7 +29,9 @@ No dependency installation is needed.
 - Focused suite before each wave closes: `<home>/miniforge3/envs/pinn-train/bin/python -B -m unittest discover -s tests/phase69 -t .`
 - Existing integration check: `<home>/miniforge3/envs/pinn-train/bin/python -B -m pinn.verification.diagnostic_phase67 audit-phase --json`
 
-The verifier and test paths are planned additions, not existing checks.
+The verifier and test paths now exist. The parent reran the 31 focused tests
+successfully in 16.206 seconds and the combined verifier returned every success
+marker. This is implementation validation, not approval of an owner decision.
 The task map below follows the three serial plans, 69-01 through 69-03.
 Run checks after each substantive evidence/report change and at the final state.
 Record observed latency during execution rather than asserting a duration now.
@@ -43,9 +46,9 @@ New commands become usable only after their implementing task completes.
 
 | Plan/task | Wave | Requirement | Automated verification | Observable rejection signal | Judgment or checkpoint | Current status |
 |---|---|---|---|---|---|---|
-| 69-01.1, matched 1632/42 tracer | 1 | VERD-01 | `-m unittest tests.phase69.test_verifier_phase69.SourceTracerTests`; checker `sources` | Nonzero exit, zero tests, accepted corrupt digest/case, or missing `PHASE69-SOURCES-OK` | Historical publication registration differs legitimately from later pins | Pending creation |
-| 69-01.2, complete inventory and cost | 1 | VERD-01 | `-m unittest tests.phase69.test_verifier_phase69.IdentityAndCostTests`; checker `sources` and `cost` | Nonzero exit, accepted swapped identity/duplicate expense/missing-as-zero, or missing success marker | Preserve all registered readings and explicit unknown-cost coverage | Pending |
-| 69-01.3, dynamic mapping and focused suite | 1 | VER-23 | `-m unittest discover -s tests/phase69 -t .`; checker `all`; existing `-m pinn.verification.diagnostic_phase67 audit-phase --json` | Nonzero exit, zero tests, missing constituent/`PHASE69-ALL-OK`, nonempty problems, or invalid mapping accepted | Mapping is separate from satisfaction | Pending |
+| 69-01.1, matched 1632/42 tracer | 1 | VERD-01 | `-m unittest tests.phase69.test_verifier_phase69.SourceTracerTests`; checker `sources` | Nonzero exit, zero tests, accepted corrupt digest/case, or missing `PHASE69-SOURCES-OK` | Historical publication registration differs legitimately from later pins | Passed, 31-test focused suite |
+| 69-01.2, complete inventory and cost | 1 | VERD-01 | `-m unittest tests.phase69.test_verifier_phase69.IdentityAndCostTests`; checker `sources` and `cost` | Nonzero exit, accepted swapped identity/duplicate expense/missing-as-zero, or missing success marker | Preserve all registered readings and explicit unknown-cost coverage | Passed, 31-test focused suite |
+| 69-01.3, dynamic mapping and focused suite | 1 | VER-23 | `-m unittest discover -s tests/phase69 -t .`; checker `all`; existing `-m pinn.verification.diagnostic_phase67 audit-phase --json` | Nonzero exit, zero tests, missing constituent/`PHASE69-ALL-OK`, nonempty problems, or invalid mapping accepted | Mapping is separate from satisfaction | Passed, 31-test focused suite |
 | 69-02.1, findings and linked detail | 2 | VERD-01 | Checker `all` | Nonzero exit or missing constituent/`PHASE69-ALL-OK` | Review every conclusion, adverse result, prediction, recipe limit and cost claim against sources | Pending |
 | 69-02.2, reviewed closing packet | 2 | VERD-01, VERD-02 | Checker `all`; `shasum -a 256` on findings, evidence detail, accounting and evidence JSON | Nonzero exit, missing success/hash line, or digest differs from packet entry | Record all three scientific/authority prohibition judgments; keep choices pending | Pending |
 | 69-03.1, actual owner checkpoint | 3 | VERD-02 | Checker `all`; five-file hash check including checkpoint | Nonzero exit, missing success/hash line, or presented packet changed | `checkpoint:human-verify`, `gate="blocking-human"`; actual reply or explicit owner-open instruction required | Pending owner checkpoint |
@@ -78,8 +81,8 @@ after final Git coordination. Derive the count dynamically; 13 is orientation.
 
 ## Validation sign-off
 
-- [ ] Final checked plans have per-task automated commands and failure signals.
-- [ ] Focused false-evidence tests pass and the checker rejects invalid inputs.
+- [x] Final checked plans have per-task automated commands and failure signals.
+- [x] Focused false-evidence tests pass and the checker rejects invalid inputs.
 - [ ] Source/result/cost checks pass on the presented packet.
 - [ ] Final live traceability check passes after any owner-approved changes.
 - [ ] Scientific judgment review is recorded against actual findings.

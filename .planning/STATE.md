@@ -5,16 +5,16 @@ milestone_name: Root-Cause Confirmation
 current_phase: 69
 current_phase_name: Findings & Redesign Decision
 status: executing
-stopped_at: Phase 69 planned and independently checked; execute 69-01 next
-last_updated: "2026-11-09T02:41:18.195Z"
+stopped_at: Phase 69-01 checked evidence complete; execute 69-02 findings next
+last_updated: "2026-11-09T03:10:39.645Z"
 last_activity: 2026-11-08
-last_activity_desc: Phase 69 research and three plans independently checked; ready to execute
-state_head: 46dfddfd52cabc4f90f8e89b52ccc1d6d967b0e2
+last_activity_desc: Phase 69-01 evidence, costs and mapping checks passed; findings next
+state_head: fc173a4fdedabce1a03dcc530e19ec71d489a179
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 32
-  completed_plans: 29
+  completed_plans: 30
   percent: 80
 ---
 
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-27)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
-**Current focus:** Phase 69 - Findings & Redesign Decision
+**Current focus:** Phase 69 — Findings & Redesign Decision
 
 ## Current Position
 
-Phase: 69 (Findings & Redesign Decision) — READY TO EXECUTE
-Plan: Not started
+Phase: 69 (Findings & Redesign Decision) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-11-08 - Phase 69 research and three plans independently checked; ready to execute
+Last activity: 2026-11-08 - Phase 69-01 evidence, costs and mapping checks passed; findings next
   run and review): all 12 window-ladder rows ran exactly once at the
   registered common N=148700 (200 warmup) with the registered five
   similarity events and three score events, serially in the case-major
@@ -1887,11 +1887,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/69-findings-redesign-decision/69-01-PLAN.md
+**Resume file:** .planning/phases/69-findings-redesign-decision/69-02-PLAN.md
 
-Last session: 2026-11-09T02:41:17.589Z
-Stopped at: Phase 69 planned and independently checked; execute 69-01 next
-Next action: Execute Phase 69, starting with 69-01 evidence synthesis, then findings and the owner closing checkpoint.
+Last session: 2026-11-09T03:09:57.606Z
+Stopped at: Phase 69-01 checked evidence complete; execute 69-02 findings next
+Next action: Execute 69-02 findings and decision packet, then present the reserved 69-03 owner checkpoint.
 
 ## Operator Next Steps
 
