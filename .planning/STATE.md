@@ -5,11 +5,11 @@ milestone_name: Root-Cause Confirmation
 current_phase: 69
 current_phase_name: Findings & Redesign Decision
 status: executing
-stopped_at: Phase 69-03 Task 1 awaits the owner closing decision on packet SHA-256 36c22b20a740de44915857c018d9da94deab8317122f06165fa175866a7eac78
-last_updated: "2026-11-09T03:30:36.930Z"
+stopped_at: Phase 69-03 Task 1 has a partial owner reply. trainex-r5 redesign research is authorized. v2.6 direction awaits the owner.
+last_updated: "2026-11-09T04:08:29.520Z"
 last_activity: 2026-11-08
-last_activity_desc: Phase 69 findings and decision packet verified. Awaiting the owner checkpoint.
-state_head: 0f53ab64061a1998e2df2a082149f087ee6c4b03
+last_activity_desc: Owner authorized the trainex-r5 redesign review. Phase 69 awaits the v2.6 direction.
+state_head: f55cd870aad88c56ea1888893c63137dadc42b18
 progress:
   total_phases: 5
   completed_phases: 4
@@ -32,7 +32,7 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 Phase: 69 (Findings & Redesign Decision) — EXECUTING
 Plan: 3 of 3
 Status: Ready to execute
-Last activity: 2026-11-08 - Phase 69 findings and decision packet verified. Awaiting the owner checkpoint.
+Last activity: 2026-11-08 - Owner authorized the trainex-r5 redesign review. Phase 69 awaits the v2.6 direction.
   run and review): all 12 window-ladder rows ran exactly once at the
   registered common N=148700 (200 warmup) with the registered five
   similarity events and three score events, serially in the case-major
@@ -1887,11 +1887,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/69-findings-redesign-decision/69-CHECKPOINT.md
+**Resume file:** .planning/phases/69-findings-redesign-decision/69-RULING.md
 
-Last session: 2026-11-09T03:30:36.542Z
-Stopped at: Phase 69-03 Task 1 awaits the owner closing decision on packet SHA-256 36c22b20a740de44915857c018d9da94deab8317122f06165fa175866a7eac78
-Next action: Record the owner reply against the committed Phase 69 packet. Then complete 69-03 handoff and final traceability.
+Last session: 2026-11-09T04:08:29.132Z
+Stopped at: Phase 69-03 Task 1 has a partial owner reply. trainex-r5 redesign research is authorized. v2.6 direction awaits the owner.
+Next action: Record the remaining v2.6 direction against the Phase 69 packet. Then complete the handoff and final traceability.
 
 ## Operator Next Steps
 
