@@ -1,0 +1,94 @@
+{
+  "valid": true,
+  "milestone": "v2.5",
+  "definition_count": 13,
+  "table_count": 13,
+  "roadmap_count": 13,
+  "definition_ids": [
+    "DIAG-09",
+    "EXP-01",
+    "EXP-02",
+    "EXP-03",
+    "EXP-04",
+    "EXP-05",
+    "INST-08",
+    "VER-23",
+    "VERD-01",
+    "VERD-02",
+    "YARD-01",
+    "YARD-02",
+    "YARD-03"
+  ],
+  "table_ids": [
+    "DIAG-09",
+    "EXP-01",
+    "EXP-02",
+    "EXP-03",
+    "EXP-04",
+    "EXP-05",
+    "INST-08",
+    "VER-23",
+    "VERD-01",
+    "VERD-02",
+    "YARD-01",
+    "YARD-02",
+    "YARD-03"
+  ],
+  "roadmap_ids": [
+    "DIAG-09",
+    "EXP-01",
+    "EXP-02",
+    "EXP-03",
+    "EXP-04",
+    "EXP-05",
+    "INST-08",
+    "VER-23",
+    "VERD-01",
+    "VERD-02",
+    "YARD-01",
+    "YARD-02",
+    "YARD-03"
+  ],
+  "mapped_phases": [
+    "65",
+    "66",
+    "67",
+    "68",
+    "69"
+  ],
+  "mappings": {
+    "DIAG-09": "65",
+    "EXP-01": "66",
+    "EXP-02": "67",
+    "EXP-03": "67",
+    "EXP-04": "67",
+    "EXP-05": "67",
+    "INST-08": "65",
+    "VER-23": "69",
+    "VERD-01": "69",
+    "VERD-02": "69",
+    "YARD-01": "68",
+    "YARD-02": "68",
+    "YARD-03": "68"
+  },
+  "orphan_ids": {
+    "table": [],
+    "roadmap": []
+  },
+  "extra_ids": {
+    "table": [],
+    "roadmap": []
+  },
+  "duplicate_ids": {
+    "definitions": [],
+    "table": [],
+    "roadmap": [],
+    "phase_sections": []
+  },
+  "conflicts": [],
+  "missing_phases": [],
+  "malformed_rows": [],
+  "requirements_sha256": "d91a97fc3132b4df9197323263a5f92a4d0ed58ecf1b0607b14880400e8dba3e",
+  "roadmap_sha256": "6cd3884f84be56d1b0644d561569426f9a3be1ea0c89a0a1cad80e287fe551a1",
+  "scope": "Mapping validity only; no requirement satisfaction or closing owner decision is inferred."
+}

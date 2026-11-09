@@ -1,7 +1,7 @@
 ---
 phase: 69-findings-redesign-decision
 milestone: v2.5
-status: partial
+status: ratified
 created: 2026-11-08
 checkpoint: 69-03 Task 1
 packet_commit: f55cd870aad88c56ea1888893c63137dadc42b18
@@ -53,6 +53,27 @@ then be compared under the same recipe, data, budget and scoring if a remaining
 failure warrants it. Physics learning, multi-system training and performance
 on unseen initial conditions remain open. [Matched records](69-EVIDENCE.md#historical-failures-and-successful-locked-controls)
 
-Plan 69-03’s owner checkpoint remains active for the direction choice. Record
-the next reply against this packet before completing the handoff and final
-traceability. [Closing plan](69-03-PLAN.md)
+## Reply 2, 2026-11-08
+
+After recommending A, the assistant asked, “Should I record A as the v2.6
+direction, or leave it explicitly open until trainex-r5 reports?” The owner
+answered:
+
+```owner-quote
+sure goa head
+```
+
+The reply accepts the action offered in the question, recording A as the v2.6
+direction. It addresses the same packet as Reply 1. The first reply remains
+the authority for the research commission.
+
+| Reserved choice | Final disposition | Authority |
+|---|---|---|
+| v2.6 direction | **A.** Keep the current architecture as the supervised fit control and prioritize the training recipe and physics pipeline. | Reply 2, in response to the offer to record A. |
+| trainex-r5 commission | **Authorized** as redesign research under order A. | Reply 1. |
+| trainex-r5 question | The focused redesign question quoted above. | Reply 1 refers to the review proposed in the presented packet. |
+| Additional diagnostic scope or resources | No decision requested. | Packet recommendation to proceed from existing evidence. |
+
+The reply wording, the packet identity and the recorded interpretation were
+reviewed separately. Both choices are answered. The scientific uncertainties
+and Phase 68’s explicitly open choices carry into the [v2.6 handoff](69-HANDOFF.md).

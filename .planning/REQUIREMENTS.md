@@ -163,7 +163,7 @@ A result counts as confirming only if it repeats on a second panel system and a 
     - every plan change made under SCOPE-49.
 
   **Acceptance:** every claim cites a committed run record or table. [`PROJECT.md` v2.5 "Findings and decision"]
-- [ ] **VERD-02**: **The owner's decision at the close.** The owner picks:
+- [x] **VERD-02**: **The owner's decision at the close.** The owner picks:
   - the v2.6 redesign direction;
   - whether to commission `trainex-r5` for it, and on which question. By order A, r5 is re-aimed at the redesign. If the lead was refuted, it runs on the diagnosis instead.
 
@@ -171,7 +171,7 @@ A result counts as confirming only if it repeats on a second panel system and a 
 
 ### Traceability (VER)
 
-- [ ] **VER-23**: **Traceability.** Every v2.5 requirement maps to exactly one phase, with no orphans and no duplicates. This includes any requirement or phase added by a plan change under SCOPE-49. It is re-verified at the close against the final requirement count, not carried forward from the roadmap-creation check. [VER-22 lineage]
+- [x] **VER-23**: **Traceability.** Every v2.5 requirement maps to exactly one phase, with no orphans and no duplicates. This includes any requirement or phase added by a plan change under SCOPE-49. It is re-verified at the close against the final requirement count, not carried forward from the roadmap-creation check. [VER-22 lineage]
 
 ## Scope Boundaries (owner direction 2026-10-27; hard constraints)
 
@@ -250,8 +250,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | YARD-02 | Phase 68 | Complete |
 | YARD-03 | Phase 68 | Complete |
 | VERD-01 | Phase 69 | Complete |
-| VERD-02 | Phase 69 | Pending |
-| VER-23 | Phase 69 | Pending |
+| VERD-02 | Phase 69 | Complete |
+| VER-23 | Phase 69 | Complete |
 
 **Coverage:**
 

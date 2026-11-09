@@ -102,7 +102,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 
   They separate "the design" from "the training settings". (EXP-02, EXP-03, EXP-04, EXP-05)
 - [x] **Phase 68: Yardstick** — Known-answer checks of every metric and gate, read-only. Brutus's exact answer must pass; the constant predictor must fail every accuracy bar. Then the owner decides how energy error is measured (GAP-59-08) and sets the definition of done and the Stage-0 bars, including whether the 10⁻⁵ bar stays. It does not depend on the experiments. **Owner checkpoint ②.** (YARD-01, YARD-02, YARD-03) (completed 2026-11-08)
-- [ ] **Phase 69: Findings & Redesign Decision** — One page marks each suspect, and the probe's lead, as confirmed, refuted or open, with numbers. The owner picks the v2.6 redesign direction and decides whether to commission `trainex-r5`. Traceability is re-verified at close. **Owner checkpoint ③.** (VERD-01, VERD-02, VER-23)
+- [x] **Phase 69: Findings & Redesign Decision** — One page marks each suspect, and the probe's lead, as confirmed, refuted or open, with numbers. The owner picks the v2.6 redesign direction and decides whether to commission `trainex-r5`. Traceability is re-verified at close. **Owner checkpoint ③.** (VERD-01, VERD-02, VER-23) (completed 2026-11-08)
 
 ## Phase Details
 
@@ -308,7 +308,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
   3. The owner's decision is recorded verbatim: the v2.6 redesign direction, and whether to commission `trainex-r5`, and on which question.
   4. Every v2.5 requirement maps to exactly one phase. This is re-verified against the final requirement count, including anything added under SCOPE-49.
 
-**Plans**: 2/3 plans executed in 3 serial waves, independently checked 2026-11-08.
+**Plans**: 3/3 plans executed in 3 serial waves, independently checked 2026-11-08.
 
 **Wave 1**
 
@@ -320,7 +320,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 69-03-PLAN.md — Record the owner's closing choices and final traceability.
+- [x] 69-03-PLAN.md — Record the owner's closing choices and final traceability.
 
 ## Progress
 
@@ -330,7 +330,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
 | 67. Design & Settings Ladders | 16/16 | Complete    | 2026-11-08 |
 | 68. Yardstick | 2/2 | Complete    | 2026-11-08 |
-| 69. Findings & Redesign Decision | 2/3 | In Progress|  |
+| 69. Findings & Redesign Decision | 3/3 | Complete    | 2026-11-08 |
 
 ---
 *v2.5 created 2026-10-27 (`/gsd-new-milestone`). The roadmap was generated inline from the owner-approved milestone text and requirements.*

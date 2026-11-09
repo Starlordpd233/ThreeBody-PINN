@@ -1,8 +1,8 @@
 ---
 phase: "69"
 slug: "findings-redesign-decision"
-status: draft
-nyquist_compliant: false
+status: validated
+nyquist_compliant: true
 wave_0_complete: true
 created: "2026-11-08"
 ---
@@ -14,10 +14,10 @@ with explicit planning dispositions and independently rechecked. The canonical
 failure-direction probe checked 17 commands with no findings. The path probe
 reported `not_applicable`, not proof that the proposed checks already run.
 The post-planning coverage gate passed all 15 requirement/decision items.
-Plans 69-01 and 69-02 are complete. The findings and reviewed packet are ready
-for the reserved owner checkpoint in Plan 69-03. The owner authorized the
-trainex-r5 redesign review and requested a recommendation on the v2.6
-direction. The partial reply is in [69-RULING.md](69-RULING.md).
+All three plans are executed. The owner authorized the trainex-r5 redesign
+review and chose direction A in two verbatim replies bound to the presented
+packet. The final handoff carries those decisions and the open obligations.
+[Owner ruling](69-RULING.md) · [Handoff](69-HANDOFF.md)
 
 # Phase 69 validation strategy
 
@@ -53,9 +53,9 @@ New commands become usable only after their implementing task completes.
 | 69-01.3, dynamic mapping and focused suite | 1 | VER-23 | `-m unittest discover -s tests/phase69 -t .`; checker `all`; existing `-m pinn.verification.diagnostic_phase67 audit-phase --json` | Nonzero exit, zero tests, missing constituent/`PHASE69-ALL-OK`, nonempty problems, or invalid mapping accepted | Mapping is separate from satisfaction | Passed, 31-test focused suite |
 | 69-02.1, findings and linked detail | 2 | VERD-01 | Checker `all` | Nonzero exit or missing constituent/`PHASE69-ALL-OK` | Review every conclusion, adverse result, prediction, recipe limit and cost claim against sources | Passed, 63 fit rows, 15 contrasts, 12 yardstick rows and 131 ledger activities checked |
 | 69-02.2, reviewed closing packet | 2 | VERD-01, VERD-02 | Checker `all`; `shasum -a 256` on findings, evidence detail, accounting and evidence JSON | Nonzero exit, missing success/hash line, or digest differs from packet entry | Record all three scientific/authority prohibition judgments; keep choices pending | Passed, four component digests and three judgments recorded in 69-CHECKPOINT.md |
-| 69-03.1, actual owner checkpoint | 3 | VERD-02 | Checker `all`; five-file hash check including checkpoint | Nonzero exit, missing success/hash line, or presented packet changed | `checkpoint:human-verify`, `gate="blocking-human"`; actual reply or explicit owner-open instruction required | Partial reply recorded, v2.6 direction pending |
-| 69-03.2, verbatim ruling and handoff | 3 | VERD-02 | Checker `all` | Nonzero exit or missing constituent/`PHASE69-ALL-OK` | Compare actual owner words character for character; inspect authority, open choices and handoff obligations | Pending owner checkpoint |
-| 69-03.3, final live reread | 3 | VER-23 | Checker `traceability` and `all`; `-m unittest discover -s tests/phase69 -t .` | Nonzero exit, zero tests, empty/unequal IDs, mapping anomalies, missing phase, missing success marker or stale final source hashes | Confirm actual reply/open disposition and recorded prohibition judgments | Pending final state |
+| 69-03.1, actual owner checkpoint | 3 | VERD-02 | Checker `all`; five-file hash check including checkpoint | Nonzero exit, missing success/hash line, or presented packet changed | Passed, both actual replies match the presented packet |
+| 69-03.2, verbatim ruling and handoff | 3 | VERD-02 | Checker `all` | Nonzero exit or missing constituent/`PHASE69-ALL-OK` | Passed, verified ruling and v2.6 handoff |
+| 69-03.3, final live reread | 3 | VER-23 | Checker `traceability` and `all`; `-m unittest discover -s tests/phase69 -t .` | Nonzero exit, zero tests, empty/unequal IDs, mapping anomalies, missing phase, missing success marker or stale final source hashes | Passed, dynamic v2.5 coverage and exact source hashes |
 
 Dependency order is `69-01 -> 69-02 -> 69-03`. Every task has an automated
 command and an adjacent `fails_when` in its plan. All 14 SPEC edge rows are
@@ -86,10 +86,23 @@ after final Git coordination. Derive the count dynamically; 13 is orientation.
 - [x] Final checked plans have per-task automated commands and failure signals.
 - [x] Focused false-evidence tests pass and the checker rejects invalid inputs.
 - [x] Source/result/cost checks pass on the packet prepared for presentation.
-- [ ] Final live traceability check passes after any owner-approved changes.
+- [x] Final live traceability check passes after any owner-approved changes.
 - [x] Scientific judgment review is recorded against actual findings.
-- [ ] Owner checkpoint is answered or choices explicitly left open by the owner.
-- [ ] Observed runtimes and final validation status are recorded.
+- [x] Owner checkpoint is answered or choices explicitly left open by the owner.
+- [x] Observed runtimes and final validation status are recorded.
 
 Planning and execution commits follow the repository's atomic task-end policy.
-This draft does not assert phase completion or owner approval.
+
+## Closeout validation, 2026-11-08
+
+All 39 Phase 69 tests passed in 18.707 seconds. The 55 prior-phase
+probe, reading-rule and yardstick regression tests passed in 0.136 seconds.
+The combined verifier passed on the unchanged committed evidence. The
+[traceability report](evidence/69-traceability.json) binds the live
+definitions, table and roadmap to exact source hashes. Mapping and
+requirement satisfaction are recorded separately.
+
+The [execution summary](69-03-SUMMARY.md) records the commands and the
+[review](69-REVIEW.md) records the rejection fixtures and fixes. The
+[security check](69-SECURITY.md) has no open threat. The owner checkpoint
+was completed by the two actual replies and verified by judgment.

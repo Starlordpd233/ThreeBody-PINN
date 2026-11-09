@@ -3,36 +3,35 @@ gsd_state_version: "1.0"
 milestone: v2.5
 milestone_name: Root-Cause Confirmation
 current_phase: 69
-current_phase_name: Findings & Redesign Decision
-status: executing
-stopped_at: Phase 69-03 Task 1 has a partial owner reply. trainex-r5 redesign research is authorized. v2.6 direction awaits the owner.
-last_updated: "2026-11-09T04:08:29.520Z"
+status: completed
+stopped_at: Phase 69 verified and complete. All v2.5 phases are complete and ready for milestone audit.
+last_updated: "2026-11-09T04:29:49.761Z"
 last_activity: 2026-11-08
-last_activity_desc: Owner authorized the trainex-r5 redesign review. Phase 69 awaits the v2.6 direction.
-state_head: f55cd870aad88c56ea1888893c63137dadc42b18
+last_activity_desc: Phase 69 verified. Owner selected direction A and commissioned trainex-r5 redesign research.
+state_head: 638ca94feb05d87006202729ed956521df89d652
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 32
-  completed_plans: 31
-  percent: 80
+  completed_plans: 32
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-27)
+See: .planning/PROJECT.md (updated 2026-11-08)
 
 **Core value:** An evidence-backed, pre-registered answer at each milestone to whether the approach learns three-body motion, in physical units, against this charter's bars.
 **Current focus:** Phase 69 — Findings & Redesign Decision
 
 ## Current Position
 
-Phase: 69 (Findings & Redesign Decision) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-11-08 - Owner authorized the trainex-r5 redesign review. Phase 69 awaits the v2.6 direction.
+Phase: 69
+Plan: 3 of 3 complete
+Status: All phases complete
+Last activity: 2026-11-08 - Phase 69 verified. Owner selected direction A and commissioned trainex-r5 redesign research.
   run and review): all 12 window-ladder rows ran exactly once at the
   registered common N=148700 (200 warmup) with the registered five
   similarity events and three score events, serially in the case-major
@@ -1543,7 +1542,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 **Velocity:**
 
-- Total plans completed: 921 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 924 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -1615,6 +1614,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | 66 | 5 | - | - |
 | 67 | 16 | - | - |
 | 68 | 2 | - | - |
+| 69 | 3 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -1887,11 +1887,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/69-findings-redesign-decision/69-RULING.md
+**Resume file:** .planning/phases/69-findings-redesign-decision/69-HANDOFF.md
 
-Last session: 2026-11-09T04:08:29.132Z
-Stopped at: Phase 69-03 Task 1 has a partial owner reply. trainex-r5 redesign research is authorized. v2.6 direction awaits the owner.
-Next action: Record the remaining v2.6 direction against the Phase 69 packet. Then complete the handoff and final traceability.
+Last session: 2026-11-09T04:29:12.302Z
+Stopped at: Phase 69 verified and complete. All v2.5 phases are complete and ready for milestone audit.
+Next action: Audit the v2.5 milestone before archiving it. Use the Phase 69 handoff when opening v2.6 and its authorized trainex-r5 redesign review.
 
 ## Operator Next Steps
 

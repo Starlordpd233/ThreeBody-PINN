@@ -205,18 +205,26 @@ def fit_row(sources, path, experiment, case, arm):
         fail(f"registration/case mismatch: {path}")
     if settings["variant"]["name"] != record["variant"]["name"]:
         fail(f"registration/arm mismatch: {path}")
+    window = record["orbit"]["window"]
+    bounds = settings["physical_window"]
+    if (window["configured_length"] != settings["variant"]["window_length"]
+            or not bounds["t_start"] <= window["t_start"] <= window["t_end"] <= bounds["t_end"]):
+        fail(f"registration/window mismatch: {path}")
     if experiment != "exp01":
         expected = {"experiment": experiment, "case": case, "arm": arm, "kind": "science"}
         if any(registration["phase67_row"][key] != value for key, value in expected.items()):
             fail(f"registration row identity mismatch: {path}")
     sources.read(registration["page"]["path"], publication, registration["page"]["sha256"])
     score = record["scores"]["network"]
+    route = metric_route(score)
+    if route != {"grid": "gold", "frame": "r_prime_u", "velocity_source": "autograd"}:
+        fail(f"unexpected diagnostic metric route: {path}")
     if "score_checkpoints" in record and record["score_checkpoints"][-1]["score"] != score:
         fail(f"recorded endpoint score differs: {path}")
     return {
         "experiment": experiment, "case": case, "system": system, "seed": seed,
         "role": role, "arm": arm, "state": "registered-endpoint", "score": score,
-        "metric_route": metric_route(score), "window": record["orbit"]["window"],
+        "metric_route": route, "window": window,
         "record": path, "publication_revision": publication,
         "registration": record["registration"], "prediction": registration["page"]["path"],
         "variant": record["variant"], "steps": record["steps"],
@@ -351,14 +359,15 @@ def duration(value, what):
 
 
 def utc_interval(start, end):
-    if start is None or end is None:
-        return None
     try:
-        left, right = datetime.fromisoformat(start), datetime.fromisoformat(end)
+        left, right = (datetime.fromisoformat(value) if value is not None else None for value in (start, end))
     except (TypeError, ValueError):
         fail("invalid UTC timestamps")
-    if any(time.utcoffset() is None or time.utcoffset().total_seconds() != 0 for time in (left, right)):
+    if any(time.utcoffset() is None or time.utcoffset().total_seconds() != 0
+           for time in (left, right) if time is not None):
         fail("timestamps must explicitly use UTC")
+    if left is None or right is None:
+        return None
     delta = right - left
     seconds = Decimal(delta.days * 86400 + delta.seconds) + Decimal(delta.microseconds) / 1000000
     return duration(seconds, "UTC interval")
@@ -379,6 +388,7 @@ def summarize_activities(rows):
         by_path[path], by_identity[identity] = row, path
     subtotals = {}
     for row in by_path.values():
+        path = row["attempt"]
         activity = row["activity"]
         totals = subtotals.setdefault(activity, {"attempts": 0, "published_attempts": 0,
                                                "timed_attempts": 0, "utc_seconds": Decimal(0),
@@ -410,20 +420,30 @@ def summarize_activities(rows):
 def build_cost():
     sources = Sources()
     paths = tracked_paths(f"{P65}/evidence", f"{P66}/evidence", f"{P67}/evidence")
+    tracked = set(paths)
     rows = []
     for path in paths:
         if not path.endswith("/attempt.json"):
             continue
         attempt = sources.json(path)
+        unknown_reason = None
         if path.startswith(P65) and "/probe/" in path:
             record_path = attempt["result_path"]
             record = sources.json(record_path)
             activity = "phase65-probe"
+            unknown_reason = "Probe publication has no timed attempt interval; incomplete is a claim, not a separate failed fit."
         else:
             if attempt.get("output", "record.json") != "record.json":
                 fail(f"attempt output is not its local record: {path}")
             record_path = str(PurePosixPath(path).with_name("record.json"))
-            record = sources.json(record_path, digest=attempt.get("record_sha256"), decimals=True)
+            if record_path in tracked:
+                record = sources.json(record_path, digest=attempt.get("record_sha256"), decimals=True)
+            elif attempt["status"] in {"incomplete", "failed"} and attempt.get("record_sha256") is None:
+                record_path = None
+                record = {}
+                unknown_reason = "No result was published. Unrecorded duration fields remain unknown."
+            else:
+                fail(f"attempt is missing its required result: {path}")
             if record.get("registration") is not None and record["registration"] != attempt["registration"]:
                 fail(f"attempt/record registration mismatch: {path}")
             if path.startswith(P65):
@@ -436,12 +456,12 @@ def build_cost():
         fit = duration(record.get("timing", {}).get("total_wall_seconds"), path)
         rows.append({
             "attempt": path, "record": record_path, "activity": activity,
-            "registration": attempt["registration"], "run_id": record.get("run_id", record_path),
+            "registration": attempt["registration"], "run_id": record.get("run_id", record_path or path),
             "status": attempt["status"], "record_status": record.get("status"),
             "started_utc": attempt.get("started_utc"), "ended_utc": attempt.get("ended_utc"),
             "utc_seconds": None if utc is None else str(utc),
             "fit_wall_seconds": None if fit is None else str(fit),
-            "unknown_reason": "Probe publication has no timed attempt interval; incomplete is a claim, not a separate failed fit." if activity == "phase65-probe" else None,
+            "unknown_reason": unknown_reason,
             "below_timestamp_resolution": utc == 0 if utc is not None else None,
         })
     summary = summarize_activities(rows)
@@ -464,7 +484,7 @@ def build_cost():
     return {
         "summary": summary, "activities": rows, "yardstick_capture": yardstick,
         "named_activity_utc_subtotal": {"timed_activities": summary["timed_attempts"] + 1,
-                                       "utc_seconds": str(Decimal(summary["utc_seconds"]) + yard_utc)},
+                                       "utc_seconds": str(Decimal(summary["utc_seconds"] or "0") + yard_utc)},
         "unknown_costs": unknowns,
         "coverage": "Recorded Phase 65-67 attempts plus one Phase 68 capture; not all Mac use. Attempt UTC timestamps have one-second resolution, including below-resolution zero intervals.",
         "non_additive_views": "Fit-wall and UTC intervals are alternatives; optimizer/logging/scoring segments are inside fit walls. Yardstick elapsed and UTC views are alternatives.",
@@ -512,6 +532,8 @@ def build_sources():
                 rows.append(fit_row(sources, path, exp, case, arm))
         index_cases(rows)
         lookup = {(row["case"], row["arm"]): row for row in rows}
+        if len(lookup) != len(rows):
+            fail(f"review has multiple scored rows for one case and arm: {exp}")
         contrasts = {}
         for arm, contrast in review["contrasts"].items():
             cases = {}
@@ -588,9 +610,18 @@ def build_sources():
     }
 
 
+def unique_json_object(pairs):
+    values = {}
+    for key, value in pairs:
+        if key in values:
+            fail(f"duplicate inventory JSON key: {key!r}")
+        values[key] = value
+    return values
+
+
 def load_inventory():
     try:
-        return json.loads(INVENTORY.read_text(encoding="utf-8"))
+        return json.loads(INVENTORY.read_bytes(), object_pairs_hook=unique_json_object)
     except (OSError, ValueError) as exc:
         fail(f"unreadable Phase 69 inventory: {exc}")
 
@@ -604,36 +635,68 @@ def markdown_section(text, title_pattern, level=2):
     return text[start:start + following.start()] if following else text[start:]
 
 
+def active_markdown(text):
+    """Keep rendered lines, excluding backtick and tilde fenced examples."""
+    visible = []
+    opener = None
+    for line in text.splitlines():
+        fence = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if opener is not None:
+            if fence and fence[1][0] == opener[0] and len(fence[1]) >= len(opener) and not fence[2].strip():
+                opener = None
+        elif fence:
+            opener = fence[1]
+        else:
+            visible.append(line)
+    return "\n".join(visible)
+
+
 def traceability_report(requirements_text, roadmap_text, phase_exists):
     """Check active mappings independently of completion and row order."""
-    active = re.match(r"# Requirements: (v\d+\.\d+)\b", requirements_text)
+    requirements = active_markdown(requirements_text)
+    roadmap = active_markdown(roadmap_text)
+    active = re.match(r"# Requirements: (v\d+\.\d+)\b", requirements)
     if not active:
         fail("active requirements milestone title is missing")
     milestone = active[1]
+    if milestone != "v2.5":
+        fail(f"Phase 69 checks v2.5 traceability, found {milestone}")
     # A later top-level archive title cannot contribute active definitions/rows.
-    tail = re.search(r"^# ", requirements_text[active.end():], re.M)
-    requirements = requirements_text[:active.end() + tail.start()] if tail else requirements_text
+    tail = re.search(r"^# ", requirements[active.end():], re.M)
+    if tail:
+        requirements = requirements[:active.end() + tail.start()]
     definitions = markdown_section(requirements, re.escape(milestone) + r" Requirements")
-    defined = re.findall(r"^- \[[ xX]\] \*\*([A-Z][A-Z0-9]*-\d+)\*\*", definitions, re.M)
+    defined = re.findall(r"^[ \t]*[-+*][ \t]+\[[ xX]\][ \t]+\*\*([A-Z][A-Z0-9]*-\d+)\*\*", definitions, re.M)
     table = markdown_section(requirements, "Traceability")
     table_pairs = []
     malformed = []
+    has_header = False
     for line in table.splitlines():
-        if not re.match(r"^\|\s*[A-Z][A-Z0-9]*-\d+\s*\|", line):
+        columns = [cell.strip() for cell in line.strip().removeprefix("|").removesuffix("|").split("|")]
+        if columns == ["Requirement", "Phase", "Status"]:
+            if has_header:
+                malformed.append(line)
+            has_header = True
             continue
-        columns = [column.strip() for column in line.strip().strip("|").split("|")]
+        if not re.fullmatch(r"[A-Z][A-Z0-9]*-\d+", columns[0]):
+            continue
+        if len(columns) != 3 or not has_header:
+            malformed.append(line)
+            continue
         phase = re.fullmatch(r"Phase (\d+(?:\.\d+)?)", columns[1])
         if phase is None:
             malformed.append(line)
         else:
             table_pairs.append((columns[0], phase[1]))
-    milestones = list(re.finditer(r"^## [^\n]*\b(v\d+\.\d+)\b[^\n]*$", roadmap_text, re.M))
+    if not has_header:
+        fail("expected Requirement, Phase and Status columns in traceability table")
+    milestones = list(re.finditer(r"^## [^\n]*\b(v\d+\.\d+)\b[^\n]*$", roadmap, re.M))
     headings = [heading for heading in milestones if heading[1] == milestone]
     if len(headings) != 1:
         fail(f"expected one active {milestone} roadmap heading")
     start = headings[0].start()
-    end = next((heading.start() for heading in milestones if heading.start() > start), len(roadmap_text))
-    detail = markdown_section(roadmap_text[start:end], "Phase Details")
+    end = next((heading.start() for heading in milestones if heading.start() > start), len(roadmap))
+    detail = markdown_section(roadmap[start:end], "Phase Details")
     phase_headings = list(re.finditer(r"^### Phase (\d+(?:\.\d+)?):[^\n]*$", detail, re.M))
     roadmap_pairs, phase_ids = [], []
     for index, heading in enumerate(phase_headings):
@@ -683,8 +746,8 @@ def traceability_report(requirements_text, roadmap_text, phase_exists):
 
 def check_traceability():
     # Always read current files, including when all runs after historical checks.
-    requirements = (ROOT / ".planning/REQUIREMENTS.md").read_text(encoding="utf-8")
-    roadmap = (ROOT / ".planning/ROADMAP.md").read_text(encoding="utf-8")
+    requirements = (ROOT / ".planning/REQUIREMENTS.md").read_bytes().decode("utf-8")
+    roadmap = (ROOT / ".planning/ROADMAP.md").read_bytes().decode("utf-8")
     phase_exists = lambda phase: any(path.is_dir() for path in (ROOT / ".planning/phases").glob(phase + "-*"))
     print(json.dumps(traceability_report(requirements, roadmap, phase_exists), indent=2))
     print("PHASE69-TRACEABILITY-OK")

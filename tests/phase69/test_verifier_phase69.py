@@ -3,11 +3,13 @@
 import json
 import contextlib
 import copy
+import hashlib
 import importlib.util
 import io
 from pathlib import Path
 import subprocess
 import sys
+from tempfile import TemporaryDirectory
 import unittest
 from unittest import mock
 
@@ -102,6 +104,17 @@ class SourceTracerTests(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                 self.assertEqual(m.main(["sources"]), 1)
 
+    def test_inventory_refuses_duplicate_json_keys(self):
+        m = self.module
+        with TemporaryDirectory() as temp:
+            inventory = Path(temp) / "inventory.json"
+            with mock.patch.object(m, "INVENTORY", inventory):
+                for contents in ('{"sources":{},"sources":{"matched_comparisons":[]}}',
+                                 '{"cost":{"utc_seconds":"1","utc_seconds":"107626"}}'):
+                    inventory.write_text(contents, encoding="utf-8")
+                    with self.subTest(contents=contents), self.assertRaises(m.VerifyError):
+                        m.load_inventory()
+
     def test_path_escape_and_non_evidence_paths_are_rejected(self):
         m = self.module
         for path in ("../outside.json", "/tmp/outside.json", "simulation_data/train.json",
@@ -182,6 +195,26 @@ class IdentityAndCostTests(unittest.TestCase):
             with self.assertRaisesRegex(m.VerifyError, "mismatch"):
                 m.build_sources()
 
+    def test_fit_rejects_window_or_velocity_route_substitution(self):
+        m = self.module
+        case = "main-1632-s42"
+        arm = "lr1e-4"
+        path = f"{m.P67}/evidence/exp03/science/{case}/{arm}/record.json"
+        sources = m.Sources()
+        read_json = sources.json
+        record = sources.json(path)
+        wrong_window = copy.deepcopy(record)
+        wrong_window["orbit"]["window"]["configured_length"] = 9.0
+        wrong_route = copy.deepcopy(record)
+        wrong_route["scores"]["network"]["velocity_source"] = "finite_difference"
+        wrong_route["score_checkpoints"][-1]["score"]["velocity_source"] = "finite_difference"
+        for setting, replacement in (("window", wrong_window), ("route", wrong_route)):
+            def altered(source_path, *args, **kwargs):
+                return replacement if source_path == path else read_json(source_path, *args, **kwargs)
+
+            with self.subTest(setting=setting), mock.patch.object(sources, "json", altered), self.assertRaises(m.VerifyError):
+                m.fit_row(sources, path, "exp03", case, arm)
+
     def test_repeated_control_references_count_one_attempt(self):
         m = self.module
         row = next(row for row in self.cost["activities"] if row["activity"] == "phase67-science")
@@ -214,13 +247,44 @@ class IdentityAndCostTests(unittest.TestCase):
         self.assertIsNone(report["fit_wall_seconds"])
         self.assertIsNone(row["utc_seconds"])
 
+    def test_unpublished_attempt_without_result_is_counted_as_unknown(self):
+        m = self.module
+        published = next(row for row in self.cost["activities"] if row["activity"] == "phase67-science")
+        missing = f"{m.P67}/evidence/exp03/science/incomplete/attempt.json"
+        claim = {
+            "status": "incomplete",
+            "registration": {"path": missing.replace("attempt.json", "registration.json"), "sha256": "1" * 64},
+            "started_utc": "2026-11-08T00:00:00+00:00",
+            "output": "record.json",
+        }
+        read_json = m.Sources.json
+
+        def read_claim(sources, path, *args, **kwargs):
+            return claim if path == missing else read_json(sources, path, *args, **kwargs)
+
+        with mock.patch.object(m, "tracked_paths", return_value=[published["attempt"], published["record"], missing]):
+            with mock.patch.object(m.Sources, "json", read_claim):
+                report = m.build_cost()
+                self.assertEqual(report["summary"]["attempts"], 2)
+                self.assertEqual(report["summary"]["published_attempts"], 1)
+                self.assertEqual(report["summary"]["unknown_utc_attempts"], 1)
+                partial = next(row for row in report["activities"] if row["attempt"] == missing)
+                self.assertIsNone(partial["record"])
+                self.assertIsNone(partial["fit_wall_seconds"])
+                self.assertIsNone(partial["utc_seconds"])
+                self.assertTrue(partial["unknown_reason"])
+                claim["status"] = "published"
+                with self.assertRaises(m.VerifyError):
+                    m.build_cost()
+
     def test_invalid_duration_and_timestamp_refuse(self):
         m = self.module
         for value in ("-0.1", "NaN", "Infinity", "bad", True):
             with self.subTest(value=value), self.assertRaises(m.VerifyError):
                 m.duration(value, "test")
         for start, end in (("2026-11-01T00:00:01+00:00", "2026-11-01T00:00:00+00:00"),
-                           ("2026-11-01T00:00:00", "2026-11-01T00:00:01"), ("bad", "bad")):
+                           ("2026-11-01T00:00:00", "2026-11-01T00:00:01"), ("bad", "bad"),
+                           ("bad", None), (None, "bad")):
             with self.subTest(start=start), self.assertRaises(m.VerifyError):
                 m.utc_interval(start, end)
         self.assertIsNone(m.utc_interval(None, None))
@@ -313,6 +377,47 @@ class TraceabilityTests(unittest.TestCase):
         self.assertEqual(report["definition_count"], 2)
         self.assertFalse(any(report["duplicate_ids"].values()))
 
+    def test_another_milestone_cannot_satisfy_phase69_traceability(self):
+        with self.assertRaises(self.module.VerifyError):
+            self.report(self.requirements.replace("v2.5", "v9.9"),
+                        self.roadmap.replace("v2.5", "v9.9"))
+
+    def test_indented_duplicate_definition_and_table_rows_refuse(self):
+        changes = {
+            "definition": self.requirements.replace(
+                "## Scope Boundaries", "  - [ ] **EXP-01**: duplicate\n## Scope Boundaries",
+            ),
+            "table row": self.requirements + "  | EXP-01 | Phase 65 | Pending |\n",
+            "table row without leading pipe": self.requirements + "  EXP-01 | Phase 65 | Pending |\n",
+        }
+        for surface, requirements in changes.items():
+            with self.subTest(surface=surface), self.assertRaises(self.module.VerifyError):
+                self.report(requirements)
+
+    def test_extra_mapping_column_cannot_hide_a_second_phase(self):
+        requirements = self.requirements.replace(
+            "| EXP-01 | Phase 65 | Open |", "| EXP-01 | Phase 65 | Phase 69 | Open |",
+        )
+        with self.assertRaises(self.module.VerifyError):
+            self.report(requirements)
+
+    def test_missing_mapping_header_is_rejected(self):
+        requirements = self.requirements.replace("| Requirement | Phase | Status |", "| Requirement | Phase | Comment |")
+        with self.assertRaises(self.module.VerifyError):
+            self.report(requirements)
+
+    def test_fenced_examples_are_excluded_from_active_traceability(self):
+        fence = chr(96) * 3
+        requirements = self.requirements.replace(
+            "- [ ] **EXP-01**: first", f"{fence}md\n- [ ] **EXP-01**: first\n{fence}",
+        )
+        roadmap = self.roadmap.replace(
+            "**Requirements**: VER-23", "~~~md\n**Requirements**: VER-23\n~~~",
+        )
+        for arguments in ((requirements, self.roadmap), (self.requirements, roadmap)):
+            with self.subTest(arguments=arguments), self.assertRaises(self.module.VerifyError):
+                self.report(*arguments)
+
     def test_row_definition_and_phase_order_do_not_change_mapping(self):
         requirements = self.requirements.replace(
             "- [ ] **EXP-01**: first\n- [x] **VER-23**: second",
@@ -387,19 +492,23 @@ class TraceabilityTests(unittest.TestCase):
 
     def test_each_invocation_rereads_live_sources(self):
         m = self.module
-        original = Path.read_text
-        versions = [self.requirements, self.requirements.replace("**EXP-01**", "**EXP-99**")]
-
-        def read_text(path, *args, **kwargs):
-            if path == m.ROOT / ".planning/REQUIREMENTS.md":
-                return versions.pop(0)
-            if path == m.ROOT / ".planning/ROADMAP.md":
-                return self.roadmap
-            return original(path, *args, **kwargs)
-
-        with mock.patch.object(Path, "read_text", read_text):
-            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            planning = root / ".planning"
+            for phase in self.phases:
+                (planning / "phases" / f"{phase}-fixture").mkdir(parents=True)
+            requirements = planning / "REQUIREMENTS.md"
+            requirement_bytes = self.requirements.replace("\n", "\r\n").encode("utf-8")
+            roadmap_bytes = self.roadmap.replace("\n", "\r\n").encode("utf-8")
+            requirements.write_bytes(requirement_bytes)
+            (planning / "ROADMAP.md").write_bytes(roadmap_bytes)
+            stdout, stderr = io.StringIO(), io.StringIO()
+            with mock.patch.object(m, "ROOT", root), contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
                 self.assertEqual(m.main(["traceability"]), 0)
+                report = json.loads(stdout.getvalue().split("\nPHASE69-TRACEABILITY-OK")[0])
+                self.assertEqual(report["requirements_sha256"], hashlib.sha256(requirement_bytes).hexdigest())
+                self.assertEqual(report["roadmap_sha256"], hashlib.sha256(roadmap_bytes).hexdigest())
+                requirements.write_bytes(requirement_bytes.replace(b"**EXP-01**", b"**EXP-99**"))
                 self.assertEqual(m.main(["traceability"]), 1)
 
     def test_all_runs_each_check_and_only_emits_success_after_every_pass(self):
