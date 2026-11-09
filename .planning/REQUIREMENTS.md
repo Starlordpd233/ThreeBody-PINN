@@ -155,7 +155,7 @@ A result counts as confirming only if it repeats on a second panel system and a 
 
 ### Findings and Decision (VERD)
 
-- [ ] **VERD-01**: **The findings page.** One page, plain language first. It marks each suspect, and the probe's lead, as confirmed, refuted or open, with the numbers beside each experiment's committed prediction.
+- [x] **VERD-01**: **The findings page.** One page, plain language first. It marks each suspect, and the probe's lead, as confirmed, refuted or open, with the numbers beside each experiment's committed prediction.
   - **Suspect 3, the pipeline,** is reported in two halves. The training-settings half is tested by EXP-03. The physics-term half cannot be judged until a network fits one orbit, so it is marked open and carried into v2.6 by name, unless an experiment speaks to it.
   - **The page also lists:**
     - the redesign directions the evidence supports;
@@ -249,7 +249,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | YARD-01 | Phase 68 | Complete |
 | YARD-02 | Phase 68 | Complete |
 | YARD-03 | Phase 68 | Complete |
-| VERD-01 | Phase 69 | Pending |
+| VERD-01 | Phase 69 | Complete |
 | VERD-02 | Phase 69 | Pending |
 | VER-23 | Phase 69 | Pending |
 

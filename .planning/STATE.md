@@ -5,16 +5,16 @@ milestone_name: Root-Cause Confirmation
 current_phase: 69
 current_phase_name: Findings & Redesign Decision
 status: executing
-stopped_at: Phase 69-01 checked evidence complete; execute 69-02 findings next
-last_updated: "2026-11-09T03:10:39.645Z"
+stopped_at: Phase 69-03 Task 1 awaits the owner closing decision on packet SHA-256 36c22b20a740de44915857c018d9da94deab8317122f06165fa175866a7eac78
+last_updated: "2026-11-09T03:30:36.930Z"
 last_activity: 2026-11-08
-last_activity_desc: Phase 69-01 evidence, costs and mapping checks passed; findings next
-state_head: fc173a4fdedabce1a03dcc530e19ec71d489a179
+last_activity_desc: Phase 69 findings and decision packet verified. Awaiting the owner checkpoint.
+state_head: 0f53ab64061a1998e2df2a082149f087ee6c4b03
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 32
-  completed_plans: 30
+  completed_plans: 31
   percent: 80
 ---
 
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-27)
 ## Current Position
 
 Phase: 69 (Findings & Redesign Decision) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
-Last activity: 2026-11-08 - Phase 69-01 evidence, costs and mapping checks passed; findings next
+Last activity: 2026-11-08 - Phase 69 findings and decision packet verified. Awaiting the owner checkpoint.
   run and review): all 12 window-ladder rows ran exactly once at the
   registered common N=148700 (200 warmup) with the registered five
   similarity events and three score events, serially in the case-major
@@ -1887,11 +1887,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/69-findings-redesign-decision/69-02-PLAN.md
+**Resume file:** .planning/phases/69-findings-redesign-decision/69-CHECKPOINT.md
 
-Last session: 2026-11-09T03:09:57.606Z
-Stopped at: Phase 69-01 checked evidence complete; execute 69-02 findings next
-Next action: Execute 69-02 findings and decision packet, then present the reserved 69-03 owner checkpoint.
+Last session: 2026-11-09T03:30:36.542Z
+Stopped at: Phase 69-03 Task 1 awaits the owner closing decision on packet SHA-256 36c22b20a740de44915857c018d9da94deab8317122f06165fa175866a7eac78
+Next action: Record the owner reply against the committed Phase 69 packet. Then complete 69-03 handoff and final traceability.
 
 ## Operator Next Steps
 
