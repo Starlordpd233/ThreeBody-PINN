@@ -362,3 +362,15 @@ scratch/
 
 gha-creds-*.json
 .context/
+
+# Public repository: never track personal, agent-session, or checkpoint files
+.agents/
+.gsd/
+.obsidian/
+.planning/state.json
+.planning/tmp/
+Users/
+Untitled
+*.pt
+*.weights
+runs/**/tb/
