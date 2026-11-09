@@ -213,7 +213,7 @@ proceeds under PROJECT.md's standing 2026-10-28 delegation.
   into an owner redesign choice, research commission, run authorization,
   pass-bar change, specification amendment or evaluation spend.
 
-## Edge coverage
+## Edge Coverage
 
 **Coverage:** 14/14 applicable edges resolved, 0 unresolved.
 

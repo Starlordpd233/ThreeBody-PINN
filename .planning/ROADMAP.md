@@ -308,7 +308,19 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
   3. The owner's decision is recorded verbatim: the v2.6 redesign direction, and whether to commission `trainex-r5`, and on which question.
   4. Every v2.5 requirement maps to exactly one phase. This is re-verified against the final requirement count, including anything added under SCOPE-49.
 
-**Plans**: TBD
+**Plans**: 3 plans in 3 serial waves, independently checked 2026-11-08.
+
+**Wave 1**
+
+- [ ] 69-01-PLAN.md — Reproduce the source, recipe, result and cost inventory.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 69-02-PLAN.md — Publish the findings and reviewed closing decision packet.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 69-03-PLAN.md — Record the owner's closing choices and final traceability.
 
 ## Progress
 
@@ -318,7 +330,7 @@ The lead is the 2026-10-27 probe. It reported low neighbour similarity in deeper
 | 66. Small-Network Control | 5/5 | Complete    | 2026-11-01 |
 | 67. Design & Settings Ladders | 16/16 | Complete    | 2026-11-08 |
 | 68. Yardstick | 2/2 | Complete    | 2026-11-08 |
-| 69. Findings & Redesign Decision | 0/TBD | Not started | - |
+| 69. Findings & Redesign Decision | 0/3 | Planned | - |
 
 ---
 *v2.5 created 2026-10-27 (`/gsd-new-milestone`). The roadmap was generated inline from the owner-approved milestone text and requirements.*
