@@ -4,7 +4,7 @@ Companion to `SKILL.md`. Verified facts for this machine. **The env-var table re
 specific Claude Code version — re-run the grep method against your installed version before
 trusting it. Do not treat this table as eternal truth; treat the *method* as the truth.**
 
-> Last verified: **Claude Code v2.1.177**, 2026-06-13.
+> Last verified: **Claude Code v2.1.185**, 2026-06-21. The `settings.json` `env`-block mechanism (§2) was re-verified on this version; other rows carry over from v2.1.177 and have not been re-grepped.
 
 ## 1. Verify an env var against the installed binary (ground truth)
 
@@ -53,12 +53,18 @@ the Python/TS API client; that is a different package.
 | `effortLevel` | REAL | `low`/`medium`/`high`/`xhigh`. Shared default; override per-provider via the `CLAUDE_CODE_EFFORT_LEVEL` env (profile `effort` key). |
 | `alwaysThinkingEnabled` | REAL (boolean) | Shared; no per-profile env equivalent. |
 | `model` | REAL | Default model. |
+| `env` | REAL | Object of env vars exported into the session process at startup (verified 2026-06-21, v2.1.185: a `~/.claude-max/settings.json` `env` block setting `CLAUDE_CODE_SUBAGENT_MODEL` took effect). **Scoping is by config home, not CCP profile** — `~/.claude/settings.json` applies to every profile that shares `~/.claude` (all third-party profiles do), while `~/.claude-max/`, `~/.claude-alt/`, `~/.claude-free/` each isolate to their own home. Reserve for vars that should apply to all sessions under one home; for per-CCP-profile vars use `extra_env`/`models`. |
 | `autoCompactEnabled` | NOT FOUND in 2.1.177 | Likely renamed/removed — do not rely on it. |
 
 **Precedence:** env var **>** settings.json. In CCP, `extra_env` is exported *after* the
 dedicated-key exports, so an `extra_env` entry wins over a dedicated key on collision (don't
-set the same thing both ways). This binary has **no** settings-`env`→process mechanism, so
-per-profile env MUST come from CCP, not from a settings.json `env` block.
+set the same thing both ways). The settings.json `env` block (see row above) **is** a live
+mechanism in 2.1.185 — vars there are exported into the session process at startup. It does
+**not** give per-CCP-profile isolation, because scoping is by config home: third-party
+profiles all share `~/.claude`, so a var in `~/.claude/settings.json` would leak across every
+one of them. For per-CCP-profile env, use `extra_env`/`models` (ccp exports per profile and
+scrubs on the next switch); reserve the settings.json `env` block for vars that should apply
+to every session under one config home.
 
 ## 3. CCP profile mechanism (this machine)
 
