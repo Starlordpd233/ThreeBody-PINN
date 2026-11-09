@@ -22,6 +22,9 @@ P65 = ".planning/phases/65-probe-on-the-record-fit-harness"
 P66 = ".planning/phases/66-small-network-control"
 P67 = ".planning/phases/67-design-settings-ladders"
 P68 = ".planning/phases/68-yardstick"
+# The v2.5 close archived the live requirements and roadmap; check the v2.5 archives.
+REQUIREMENTS_REL = ".planning/milestones/v2.5-REQUIREMENTS.md"
+ROADMAP_REL = ".planning/milestones/v2.5-ROADMAP.md"
 CASES = {
     "main-1632-s42": (1632, 42, "main"),
     "repeat-851-s42": (851, 42, "repeat-system"),
@@ -746,8 +749,8 @@ def traceability_report(requirements_text, roadmap_text, phase_exists):
 
 def check_traceability():
     # Always read current files, including when all runs after historical checks.
-    requirements = (ROOT / ".planning/REQUIREMENTS.md").read_bytes().decode("utf-8")
-    roadmap = (ROOT / ".planning/ROADMAP.md").read_bytes().decode("utf-8")
+    requirements = (ROOT / REQUIREMENTS_REL).read_bytes().decode("utf-8")
+    roadmap = (ROOT / ROADMAP_REL).read_bytes().decode("utf-8")
     phase_exists = lambda phase: any(path.is_dir() for path in (ROOT / ".planning/phases").glob(phase + "-*"))
     print(json.dumps(traceability_report(requirements, roadmap, phase_exists), indent=2))
     print("PHASE69-TRACEABILITY-OK")

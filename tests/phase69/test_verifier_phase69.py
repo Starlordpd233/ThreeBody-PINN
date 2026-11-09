@@ -497,11 +497,14 @@ class TraceabilityTests(unittest.TestCase):
             planning = root / ".planning"
             for phase in self.phases:
                 (planning / "phases" / f"{phase}-fixture").mkdir(parents=True)
-            requirements = planning / "REQUIREMENTS.md"
+            requirements = root / m.REQUIREMENTS_REL
+            roadmap = root / m.ROADMAP_REL
+            requirements.parent.mkdir(parents=True, exist_ok=True)
+            roadmap.parent.mkdir(parents=True, exist_ok=True)
             requirement_bytes = self.requirements.replace("\n", "\r\n").encode("utf-8")
             roadmap_bytes = self.roadmap.replace("\n", "\r\n").encode("utf-8")
             requirements.write_bytes(requirement_bytes)
-            (planning / "ROADMAP.md").write_bytes(roadmap_bytes)
+            roadmap.write_bytes(roadmap_bytes)
             stdout, stderr = io.StringIO(), io.StringIO()
             with mock.patch.object(m, "ROOT", root), contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
                 self.assertEqual(m.main(["traceability"]), 0)
