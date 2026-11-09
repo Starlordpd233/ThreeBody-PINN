@@ -1,0 +1,98 @@
+Three-Body Problem CTL-PINN
+Copyright 2024-2026 Starlordpd233
+
+The original code, specifications and documentation in this repository are
+licensed under the Apache License, Version 2.0 (see LICENSE). Third-party
+projects included in this repository keep their own licenses, listed below.
+An extra credit here is deliberate; if a credit is missing, please open an
+issue.
+
+================================================================================
+Third-party projects included as source trees
+================================================================================
+
+Brutus (brutus_Newton-main/)
+  Arbitrary-precision N-body integrator used to generate the training data.
+  Authors: Tjarda Boekholt and Simon Portegies Zwart, Leiden Observatory.
+  Upstream archive: https://github.com/spzwart/brutus_Newton-debricated
+  Later development: gitlab.strw.leidenuniv.nl, project spz/brutus-newton
+  License: Apache-2.0 (brutus_Newton-main/LICENSE)
+  Build dependencies, not copied into this repository:
+    GMP https://gmplib.org/, MPFR http://www.mpfr.org/,
+    MPFR C++ http://www.holoborodko.com/pavel/mpfr/,
+    mpreal https://github.com/advanpix/mpreal/
+
+DeepXDE (reference-code/reference_NNs/deepxde-master/)
+  https://github.com/lululxvi/deepxde
+  Lu, Meng, Mao, Karniadakis, SIAM Review, doi:10.1137/19M1274067
+  License: LGPL-2.1 (reference-code/reference_NNs/deepxde-master/LICENSE)
+  Reference snapshot only; it is not imported by this project's code.
+  Credits carried inside that tree: backend layout referenced from
+  https://github.com/dmlc/dgl; tfp_optimizer.py modified from
+  https://gist.github.com/piyueh/712ec7d4540489aad2dcfb80f9a54993, with
+  header citations of TensorDiffEq, SciANN and
+  https://github.com/pierremtb/PINNs-TF2.0; examples drawn from
+  https://github.com/PredictiveIntelligenceLab/MultiscalePINNs, a SciANN
+  elasticity notebook, and https://github.com/samuelpgroth/waves-fenicsx.
+
+GravNN (reference-code/reference_NNs/GravNN-master/)
+  https://github.com/joma5012/GravNN (README also cites
+  https://github.com/joma5012/GravityModels)
+  License: MIT (reference-code/reference_NNs/GravNN-master/GravNN/LICENSE)
+  GravNN/Support/RigidBodyKinematics.py: ISC license, University of Colorado
+  Boulder AVS Lab, 2016.
+  GravNN/Networks/Networks.py is adapted from
+  https://github.com/PredictiveIntelligenceLab/GradientPathologiesPINNs
+
+PINA (reference-code/reference_NNs/PINA-master/)
+  https://github.com/mathLab/PINA
+  Coscia, Ivagnes, Demo, Rozza, JOSS, doi:10.21105/joss.05352
+  License: MIT (reference-code/reference_NNs/PINA-master/LICENSE.rst)
+  tutorials/tutorial8 uses https://github.com/mathLab/Smithers
+
+PyTorch-LBFGS (reference-code/reference_NNs/PyTorch-LBFGS-master/)
+  https://github.com/hjmshi/PyTorch-LBFGS
+  Hao-Jun Michael Shi and Dheevatsa Mudigere
+  License: MIT, Copyright (c) 2018 Hao-Jun Michael Shi
+
+Hamiltonian Neural Networks (reference-code/reference_NNs/hamiltonian-nn-master/)
+  https://github.com/greydanus/hamiltonian-nn
+  Sam Greydanus, Misko Dzamba, Jason Yosinski, 2019,
+  https://arxiv.org/abs/1906.01563
+  License: Apache-2.0
+
+SIREN (reference-code/reference_NNs/siren/, two files)
+  https://github.com/vsitzmann/siren, https://vsitzmann.github.io/siren
+  Sitzmann, Martel, Bergman, Lindell, Wetzstein, "Implicit Neural
+  Representations with Periodic Activation Functions", 2020
+  License: MIT, Copyright (c) 2020 Vincent Sitzmann
+  (reference-code/reference_NNs/siren/LICENSE)
+  modules.py adapts code from https://github.com/NVIDIA/partialconv and
+  https://github.com/makora9143/pytorch-convcnp
+
+================================================================================
+Used during development, not included in this repository
+================================================================================
+
+Neural symplectic integrator
+  Cai, Portegies Zwart, Podareanu, arXiv:2111.15631. GPL-3.0. A snapshot was
+  consulted during development and is not distributed here.
+
+Lyapunov-exponent tutorial material
+  Datseris and Parlitz, "Nonlinear Dynamics", Springer 2022,
+  https://link.springer.com/book/10.1007/978-3-030-91032-7, with code from
+  DynamicalSystems.jl / ChaosTools
+  (https://juliadynamics.github.io/DynamicalSystems.jl/) and
+  https://github.com/JuliaDynamics/FractalDimensions.jl. Study notes derived
+  from the book are not distributed here.
+
+A vendored neural-network example was removed before publication because it
+was marked confidential.
+
+================================================================================
+Cited in the specifications, not vendored
+================================================================================
+
+  https://github.com/jaeminoh/Siren_PINNs
+  https://github.com/omniscientoctopus/Physics-Informed-Neural-Networks
+  https://github.com/PredictiveIntelligenceLab/CausalPINNs
